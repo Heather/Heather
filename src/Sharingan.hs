@@ -65,12 +65,14 @@ options = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
+    Option ['g'] ["gentoo"]  (NoArg genSync) "Synchronize cvs portagee tree Gentoo x86",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     Option ['f'] ["force"]   (NoArg forceReinstall) "force sync.."
   ]
 {----------------------------------------------------------------------------------------}
-getDepot _ =    gInit                       >> exitWith ExitSuccess
-showV _    =    printf "sharingan 0.0.1"    >> exitWith ExitSuccess
+getDepot _ =    gInit                           >> exitWith ExitSuccess
+genSync _  =    gentooSync "/home/gentoox86" 2  >> exitWith ExitSuccess
+showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 {----------------------------------------------------------------------------------------}

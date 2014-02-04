@@ -4,6 +4,7 @@ module Shell
     gpull,
     gclone,
     rebasefork,
+    gentooSync
   ) where
 
 import System.Directory
@@ -30,6 +31,11 @@ rebasefork path branch upstream =
                         ++ " & git push --force origin "                ++ branch
                     return True
             else    return False
+{----------------------------------------------------------------------------------------}
+gentooSync :: [Char] -> Int -> IO()
+gentooSync path jobs = exc path $ " cvs update "
+            ++ "egencache --update --repo=gentoo --portdir=" ++ path
+            ++ " --jobs=" ++ show jobs
 {----------------------------------------------------------------------------------------}
 gpull :: [Char] -> [Char] -> IO()
 gpull path branch =
