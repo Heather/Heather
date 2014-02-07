@@ -6,7 +6,7 @@ import System.Directory
 import Control.Monad
 
 import System.FilePath((</>))
-{------------------------------------  CopyDir  -----------------------------------------}
+
 copyDir ::  FilePath -> FilePath -> IO ()
 copyDir src dst = do
     createDirectory dst
@@ -17,4 +17,3 @@ copyDir src dst = do
         in doesDirectoryExist srcPath >>= \dirExist ->
             if dirExist then copyDir srcPath dstPath
                         else copyFile srcPath dstPath
-{----------------------------------------------------------------------------------------}

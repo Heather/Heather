@@ -17,15 +17,15 @@ import Data.Maybe (fromJust)
 import Control.Applicative
 
 import qualified Data.ByteString.Char8 as BS
-{----------------------------------------------------------------------------------------}
+
 data Sharingan = Sharingan {script :: [String]}
                             deriving (Show)
-{----------------------------------------------------------------------------------------}
+
 data Repository = Repository {location :: String,
                               branches :: [String],
                               upstream :: String}
                               deriving (Show)
-{----------------------------------------------------------------------------------------}
+
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
                            v .: "location" <*>
@@ -33,15 +33,14 @@ instance FromJSON Repository where
                            v .: "upstream"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML/JSON"
-{----------------------------------------------------------------------------------------}
+
 instance FromJSON Sharingan where
     parseJSON (Object v) = Sharingan <$>
                            v .: "script"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML/JSON"
-{----------------------------------------------------------------------------------------}
-yDecode :: FromJSON a => FilePath -> IO a
+
+yDecode :: FromJSON iFromJSONable => FilePath -> IO iFromJSONable
 yDecode fnm = do
     ymlData <- BS.readFile fnm
     return $ fromJust $ Data.Yaml.decode ymlData
-{----------------------------------------------------------------------------------------}

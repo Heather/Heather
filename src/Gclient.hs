@@ -20,7 +20,7 @@ import System.FilePath((</>))
 import Control.Monad
 
 import qualified Data.ByteString.Lazy as B
-{-------------------------------  GettingGclientReady  ----------------------------------}
+
 gInit :: IO()
 gInit =
     let src = "depot_tools"
@@ -48,12 +48,12 @@ gInit =
             {- I know..................................................... -}
             pid <- runCommand $ dst </> "gclient"
             waitForProcess pid >>= \_ -> return ()
-{----------------------------------  gclient  -------------------------------------------}
+
 gClient :: [Char] -> IO()
 gClient args = do
     pid <- runCommand $ "C:/depot_tools/gclient " ++ args
     waitForProcess pid >>= \_ -> putStrLn ""
-{----------------------------------------------------------------------------------------}
+
 fetch :: [Char] -> IO()
 fetch project =
     let pDir = if | os `elem` ["win32", "mingw32", "cygwin32"] -> "C:/" </> project
@@ -65,4 +65,3 @@ fetch project =
                     waitForProcess pid >>= \_ -> putStrLn " -> Fetch complete"
             else do pid <- runCommand $ "cd " ++ pDir ++ " & C:/depot_tools/gclient update"
                     waitForProcess pid >>= \_ -> putStrLn " -> Update complete"
-{----------------------------------------------------------------------------------------}
