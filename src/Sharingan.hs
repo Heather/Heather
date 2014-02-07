@@ -70,15 +70,24 @@ options = [
     Option ['f'] ["force"]   (NoArg forceReinstall) "force sync.."
   ]
 
+getDepot   ::   Options -> IO Options
+genSync    ::   Options -> IO Options
+showV      ::   Options -> IO Options
+showHelp   ::   Options -> IO Options
+
 getDepot _ =    gInit                           >> exitWith ExitSuccess
 genSync _  =    gentooSync "/home/gentoox86" 2  >> exitWith ExitSuccess
 showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 
+gets            ::   String -> Options -> IO Options
+forceReinstall  ::   Options -> IO Options
+
 gets arg opt        = return opt { optSync = arg }
 forceReinstall opt  = return opt { optForce = go True }
 
+lyricsBracket :: IO() -> IO()
 lyricsBracket = bracket_
  ( do
     putStrLn "____________________________________________________________________________________________"
