@@ -103,21 +103,25 @@ lyricsBracket = bracket_
     putStrLn "____________________________________________________________________________________________"
  )
 
+is :: IO () -> Bool -> IO ()
+is = flip when
+
 go :: Bool -> String -> IO()
-go _ sync = (</> "sharingan.yml") -- (& filename .~ "sharingan.yml")
-  <$> takeDirectory 
+go _ sync = (</> "sharingan.yml")                   {- lens:                           -}
+  <$> takeDirectory                                 {- (& filename .~ "sharingan.yml") -}
   <$> getExecutablePath >>= \ymlx ->
-    doesFileExist ymlx  >>= (flip when $ lyricsBracket $ do
+    let ymlprocess = is $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
-            let loc = (location repo)
+            let loc = location repo
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
                     printf " * %s <> %s\n" loc branch
-                    >> rebasefork loc branch (upstream repo)
-                    >>= ( flip when 
-                        $ let sharingan = (loc </> ".sharingan.yml")
-                          in doesFileExist sharingan >>= ( flip when $ do
-                            syncDatax <- yDecode sharingan :: IO Sharingan                  
-                            forM_ (script syncDatax) $ exc loc ))
-                    >> putStrLn <| replicate 92 '_' )
+                    >> let eye = is $ let sharingan = loc </> ".sharingan.yml"
+                                          vision = is 
+                                            $ do syncDatax <- yDecode sharingan :: IO Sharingan                  
+                                                 forM_ (script syncDatax) $ exc loc
+                                      in doesFileExist sharingan >>= vision
+                       in rebasefork loc branch <| upstream repo >>= eye
+                    >> putStrLn <| replicate 92 '_'
+    in doesFileExist ymlx >>= ymlprocess
