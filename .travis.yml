@@ -3,7 +3,6 @@ notifications:
   irc: "chat.freenode.net#Heather"
 
 env:
- - GHCVER=7.6.1
  - GHCVER=7.6.2
  - GHCVER=7.6.3
 
