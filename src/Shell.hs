@@ -8,20 +8,10 @@ module Shell
   ) where
 
 import System.Directory
-import System.Process
-
 import System.FilePath((</>))
 
 import Control.Monad
-import Control.FSharp
-
-exec :: [Char] -> IO()
-exec args = do
-    pid <- runCommand args
-    waitForProcess pid >> return ()
-
-exc :: [Char] -> [Char] -> IO()
-exc path args = setCurrentDirectory path >> exec args
+import Control.Eternal
 
 rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
 rebasefork path branch upstream =

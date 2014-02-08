@@ -6,9 +6,6 @@ module Gclient
     fetch
   ) where
 
-import FileSystem
-import Depot
-
 import Codec.Archive.Zip
 
 import System.Directory
@@ -18,6 +15,7 @@ import System.Info (os)
 import System.FilePath((</>))
 
 import Control.Monad
+import Control.Eternal
 
 import qualified Data.ByteString.Lazy as B
 
@@ -30,7 +28,7 @@ gInit =
             let tarball = "depot_tools.zip"
             doesFileExist tarball >>= \fileExist -> unless fileExist $ do
                 putStrLn " -> Getting Depot Tools" 
-                getDepotTools
+                download "http://src.chromium.org/svn/trunk/tools/depot_tools.zip" "depot_tools.zip"
                 dictZipFile <- B.readFile tarball
                 extractFilesFromArchive [OptVerbose] $ toArchive dictZipFile
                 srcExists <- doesDirectoryExist src

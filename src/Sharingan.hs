@@ -18,7 +18,7 @@ import Control.Concurrent
 import Control.Monad
 import Control.Applicative
 import Control.Exception
-import Control.FSharp
+import Control.Eternal
 
 import System.FilePath(takeDirectory, (</>))
 
@@ -103,24 +103,21 @@ lyricsBracket = bracket_
     putStrLn "____________________________________________________________________________________________"
  )
 
-is :: IO () -> Bool -> IO ()
-is = flip when
-
 go :: Bool -> String -> IO()
 go _ sync = (</> "sharingan.yml")                   {- lens:                           -}
   <$> takeDirectory                                 {- (& filename .~ "sharingan.yml") -}
   <$> getExecutablePath >>= \ymlx ->
-    let ymlprocess = is $ lyricsBracket $ do
+    let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
             let loc = location repo
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
                     printf " * %s <> %s\n" loc branch
-                    >> let eye = is $ let sharingan = loc </> ".sharingan.yml"
-                                          vision = is 
-                                            $ do syncDatax <- yDecode sharingan :: IO Sharingan                  
-                                                 forM_ (script syncDatax) $ exc loc
+                    >> let eye = ifSo $ let sharingan = loc </> ".sharingan.yml"
+                                            vision = ifSo 
+                                             $ do syncDatax <- yDecode sharingan :: IO Sharingan                  
+                                                  forM_ (script syncDatax) $ exc loc
                                       in doesFileExist sharingan >>= vision
                        in rebasefork loc branch <| upstream repo >>= eye
                     >> putStrLn <| replicate 92 '_'
