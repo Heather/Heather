@@ -2,7 +2,7 @@
 {----------------------------------------------------------------------------------------}
 import Yaml
 import Shell
-import Gclient
+import Tools
 {----------------------------------------------------------------------------------------}
 import Text.Printf
 
@@ -75,7 +75,7 @@ genSync    ::   Options -> IO Options
 showV      ::   Options -> IO Options
 showHelp   ::   Options -> IO Options
 
-getDepot _ =    gInit                           >> exitWith ExitSuccess
+getDepot _ =    depot_tools                     >> exitWith ExitSuccess
 genSync _  =    gentooSync "/home/gentoox86" 2  >> exitWith ExitSuccess
 showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options

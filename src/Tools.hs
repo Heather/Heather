@@ -1,17 +1,11 @@
-{-# LANGUAGE UnicodeSyntax, MultiWayIf #-}
-
-module Gclient
-  ( gInit,
-    gClient,
-    fetch
+module Tools
+  ( depot_tools
   ) where
 
 import Codec.Archive.Zip
 
 import System.Directory
 import System.Process
-
-import System.Info (os)
 import System.FilePath((</>))
 
 import Control.Monad
@@ -19,8 +13,8 @@ import Control.Eternal
 
 import qualified Data.ByteString.Lazy as B
 
-gInit :: IO()
-gInit =
+depot_tools :: IO()
+depot_tools =
     let src = "depot_tools"
         dst = "C:/depot_tools"
     in doesDirectoryExist   dst >>= \dirExist1 -> unless dirExist1 $
@@ -28,7 +22,7 @@ gInit =
             let tarball = "depot_tools.zip"
             doesFileExist tarball >>= \fileExist -> unless fileExist $ do
                 putStrLn " -> Getting Depot Tools" 
-                download "http://src.chromium.org/svn/trunk/tools/depot_tools.zip" "depot_tools.zip"
+                download "http://src.chromium.org/svn/trunk/tools/depot_tools.zip" tarball
                 dictZipFile <- B.readFile tarball
                 extractFilesFromArchive [OptVerbose] $ toArchive dictZipFile
                 srcExists <- doesDirectoryExist src
@@ -46,20 +40,3 @@ gInit =
             {- I know..................................................... -}
             pid <- runCommand $ dst </> "gclient"
             waitForProcess pid >>= \_ -> return ()
-
-gClient :: [Char] -> IO()
-gClient args = do
-    pid <- runCommand $ "C:/depot_tools/gclient " ++ args
-    waitForProcess pid >>= \_ -> putStrLn ""
-
-fetch :: [Char] -> IO()
-fetch project =
-    let pDir = if | os `elem` ["win32", "mingw32", "cygwin32"] -> "C:/" </> project
-                  | otherwise -> project
-    in doesDirectoryExist pDir >>= \dirExist -> 
-        if dirExist
-            then do createDirectory pDir
-                    pid <- runCommand $ "cd " ++ pDir ++ " & C:/depot_tools/fetch " ++ project ++ " --nosvn=True"
-                    waitForProcess pid >>= \_ -> putStrLn " -> Fetch complete"
-            else do pid <- runCommand $ "cd " ++ pDir ++ " & C:/depot_tools/gclient update"
-                    waitForProcess pid >>= \_ -> putStrLn " -> Update complete"
