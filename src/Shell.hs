@@ -18,8 +18,8 @@ rebasefork path branch upstream =
     doesDirectoryExist path                  >>= \dirExist ->
         doesDirectoryExist <| path </> ".git" >>= \git ->
          if git then if dirExist
-                        then do exc path $ "git reset --hard"
-                                    ++ " & git checkout "                           ++ branch   
+                        then do exc path $ "git checkout "    ++ branch
+                                    ++ " & git reset --hard"
                                     ++ " & git rebase --abort & git pull origin "   ++ branch
                                     ++ " & git fetch "                              ++ upstream
                                     ++ " & git pull --rebase "                      ++ upstream
