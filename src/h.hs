@@ -25,8 +25,8 @@ import Data.Maybe (fromJust)
 
 import qualified Data.ByteString.Char8 as BS
 {----------------------------------------------------------------------------------------}
-main = do user <- getAppUserDataDirectory "h.lock"
-          locked <- doesFileExist user
+main = do user      <- getAppUserDataDirectory "h.lock"
+          locked    <- doesFileExist user
           let run = myThreadId >>= \t -> withFile user WriteMode (do_program t)
                                            `finally` removeFile user
           if locked then do
@@ -93,13 +93,15 @@ lyricsBracket = bracket_
     )
 {----------------------------------------------------------------------------------------}
 data Repository = Repository {location :: String,
-                              branch :: String}
+                              branch :: String,
+                              upstream :: String}
                               deriving (Show)
 {----------------------------------------------------------------------------------------}
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
                            v .: "location" <*>
-                           v .: "branch"
+                           v .: "branch" <*>
+                           v .: "upstream"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML/JSON"
 {----------------------------------------------------------------------------------------}
@@ -111,12 +113,13 @@ exec args = do
 exc :: [Char] -> [Char] -> IO()
 exc path args = exec $ "cd " ++ path ++ " & " ++ args
 {----------------------------------------------------------------------------------------}
-rebasefork :: [Char] -> [Char] -> IO()
-rebasefork path branch = do
+rebasefork :: [Char] -> [Char] -> [Char] -> IO()
+rebasefork path branch upstream = do
     doesDirectoryExist path >>= (flip when
         $ do exc path $ "git checkout " ++ branch
                 ++ " & git rebase --abort & git pull origin " ++ branch
-                ++ " & git fetch upstream master & git pull --rebase upstream master"
+                ++ " & git fetch " ++ upstream
+                ++ " & git pull --rebase " ++ upstream
                 ++ " & git push --force origin " ++ branch)
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
@@ -128,8 +131,8 @@ go pl force = (</> "sync.yml")
              let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
                  repoData  = fromJust ymlDecode
              forM_ repoData $ \repo -> do
-                print repo
-                liftA2 rebasefork location branch repo
+                liftA2 (printf "%s <> %s") location branch repo
+                liftA3 rebasefork location branch upstream repo
                 putStrLn " __________________________________________________________________________________________ "
     )
 {----------------------------------------------------------------------------------------}

@@ -21,6 +21,8 @@ config example:
 ```yaml
 -   location: '/home/repo1'
     branch: 'master'
+    upstream: 'upstream master'
 -   location: '/home/repo2'
     branch: 'master'
+    upstream: 'upstream master'
 ```
