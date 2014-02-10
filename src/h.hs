@@ -125,7 +125,7 @@ go :: Bool -> String -> IO()
 go pl force = (</> "sync.yml")
  <$> takeDirectory 
  <$> getExecutablePath >>= \ymlx ->
-    doesFileExist ymlx >>= (flip when
+    doesFileExist ymlx >>= (flip when $ lyricsBracket
         $ do ymlData <- BS.readFile ymlx
              let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
                  repoData  = fromJust ymlDecode
