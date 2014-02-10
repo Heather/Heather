@@ -1,7 +1,7 @@
-Heather (mirana recode)
-=======================
+Sharingan (mirana recode)
+========================
 
-[![Build Status](https://travis-ci.org/Heather/Heather.png?branch=master)](https://travis-ci.org/Heather/Heather)
+[![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
 go pl force = (</> "sync.yml")
