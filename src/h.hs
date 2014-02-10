@@ -1,5 +1,9 @@
 {-# LANGUAGE CPP, MultiWayIf, OverloadedStrings #-}
 {----------------------------------------------------------------------------------------}
+
+import VCS
+
+{----------------------------------------------------------------------------------------}
 import Text.Printf
 import Text.Show
 
@@ -78,19 +82,19 @@ getp arg opt        = return opt { optPlatform = arg }
 forceReinstall opt  = return opt { optForce = go True }
 {----------------------------------------------------------------------------------------}
 lyricsBracket = bracket_
-     ( do
-            putStrLn " __________________________________________________________________________________________ "
-            putStrLn "                    And who the hell do you think I've become?                              "
-            putStrLn "  Like the person inside, I've been opening up.                                             "
-            putStrLn "                                                     I'm onto you. (I'm onto you.)          "
-            putStrLn " __________________________________________________________________________________________ "
-    )( do
-            putStrLn "     Cut out your tongue and feed it to the liars.                                          "
-            putStrLn "                  Black hearts shed light on dying words.                                   "
-            putStrLn "                                                                                            "
-            putStrLn "                                                            I wanna feel you burn.          "
-            putStrLn " __________________________________________________________________________________________ "
-    )
+ ( do
+    putStrLn " __________________________________________________________________________________________ "
+    putStrLn "                    And who the hell do you think I've become?                              "
+    putStrLn "  Like the person inside, I've been opening up.                                             "
+    putStrLn "                                                     I'm onto you. (I'm onto you.)          "
+    putStrLn " __________________________________________________________________________________________ "
+ )(do
+    putStrLn "     Cut out your tongue and feed it to the liars.                                          "
+    putStrLn "                  Black hearts shed light on dying words.                                   "
+    putStrLn "                                                                                            "
+    putStrLn "                                                            I wanna feel you burn.          "
+    putStrLn " __________________________________________________________________________________________ "
+ )
 {----------------------------------------------------------------------------------------}
 data Repository = Repository {location :: String,
                               branch :: String,
@@ -105,34 +109,17 @@ instance FromJSON Repository where
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML/JSON"
 {----------------------------------------------------------------------------------------}
-exec :: [Char] -> IO()
-exec args = do
-    pid <- runCommand args
-    waitForProcess pid >> return ()
-{----------------------------------------------------------------------------------------}
-exc :: [Char] -> [Char] -> IO()
-exc path args = exec $ "cd " ++ path ++ " & " ++ args
-{----------------------------------------------------------------------------------------}
-rebasefork :: [Char] -> [Char] -> [Char] -> IO()
-rebasefork path branch upstream = do
-    doesDirectoryExist path >>= (flip when
-        $ do exc path $ "git checkout " ++ branch
-                ++ " & git rebase --abort & git pull origin " ++ branch
-                ++ " & git fetch " ++ upstream
-                ++ " & git pull --rebase " ++ upstream
-                ++ " & git push --force origin " ++ branch)
-{----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
 go pl force = (</> "sync.yml")
  <$> takeDirectory 
  <$> getExecutablePath >>= \ymlx ->
-    doesFileExist ymlx >>= (flip when $ lyricsBracket
-        $ do ymlData <- BS.readFile ymlx
-             let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
-                 repoData  = fromJust ymlDecode
-             forM_ repoData $ \repo -> do
-                liftA2 (printf "%s <> %s") location branch repo
-                liftA3 rebasefork location branch upstream repo
-                putStrLn " __________________________________________________________________________________________ "
+    doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
+        ymlData <- BS.readFile ymlx
+        let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
+            repoData  = fromJust ymlDecode
+        forM_ repoData $ \repo ->
+            liftA2 (printf "%s <> %s\n") location branch repo
+            >> liftA3 rebasefork location branch upstream repo
+            >> print " __________________________________________________________________________________________ "
     )
 {----------------------------------------------------------------------------------------}
