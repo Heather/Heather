@@ -79,18 +79,18 @@ forceReinstall opt  = return opt { optForce = go True }
 {----------------------------------------------------------------------------------------}
 lyricsBracket = bracket_
      ( do
-            putStrLn " ________________________________________________________ "
-            putStrLn "          And who the hell do you think I've become?      "
-            putStrLn "  Like the person inside, I've been opening up.           "
-            putStrLn "                            I'm onto you. (I'm onto you.) "
-            putStrLn " ________________________________________________________ "
+            putStrLn " __________________________________________________________________________________________ "
+            putStrLn "                    And who the hell do you think I've become?                              "
+            putStrLn "  Like the person inside, I've been opening up.                                             "
+            putStrLn "                                                     I'm onto you. (I'm onto you.)          "
+            putStrLn " __________________________________________________________________________________________ "
     )( do
-            putStrLn " ________________________________________________________ "
-            putStrLn " Cut out your tongue and feed it to the liars.            "
-            putStrLn "     Black hearts shed light on dying words.              "
-            putStrLn "                                                          "
-            putStrLn "                                 I wanna feel you burn.   "
-            putStrLn " ________________________________________________________ "
+            putStrLn " __________________________________________________________________________________________ "
+            putStrLn "     Cut out your tongue and feed it to the liars.                                          "
+            putStrLn "                  Black hearts shed light on dying words.                                   "
+            putStrLn "                                                                                            "
+            putStrLn "                                                            I wanna feel you burn.          "
+            putStrLn " __________________________________________________________________________________________ "
             putStrLn ""
     )
 {----------------------------------------------------------------------------------------}
@@ -131,5 +131,6 @@ go pl force = (</> "sync.yml")
                  repoData  = fromJust ymlDecode
              forM_ repoData $ \repo -> do
                 print repo
-                liftA2 rebasefork location branch repo)
+                liftA2 rebasefork location branch repo
+    )
 {----------------------------------------------------------------------------------------}
