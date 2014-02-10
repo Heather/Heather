@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-
 module VCS
   ( exec,
     exc,

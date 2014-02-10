@@ -1,6 +1,7 @@
-{-# LANGUAGE CPP, MultiWayIf, OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf, OverloadedStrings #-}
 {----------------------------------------------------------------------------------------}
 
+import Config
 import VCS
 
 {----------------------------------------------------------------------------------------}
@@ -96,22 +97,9 @@ lyricsBracket = bracket_
     putStrLn " __________________________________________________________________________________________ "
  )
 {----------------------------------------------------------------------------------------}
-data Repository = Repository {location :: String,
-                              branch :: String,
-                              upstream :: String}
-                              deriving (Show)
-{----------------------------------------------------------------------------------------}
-instance FromJSON Repository where
-    parseJSON (Object v) = Repository <$>
-                           v .: "location" <*>
-                           v .: "branch" <*>
-                           v .: "upstream"
-    -- A non-Object value is of the wrong type, so fail.
-    parseJSON _ = error "Can't parse Repository from YAML/JSON"
-{----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
 go pl force = (</> "sync.yml")
- <$> takeDirectory 
+ <$> takeDirectory
  <$> getExecutablePath >>= \ymlx ->
     doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
         ymlData <- BS.readFile ymlx
