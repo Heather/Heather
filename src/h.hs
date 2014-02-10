@@ -85,13 +85,11 @@ lyricsBracket = bracket_
             putStrLn "                                                     I'm onto you. (I'm onto you.)          "
             putStrLn " __________________________________________________________________________________________ "
     )( do
-            putStrLn " __________________________________________________________________________________________ "
             putStrLn "     Cut out your tongue and feed it to the liars.                                          "
             putStrLn "                  Black hearts shed light on dying words.                                   "
             putStrLn "                                                                                            "
             putStrLn "                                                            I wanna feel you burn.          "
             putStrLn " __________________________________________________________________________________________ "
-            putStrLn ""
     )
 {----------------------------------------------------------------------------------------}
 data Repository = Repository {location :: String,
@@ -132,5 +130,6 @@ go pl force = (</> "sync.yml")
              forM_ repoData $ \repo -> do
                 print repo
                 liftA2 rebasefork location branch repo
+                putStrLn " __________________________________________________________________________________________ "
     )
 {----------------------------------------------------------------------------------------}
