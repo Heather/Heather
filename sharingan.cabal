@@ -24,4 +24,3 @@ Executable    sharingan
     , http-conduit
     , network
     , HTTP
-    , lens
