@@ -17,12 +17,15 @@ import System.Exit
 import System.Console.GetOpt
 import System.IO
 
+import System.FilePath.Lens
+
 import System.Environment.Executable ( getExecutablePath )
 
 import Control.Concurrent
 import Control.Monad
 import Control.Applicative
 import Control.Exception
+import Control.Lens
 
 import System.FilePath(takeDirectory, (</>))
 
@@ -100,9 +103,9 @@ lyricsBracket = bracket_
  )
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
-go force sync = (</> "sharingan.yml") -- TODO: pick a better place for config
- <$> takeDirectory
- <$> getExecutablePath >>= \ymlx ->
+go force sync =
+    (& filename .~ "sharingan.yml")     -- LENS: (</> "sharingan.yml") <$> takeDirectory <$> getExecutablePath
+    <$> getExecutablePath >>= \ymlx ->  -- TODO: pick a better place for config
     doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
         ymlData <- BS.readFile ymlx
         let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
