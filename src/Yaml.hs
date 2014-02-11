@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Config
+module yaml
   ( Repository,
     location,
     branch,

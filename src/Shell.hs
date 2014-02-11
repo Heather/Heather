@@ -1,4 +1,4 @@
-module VCS
+module shell
   ( exec,
     exc,
     svnup,

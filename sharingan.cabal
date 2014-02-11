@@ -1,4 +1,4 @@
-name: sharingan
+name: Sharingan
 version: 0.0.1
 license: BSD3
 
@@ -6,7 +6,7 @@ build-type: Simple
 cabal-version: >= 1.6
 
 Executable    sharingan
-  Main-Is:    sharingan.hs
+  Main-Is:    Sharingan.hs
   Hs-Source-Dirs: src
   Build-Depends:
       base

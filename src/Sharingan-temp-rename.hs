@@ -1,8 +1,8 @@
 {-# LANGUAGE MultiWayIf, OverloadedStrings #-}
 {----------------------------------------------------------------------------------------}
 
-import Config
-import VCS
+import yaml
+import shell
 
 {----------------------------------------------------------------------------------------}
 import Text.Printf
@@ -98,7 +98,7 @@ lyricsBracket = bracket_
  )
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
-go pl force = (</> "sync.yml")
+go pl force = (</> "sharingan.yml")
  <$> takeDirectory
  <$> getExecutablePath >>= \ymlx ->
     doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
