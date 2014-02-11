@@ -105,8 +105,9 @@ go force sync = (</> "sharingan.yml")
             repoData  = fromJust ymlDecode
         forM_ repoData $ \repo ->
             when (sync == "" || isInfixOf sync (location repo))
-                $  liftA2 (printf "%s <> %s\n") location branch repo
-                >> liftA3 rebasefork location branch upstream repo
-                >> putStrLn " __________________________________________________________________________________________ "
+                $ forM_ (branches repo) $ \branch ->
+                    printf "%s <> %s\n" (location repo) branch
+                    >> rebasefork (location repo) branch (upstream repo)
+                    >> putStrLn " __________________________________________________________________________________________ "
     )
 {----------------------------------------------------------------------------------------}

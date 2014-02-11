@@ -3,7 +3,7 @@
 module Yaml
   ( Repository,
     location,
-    branch,
+    branches,
     upstream,
     FromJSON
   ) where
@@ -18,14 +18,14 @@ import Control.Exception
 
 {----------------------------------------------------------------------------------------}
 data Repository = Repository {location :: String,
-                              branch :: String,
+                              branches :: [String],
                               upstream :: String}
                               deriving (Show)
 {----------------------------------------------------------------------------------------}
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
                            v .: "location" <*>
-                           v .: "branch" <*>
+                           v .: "branches" <*>
                            v .: "upstream"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML/JSON"
