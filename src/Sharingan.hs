@@ -25,6 +25,7 @@ import Control.Exception
 
 import System.FilePath(takeDirectory, (</>))
 
+import Data.List (isInfixOf)
 import Data.Yaml
 import Data.Maybe (fromJust)
 
@@ -44,17 +45,14 @@ main = do user      <- getAppUserDataDirectory "sharingan.lock"
                       else run
 {----------------------------------------------------------------------------------------}
 data Options = Options  {
-    optPlatform  :: String,
+    optSync  :: String,
     optForce :: String -> IO()
   }
 {----------------------------------------------------------------------------------------}
 defaultOptions :: Options
 defaultOptions = Options {
-    optPlatform = if | os `elem` ["win32", "mingw32", "cygwin32"] -> "Win"
-                     | os `elem` ["darwin"] -> "Mac"
-                     | otherwise -> "Linux"
-        ,
-    optForce = go False
+    optSync     = "",
+    optForce    = go False
   }
 {----------------------------------------------------------------------------------------}
 do_program :: ThreadId -> Handle -> IO ()
@@ -64,22 +62,22 @@ do_program t h = let s = "Locked by thread: " ++ show t
                         args <- getArgs
                         let ( actions, nonOpts, msgs ) = getOpt RequireOrder options args
                         opts <- foldl (>>=) (return defaultOptions) actions
-                        let Options { optPlatform   = platform,
+                        let Options { optSync       = sync,
                                       optForce      = run } = opts
-                        run platform
+                        run sync
 {----------------------------------------------------------------------------------------}
 options :: [OptDescr (Options -> IO Options)]
 options = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
-    Option ['p'] ["platform"](ReqArg getp "STRING") "operating system platform",
-    Option ['f'] ["force"]   (NoArg forceReinstall) "force reinstall even if same version is installed"
+    Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
+    Option ['f'] ["force"]   (NoArg forceReinstall) "force sync.."
   ]
 showV _    =    printf "sharingan 0.0.1" >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 {----------------------------------------------------------------------------------------}
-getp arg opt        = return opt { optPlatform = arg }
+gets arg opt        = return opt { optSync = arg }
 forceReinstall opt  = return opt { optForce = go True }
 {----------------------------------------------------------------------------------------}
 lyricsBracket = bracket_
@@ -98,7 +96,7 @@ lyricsBracket = bracket_
  )
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
-go pl force = (</> "sharingan.yml")
+go force sync = (</> "sharingan.yml")
  <$> takeDirectory
  <$> getExecutablePath >>= \ymlx ->
     doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
@@ -106,8 +104,9 @@ go pl force = (</> "sharingan.yml")
         let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
             repoData  = fromJust ymlDecode
         forM_ repoData $ \repo ->
-            liftA2 (printf "%s <> %s\n") location branch repo
-            >> liftA3 rebasefork location branch upstream repo
-            >> putStrLn " __________________________________________________________________________________________ "
+            when (sync == "" || isInfixOf sync (location repo))
+                $  liftA2 (printf "%s <> %s\n") location branch repo
+                >> liftA3 rebasefork location branch upstream repo
+                >> putStrLn " __________________________________________________________________________________________ "
     )
 {----------------------------------------------------------------------------------------}
