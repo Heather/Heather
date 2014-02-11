@@ -100,7 +100,7 @@ lyricsBracket = bracket_
  )
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
-go force sync = (</> "sharingan.yml")
+go force sync = (</> "sharingan.yml") -- TODO: pick a better place for config
  <$> takeDirectory
  <$> getExecutablePath >>= \ymlx ->
     doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
