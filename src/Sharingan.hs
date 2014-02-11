@@ -86,17 +86,17 @@ forceReinstall opt  = return opt { optForce = go True }
 {----------------------------------------------------------------------------------------}
 lyricsBracket = bracket_
  ( do
-    putStrLn " __________________________________________________________________________________________ "
+    putStrLn "____________________________________________________________________________________________"
     putStrLn "                    And who the hell do you think I've become?                              "
     putStrLn "  Like the person inside, I've been opening up.                                             "
     putStrLn "                                                     I'm onto you. (I'm onto you.)          "
-    putStrLn " __________________________________________________________________________________________ "
+    putStrLn "____________________________________________________________________________________________"
  )(do
     putStrLn "     Cut out your tongue and feed it to the liars.                                          "
     putStrLn "                  Black hearts shed light on dying words.                                   "
     putStrLn "                                                                                            "
     putStrLn "                                                            I wanna feel you burn.          "
-    putStrLn " __________________________________________________________________________________________ "
+    putStrLn "____________________________________________________________________________________________"
  )
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
@@ -117,9 +117,9 @@ go force sync = (</> "sharingan.yml") -- TODO: pick a better place for config
                         $ let sharingan = (loc </> ".sharingan.yml")
                           in doesFileExist sharingan >>= ( flip when 
                             $ do ymlDataS <- BS.readFile sharingan
-                                 let ymlDecodeS = Data.Yaml.decode ymlDataS :: Maybe Sharingan
+                                 let ymlDecodeS :: Maybe Sharingan
+                                     ymlDecodeS = Data.Yaml.decode ymlDataS
                                      repoDataS  = fromJust ymlDecodeS
                                  forM_ (script repoDataS) $ exc loc ))
-                    >> putStrLn " __________________________________________________________________________________________ "
-    )
+                    >> putStrLn "____________________________________________________________________________________________")
 {----------------------------------------------------------------------------------------}
