@@ -103,7 +103,7 @@ go _ sync = (</> "sharingan.yml") -- (& filename .~ "sharingan.yml")
             let loc = (location repo)
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
-                    printf "%s <> %s\n" loc branch
+                    printf " * %s <> %s\n" loc branch
                     >> rebasefork loc branch (upstream repo)
                     >>= ( flip when 
                         $ let sharingan = (loc </> ".sharingan.yml")

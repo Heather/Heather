@@ -23,7 +23,7 @@ rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
 rebasefork path branch upstream =
     doesDirectoryExist path >>= \dirExist ->
         if dirExist
-            then do exc path $ "git checkout "                      ++ branch   
+            then do exc path $ "git checkout "                          ++ branch   
                         ++ " & git rebase --abort & git pull origin "   ++ branch
                         ++ " & git fetch "                              ++ upstream
                         ++ " & git pull --rebase "                      ++ upstream
