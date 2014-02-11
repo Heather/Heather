@@ -1,8 +1,6 @@
 module Shell
   ( exec,
     exc,
-    svnup,
-    svnclone,
     gpull,
     gclone,
     rebasefork,
@@ -33,23 +31,10 @@ rebasefork path branch upstream = do
                 ++ " & git pull --rebase " ++ upstream
                 ++ " & git push --force origin " ++ branch)
 {----------------------------------------------------------------------------------------}
-svnup :: [Char] -> IO()
-svnup path =
-    doesDirectoryExist path >>= \dirExist -> 
-        if dirExist then exc path "svn update"
-                    else putStrLn $ "directory does not exist"
-{----------------------------------------------------------------------------------------}
-svnclone :: [Char] -> [Char] -> [Char] -> IO()
-svnclone ex path project =
-    doesDirectoryExist path >>= \dirExist -> 
-        if dirExist then putStrLn $ "directory already exist"
-                    else exc ex $ "svn co " ++ project ++ " " ++ path
-{----------------------------------------------------------------------------------------}
 gpull :: [Char] -> [Char] -> IO()
 gpull path branch =
-    doesDirectoryExist path >>= \dirExist -> 
-        if dirExist then putStrLn $ "directory already exist"
-                    else exc path $ "git pull origin " ++ branch
+    doesDirectoryExist path >>= (flip when
+        $ exc path $ "git pull origin " ++ branch)
 {----------------------------------------------------------------------------------------}
 gclone :: [Char] -> [Char] -> IO()
 gclone path project =
