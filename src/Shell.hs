@@ -22,14 +22,17 @@ exec args = do
 exc :: [Char] -> [Char] -> IO()
 exc path args = exec $ "cd " ++ path ++ " & " ++ args
 {----------------------------------------------------------------------------------------}
-rebasefork :: [Char] -> [Char] -> [Char] -> IO()
+rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
 rebasefork path branch upstream = do
-    doesDirectoryExist path >>= (flip when
-        $ exc path $ "git checkout " ++ branch   
-                ++ " & git rebase --abort & git pull origin " ++ branch
-                ++ " & git fetch " ++ upstream
-                ++ " & git pull --rebase " ++ upstream
-                ++ " & git push --force origin " ++ branch)
+    doesDirectoryExist path >>= \dirExist ->
+        if dirExist
+            then do exc path $ "git checkout "                      ++ branch   
+                        ++ " & git rebase --abort & git pull origin "   ++ branch
+                        ++ " & git fetch "                              ++ upstream
+                        ++ " & git pull --rebase "                      ++ upstream
+                        ++ " & git push --force origin "                ++ branch
+                    return True
+            else    return False
 {----------------------------------------------------------------------------------------}
 gpull :: [Char] -> [Char] -> IO()
 gpull path branch =

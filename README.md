@@ -12,10 +12,18 @@ go force sync = (</> "sharingan.yml")
         let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
             repoData  = fromJust ymlDecode
         forM_ repoData $ \repo ->
-            when (sync == "" || isInfixOf sync (location repo))
+            let loc = (location repo)
+            in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
-                    printf "%s <> %s\n" (location repo) branch
-                    >> rebasefork (location repo) branch (upstream repo)
+                    printf "%s <> %s\n" loc branch
+                    >> rebasefork loc branch (upstream repo)
+                    >>= ( flip when 
+                        $ let sharingan = (loc </> ".sharingan.yml")
+                          in doesFileExist sharingan >>= ( flip when 
+                            $ do ymlDataS <- BS.readFile sharingan
+                                 let ymlDecodeS = Data.Yaml.decode ymlDataS :: Maybe Sharingan
+                                     repoDataS  = fromJust ymlDecodeS
+                                 forM_ (script repoDataS) $ exc loc ))
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
