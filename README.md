@@ -1,5 +1,5 @@
-Sharingan (mirana recode)
-========================
+Sharingan
+=========
 
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
