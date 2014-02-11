@@ -6,11 +6,8 @@ module Shell
     rebasefork,
   ) where
 
-import System.IO
-import System.Exit
 import System.Directory
 import System.Process
-import System.FilePath((</>))
 
 import Control.Monad
 {----------------------------------------------------------------------------------------}

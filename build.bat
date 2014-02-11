@@ -8,7 +8,7 @@ echo        Stone word backfire with vengeance
 echo                            Leader, where's the peace you pursue
                                        echo    Can't let any more follow you
 
-          cabal configure
+          cabal configure --ghc-option=-Wall
 
 echo            Teach to bleach the stains of your guilt
 echo        Envy of moral free lives built

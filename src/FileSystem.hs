@@ -2,10 +2,7 @@ module FileSystem
   ( copyDir
   ) where
 
-import System.IO
-import System.Exit
 import System.Directory
-
 import Control.Monad
 
 import System.FilePath((</>))

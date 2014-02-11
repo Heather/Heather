@@ -14,10 +14,7 @@ module Yaml
 import Data.Yaml
 import Data.Maybe (fromJust)
 
-import Control.Concurrent
-import Control.Monad
 import Control.Applicative
-import Control.Exception
 
 import qualified Data.ByteString.Char8 as BS
 {----------------------------------------------------------------------------------------}

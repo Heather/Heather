@@ -7,12 +7,9 @@ import Gclient
 
 {----------------------------------------------------------------------------------------}
 import Text.Printf
-import Text.Show
 
 import System.Environment( getArgs )
-import System.Info (os)
 import System.Directory
-import System.Process
 import System.Exit
 import System.Console.GetOpt
 import System.IO
@@ -27,11 +24,8 @@ import Control.Exception
 import System.FilePath(takeDirectory, (</>))
 
 import Data.List (isInfixOf)
-import Data.Yaml
-import Data.Maybe (fromJust)
-
-import qualified Data.ByteString.Char8 as BS
 {----------------------------------------------------------------------------------------}
+main :: IO ()
 main = do user      <- getAppUserDataDirectory "sharingan.lock"
           locked    <- doesFileExist user
           let run = myThreadId >>= \t -> withFile user WriteMode (do_program t)
@@ -61,7 +55,7 @@ do_program t h = let s = "Locked by thread: " ++ show t
                  in do  putStrLn s
                         hPutStr h s
                         args <- getArgs
-                        let ( actions, nonOpts, msgs ) = getOpt RequireOrder options args
+                        let ( actions, _, _ ) = getOpt RequireOrder options args
                         opts <- foldl (>>=) (return defaultOptions) actions
                         let Options { optSync       = sync,
                                       optForce      = run } = opts
@@ -100,7 +94,7 @@ lyricsBracket = bracket_
  )
 {----------------------------------------------------------------------------------------}
 go :: Bool -> String -> IO()
-go force sync = (</> "sharingan.yml") 
+go _ sync = (</> "sharingan.yml") -- (& filename .~ "sharingan.yml")
   <$> takeDirectory 
   <$> getExecutablePath >>= \ymlx ->
     doesFileExist ymlx  >>= (flip when $ lyricsBracket $ do
