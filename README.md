@@ -32,4 +32,37 @@ config example:
         - 'master'
         - 'indent'
     upstream: 'upstream master'
+-   location: 'D:\Heather\Contrib\P\UnionArgParser'
+    branches: 
+        - 'master'
+    upstream: 'upstream master'
+-   location: 'D:\TFS\winforms-modernui'
+    branches: 
+        - 'master'
+    upstream: 'upstream master'
+-   location: 'D:\TFS\quartznet'
+    branches: 
+        - 'master'
+    upstream: 'upstream master'
+-   location: 'D:\TFS\log4net'
+    branches: 
+        - 'trunk'
+        - 'heather'
+    upstream: 'upstream trunk'
+-   location: 'D:\TFS\Fuchu'
+    branches: 
+        - 'master'
+    upstream: 'upstream master'
+-   location: 'D:\TFS\cetmodbus'
+    branches: 
+        - 'master'
+    upstream: 'upstream master'
+-   location: 'D:\TFS\nant'
+    branches: 
+        - 'master'
+    upstream: 'upstream master'
+-   location: 'D:\Heather\Contrib\P\fsharp'
+    branches: 
+        - 'heather'
+    upstream: 'upstream fsharp_31'
 ```
