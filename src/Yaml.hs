@@ -7,7 +7,8 @@ module Yaml
     location,
     branches,
     upstream,
-    FromJSON
+    FromJSON,
+    yDecode
   ) where
 
 import Data.Yaml
@@ -18,6 +19,7 @@ import Control.Monad
 import Control.Applicative
 import Control.Exception
 
+import qualified Data.ByteString.Char8 as BS
 {----------------------------------------------------------------------------------------}
 data Sharingan = Sharingan {script :: [String]}
                             deriving (Show)
@@ -40,4 +42,9 @@ instance FromJSON Sharingan where
                            v .: "script"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML/JSON"
+{----------------------------------------------------------------------------------------}
+yDecode :: FromJSON a => FilePath -> IO a
+yDecode fnm = do
+    ymlData <- BS.readFile fnm
+    return $ fromJust $ Data.Yaml.decode ymlData
 {----------------------------------------------------------------------------------------}

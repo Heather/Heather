@@ -107,10 +107,8 @@ go force sync =
     (& filename .~ "sharingan.yml")     -- LENS: (</> "sharingan.yml") <$> takeDirectory <$> getExecutablePath
     <$> getExecutablePath >>= \ymlx ->  -- TODO: pick a better place for config
     doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
-        ymlData <- BS.readFile ymlx
-        let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
-            repoData  = fromJust ymlDecode
-        forM_ repoData $ \repo ->
+        rsdata <- yDecode ymlx :: IO [Repository]
+        forM_ rsdata $ \repo ->
             let loc = (location repo)
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
@@ -118,11 +116,8 @@ go force sync =
                     >> rebasefork loc branch (upstream repo)
                     >>= ( flip when 
                         $ let sharingan = (loc </> ".sharingan.yml")
-                          in doesFileExist sharingan >>= ( flip when 
-                            $ do ymlDataS <- BS.readFile sharingan
-                                 let ymlDecodeS :: Maybe Sharingan
-                                     ymlDecodeS = Data.Yaml.decode ymlDataS
-                                     repoDataS  = fromJust ymlDecodeS
-                                 forM_ (script repoDataS) $ exc loc ))
+                          in doesFileExist sharingan >>= ( flip when $ do
+                            syncDatax <- yDecode sharingan :: IO Sharingan                  
+                            forM_ (script syncDatax) $ exc loc ))
                     >> putStrLn "____________________________________________________________________________________________")
 {----------------------------------------------------------------------------------------}

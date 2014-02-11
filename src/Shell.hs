@@ -23,7 +23,7 @@ exc :: [Char] -> [Char] -> IO()
 exc path args = exec $ "cd " ++ path ++ " & " ++ args
 {----------------------------------------------------------------------------------------}
 rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
-rebasefork path branch upstream = do
+rebasefork path branch upstream =
     doesDirectoryExist path >>= \dirExist ->
         if dirExist
             then do exc path $ "git checkout "                      ++ branch   
