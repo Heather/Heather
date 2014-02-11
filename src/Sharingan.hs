@@ -1,8 +1,8 @@
 {-# LANGUAGE MultiWayIf, OverloadedStrings #-}
 {----------------------------------------------------------------------------------------}
 
-import yaml
-import shell
+import Yaml
+import Shell
 
 {----------------------------------------------------------------------------------------}
 import Text.Printf

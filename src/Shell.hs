@@ -1,4 +1,4 @@
-module shell
+module Shell
   ( exec,
     exc,
     svnup,
