@@ -27,7 +27,7 @@ exc path args = exec $ "cd " ++ path ++ " & " ++ args
 rebasefork :: [Char] -> [Char] -> [Char] -> IO()
 rebasefork path branch upstream = do
     doesDirectoryExist path >>= (flip when
-        $ do exc path $ "git checkout " ++ branch   
+        $ exc path $ "git checkout " ++ branch   
                 ++ " & git rebase --abort & git pull origin " ++ branch
                 ++ " & git fetch " ++ upstream
                 ++ " & git pull --rebase " ++ upstream

@@ -23,46 +23,46 @@ go force sync = (</> "sharingan.yml")
 config example:
 
 ```yaml
--   location: 'D:\Heather\Contrib\P\coreutils'
+-   location: D:\Heather\Contrib\P\coreutils
     branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\Heather\Contrib\P\Nemerle'
+        - master
+    upstream: upstream master
+-   location: D:\Heather\Contrib\P\Nemerle
     branches: 
-        - 'master'
-        - 'indent'
-    upstream: 'upstream master'
--   location: 'D:\Heather\Contrib\P\UnionArgParser'
+        - master
+        - indent
+    upstream: upstream master
+-   location: D:\Heather\Contrib\P\UnionArgParser
+    branches:
+        - master
+    upstream: upstream master
+-   location: D:\TFS\winforms-modernui
+    branches:
+        - master
+    upstream: upstream master
+-   location: D:\TFS\quartznet
+    branches:
+        - master
+    upstream: upstream master
+-   location: D:\TFS\log4net
     branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\TFS\winforms-modernui'
+        - trunk
+        - heather
+    upstream: upstream trunk
+-   location: D:\TFS\Fuchu
     branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\TFS\quartznet'
+        - master
+    upstream: upstream master
+-   location: D:\TFS\cetmodbus
     branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\TFS\log4net'
+        - master
+    upstream: upstream master
+-   location: D:\TFS\nant
     branches: 
-        - 'trunk'
-        - 'heather'
-    upstream: 'upstream trunk'
--   location: 'D:\TFS\Fuchu'
+        - master
+    upstream: upstream master
+-   location: D:\Heather\Contrib\P\fsharp
     branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\TFS\cetmodbus'
-    branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\TFS\nant'
-    branches: 
-        - 'master'
-    upstream: 'upstream master'
--   location: 'D:\Heather\Contrib\P\fsharp'
-    branches: 
-        - 'heather'
-    upstream: 'upstream fsharp_31'
+        - heather
+    upstream: upstream fsharp_31
 ```
