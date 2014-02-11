@@ -16,3 +16,11 @@ Executable    sharingan
     , bytestring
     , yaml
     , executable-path
+    , transformers
+    , zip-archive
+    , utf8-string
+    , conduit
+    , http-types
+    , http-conduit
+    , network
+    , HTTP

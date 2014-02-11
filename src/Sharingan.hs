@@ -3,6 +3,7 @@
 
 import Yaml
 import Shell
+import Gclient
 
 {----------------------------------------------------------------------------------------}
 import Text.Printf
@@ -70,10 +71,13 @@ options :: [OptDescr (Options -> IO Options)]
 options = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
+    Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     Option ['f'] ["force"]   (NoArg forceReinstall) "force sync.."
   ]
-showV _    =    printf "sharingan 0.0.1" >> exitWith ExitSuccess
+{----------------------------------------------------------------------------------------}
+getDepot _ =    gInit                       >> exitWith ExitSuccess
+showV _    =    printf "sharingan 0.0.1"    >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 {----------------------------------------------------------------------------------------}
