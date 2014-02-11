@@ -4,17 +4,19 @@ Sharingan (mirana recode)
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go pl force = (</> "sync.yml")
- <$> takeDirectory 
+go pl force = (</> "sharingan.yml")
+ <$> takeDirectory
  <$> getExecutablePath >>= \ymlx ->
-    doesFileExist ymlx >>= (flip when
-        $ do ymlData <- BS.readFile ymlx
-             let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
-                 repoData  = fromJust ymlDecode
-             forM_ repoData $ \repo -> do
-                print repo
-                liftA2 rebasefork location branch repo)
+    doesFileExist ymlx >>= (flip when $ lyricsBracket $ do
+        ymlData <- BS.readFile ymlx
+        let ymlDecode = Data.Yaml.decode ymlData :: Maybe [Repository]
+            repoData  = fromJust ymlDecode
+        forM_ repoData $ \repo ->
+            liftA2 (printf "%s <> %s\n") location branch repo
+            >> liftA3 rebasefork location branch upstream repo)
 ```
+
+![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
 
 config example:
 
