@@ -4,7 +4,7 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go force sync = (</> "sharingan.yml") 
+go _ sync = (</> "sharingan.yml") -- (& filename .~ "sharingan.yml")
   <$> takeDirectory 
   <$> getExecutablePath >>= \ymlx ->
     doesFileExist ymlx  >>= (flip when $ lyricsBracket $ do
@@ -13,13 +13,14 @@ go force sync = (</> "sharingan.yml")
             let loc = (location repo)
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
-                    printf "%s <> %s\n" loc branch
+                    printf " * %s <> %s\n" loc branch
                     >> rebasefork loc branch (upstream repo)
                     >>= ( flip when 
                         $ let sharingan = (loc </> ".sharingan.yml")
                           in doesFileExist sharingan >>= ( flip when $ do
                             syncDatax <- yDecode sharingan :: IO Sharingan                  
                             forM_ (script syncDatax) $ exc loc ))
+                    >> putStrLn <| replicate 92 '_' ) -- Control.FSharp high priority pipe ;)
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
