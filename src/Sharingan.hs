@@ -20,6 +20,7 @@ import Control.Concurrent
 import Control.Monad
 import Control.Applicative
 import Control.Exception
+import Control.FSharp
 
 import System.FilePath(takeDirectory, (</>))
 
@@ -110,5 +111,6 @@ go _ sync = (</> "sharingan.yml") -- (& filename .~ "sharingan.yml")
                           in doesFileExist sharingan >>= ( flip when $ do
                             syncDatax <- yDecode sharingan :: IO Sharingan                  
                             forM_ (script syncDatax) $ exc loc ))
-                    >> putStrLn "____________________________________________________________________________________________")
+                    >> putStrLn <| replicate 92 '_' )
+--"____________________________________________________________________________________________"
 {----------------------------------------------------------------------------------------}
