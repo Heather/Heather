@@ -17,7 +17,7 @@ exec args = do
     waitForProcess pid >> return ()
 {----------------------------------------------------------------------------------------}
 exc :: [Char] -> [Char] -> IO()
-exc path args = exec $ "cd " ++ path ++ " & " ++ args
+exc path args = setCurrentDirectory path >> exec args
 {----------------------------------------------------------------------------------------}
 rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
 rebasefork path branch upstream =
