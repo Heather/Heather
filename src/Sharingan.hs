@@ -113,13 +113,13 @@ go fast sync = (</> "sharingan.yml")                   {- lens:                 
             let loc = location repo
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch -> do
-                    _ <- printf " * %s <> %s\n" loc branch
-                    when (not fast)
-                      $ let eye = ifSo 
-                                   $ let shx = loc </> ".sharingan.yml"
-                                         vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan                  
-                                                        forM_ (script syncDatax) $ exc loc
-                                         in doesFileExist shx >>= vs
+                    printf " * %s <> %s\n" loc branch
+                    >>  let eye = ifSo 
+                               $ when (not fast)
+                               $ let shx = loc </> ".sharingan.yml"
+                                     vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan                  
+                                                    forM_ (script syncDatax) $ exc loc
+                                 in doesFileExist shx >>= vs
                         in rebasefork loc branch <| upstream repo >>= eye
-                    putStrLn <| replicate 92 '_'
+                    >>  putStrLn <| replicate 92 '_'
     in doesFileExist ymlx >>= ymlprocess
