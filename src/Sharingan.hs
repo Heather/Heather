@@ -39,14 +39,14 @@ main = do user      <- getAppUserDataDirectory "sharingan.lock"
                       else run
 
 data Options = Options  {
-    optSync  :: String,
-    optForce :: String -> IO()
+    optSync :: String,
+    optFast :: String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
-    optSync     = "",
-    optForce    = go False
+    optSync    = "",
+    optFast    = go False
   }
 
 do_program :: ThreadId -> Handle -> IO ()
@@ -56,8 +56,8 @@ do_program t h = let s = "Locked by thread: " ++ show t
                         args <- getArgs
                         let ( actions, _, _ ) = getOpt RequireOrder options args
                         opts <- foldl (>>=) (return defaultOptions) actions
-                        let Options { optSync       = sync,
-                                      optForce      = run } = opts
+                        let Options { optSync = sync,
+                                      optFast = run } = opts
                         run sync
 
 options :: [OptDescr (Options -> IO Options)]
@@ -67,7 +67,7 @@ options = [
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
     Option ['g'] ["gentoo"]  (NoArg genSync) "Synchronize cvs portagee tree Gentoo x86",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
-    Option ['f'] ["force"]   (NoArg forceReinstall) "force sync.."
+    Option ['f'] ["fast"]    (NoArg fastReinstall) "fast sync, don't process .sharingan.yml files"
   ]
 
 getDepot   ::   Options -> IO Options
@@ -76,16 +76,16 @@ showV      ::   Options -> IO Options
 showHelp   ::   Options -> IO Options
 
 getDepot _ =    depot_tools                     >> exitWith ExitSuccess
-genSync _  =    gentooSync "/home/gentoox86" 2  >> exitWith ExitSuccess
+genSync _  =    gentooSync "/home/gentoo-x86" 2 >> exitWith ExitSuccess
 showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 
 gets            ::   String -> Options -> IO Options
-forceReinstall  ::   Options -> IO Options
+fastReinstall   ::   Options -> IO Options
 
 gets arg opt        = return opt { optSync = arg }
-forceReinstall opt  = return opt { optForce = go True }
+fastReinstall opt   = return opt { optFast = go True }
 
 lyricsBracket :: IO() -> IO()
 lyricsBracket = bracket_
@@ -104,7 +104,7 @@ lyricsBracket = bracket_
  )
 
 go :: Bool -> String -> IO()
-go _ sync = (</> "sharingan.yml")                   {- lens:                           -}
+go fast sync = (</> "sharingan.yml")                   {- lens:                           -}
   <$> takeDirectory                                 {- (& filename .~ "sharingan.yml") -}
   <$> getExecutablePath >>= \ymlx ->
     let ymlprocess = ifSo $ lyricsBracket $ do
@@ -112,13 +112,14 @@ go _ sync = (</> "sharingan.yml")                   {- lens:                    
         forM_ rsdata $ \repo ->
             let loc = location repo
             in when (sync == "" || isInfixOf sync loc)
-                $ forM_ (branches repo) $ \branch ->
-                    printf " * %s <> %s\n" loc branch
-                    >> let eye = ifSo $ let sharingan = loc </> ".sharingan.yml"
-                                            vision = ifSo 
-                                             $ do syncDatax <- yDecode sharingan :: IO Sharingan                  
-                                                  forM_ (script syncDatax) $ exc loc
-                                      in doesFileExist sharingan >>= vision
-                       in rebasefork loc branch <| upstream repo >>= eye
-                    >> putStrLn <| replicate 92 '_'
+                $ forM_ (branches repo) $ \branch -> do
+                    _ <- printf " * %s <> %s\n" loc branch
+                    when (not fast)
+                      $ let eye = ifSo 
+                                   $ let shx = loc </> ".sharingan.yml"
+                                         vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan                  
+                                                        forM_ (script syncDatax) $ exc loc
+                                         in doesFileExist shx >>= vs
+                        in rebasefork loc branch <| upstream repo >>= eye
+                    putStrLn <| replicate 92 '_'
     in doesFileExist ymlx >>= ymlprocess
