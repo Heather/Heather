@@ -14,7 +14,6 @@ import System.IO
 
 import System.Environment.Executable ( getExecutablePath )
 
-import Control.Concurrent
 import Control.Monad
 import Control.Applicative
 import Control.Exception
@@ -27,8 +26,8 @@ import Data.List (isInfixOf)
 main :: IO ()
 main = do user      <- getAppUserDataDirectory "sharingan.lock"
           locked    <- doesFileExist user
-          let run = myThreadId >>= \t -> withFile user WriteMode (do_program t)
-                                           `finally` removeFile user
+          let run = withFile user WriteMode do_program
+                       `finally` removeFile user
           if locked then do
                         putStrLn "There is already one instance of this program running."
                         putStrLn "Remove lock and start application? (Y/N)"
@@ -53,19 +52,16 @@ defaultOptions = Options {
     optFast    = go False
   }
 
-do_program :: ThreadId -> Handle -> IO ()
-do_program t h = let s = "Locked by thread: " ++ show t
-                 in do  putStrLn s
-                        hPutStr h s
-                        args <- getArgs
-                        let ( actions, _, _ ) = getOpt RequireOrder options args
-                        opts <- foldl (>>=) (return defaultOptions) actions
-                        let Options { optSync = sync,
-                                      optFast = run,
-                                      optJobs = jobs,
-                                      optG    = g } = opts
-                        if g  then genSync  jobs
-                              else run sync jobs
+do_program :: Handle -> IO ()
+do_program _ = do args <- getArgs
+                  let ( actions, _, _ ) = getOpt RequireOrder options args
+                  opts <- foldl (>>=) (return defaultOptions) actions
+                  let Options { optSync = sync,
+                                optFast = run,
+                                optJobs = jobs,
+                                optG    = g } = opts
+                  if g  then genSync  jobs
+                        else run sync jobs
 
 options :: [OptDescr (Options -> IO Options)]
 options = [
