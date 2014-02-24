@@ -28,10 +28,10 @@ rebasefork path branch upstream =
                         else    return False    -- directory doesn't exist
                 else            return True     -- directory exists but it's not a git
 
-gentooSync :: [Char] -> Int -> IO()
+gentooSync :: [Char] -> [Char] -> IO()
 gentooSync path jobs = exc path $ " cvs update "
             ++ "egencache --update --repo=gentoo --portdir="    ++ path
-            ++ " --jobs="                                       ++ show jobs
+            ++ " --jobs="                                       ++ jobs
 
 gpull :: [Char] -> [Char] -> IO()
 gpull path branch =

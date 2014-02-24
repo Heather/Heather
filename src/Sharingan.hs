@@ -36,15 +36,19 @@ main = do user      <- getAppUserDataDirectory "sharingan.lock"
                         str <- getLine
                         if | str `elem` ["Y", "y"] -> run
                            | otherwise             -> return ()
-                      else run
+                    else run
 
 data Options = Options  {
+    optJobs :: String,
+    optG    :: Bool,
     optSync :: String,
-    optFast :: String -> IO()
+    optFast :: String -> String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
+    optJobs    = "2",
+    optG       = False,
     optSync    = "",
     optFast    = go False
   }
@@ -57,55 +61,56 @@ do_program t h = let s = "Locked by thread: " ++ show t
                         let ( actions, _, _ ) = getOpt RequireOrder options args
                         opts <- foldl (>>=) (return defaultOptions) actions
                         let Options { optSync = sync,
-                                      optFast = run } = opts
-                        run sync
+                                      optFast = run,
+                                      optJobs = jobs,
+                                      optG    = g } = opts
+                        if g  then genSync  jobs
+                              else run sync jobs
 
 options :: [OptDescr (Options -> IO Options)]
 options = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
-    Option ['g'] ["gentoo"]  (NoArg genSync) "Synchronize cvs portagee tree Gentoo x86",
+    Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86",
+    Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     Option ['f'] ["fast"]    (NoArg fastReinstall) "fast sync, don't process .sharingan.yml files"
   ]
 
+genSync    ::   String -> IO()
+genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
+
 getDepot   ::   Options -> IO Options
-genSync    ::   Options -> IO Options
 showV      ::   Options -> IO Options
 showHelp   ::   Options -> IO Options
+genS       ::   Options -> IO Options
 
 getDepot _ =    depot_tools                     >> exitWith ExitSuccess
-genSync _  =    gentooSync "/home/gentoo-x86" 2 >> exitWith ExitSuccess
 showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 
+getJ            ::   String -> Options -> IO Options
 gets            ::   String -> Options -> IO Options
 fastReinstall   ::   Options -> IO Options
 
+genS opt            = return opt { optG = True }
+getJ arg opt        = return opt { optJobs = arg }
 gets arg opt        = return opt { optSync = arg }
 fastReinstall opt   = return opt { optFast = go True }
 
 lyricsBracket :: IO() -> IO()
 lyricsBracket = bracket_
- ( do
-    putStrLn "____________________________________________________________________________________________"
-    putStrLn "                    And who the hell do you think I've become?                              "
-    putStrLn "  Like the person inside, I've been opening up.                                             "
-    putStrLn "                                                     I'm onto you. (I'm onto you.)          "
-    putStrLn "____________________________________________________________________________________________"
- )(do
-    putStrLn "     Cut out your tongue and feed it to the liars.                                          "
-    putStrLn "                  Black hearts shed light on dying words.                                   "
-    putStrLn "                                                                                            "
-    putStrLn "                                                            I wanna feel you burn.          "
-    putStrLn "____________________________________________________________________________________________"
- )
+ ( do putStrLn "             Heaven Conceal                                                                 "
+      putStrLn "____________________________________________________________________________________________"
+   )( do putStrLn "   Done                                                                                     "
+         putStrLn "____________________________________________________________________________________________"
+    )
 
-go :: Bool -> String -> IO()
-go fast sync = (</> "sharingan.yml")                   {- lens:                           -}
-  <$> takeDirectory                                 {- (& filename .~ "sharingan.yml") -}
+go :: Bool -> String -> String -> IO()
+go fast sync _ = (</> "sharingan.yml")                {- lens:                           -}
+  <$> takeDirectory                                   {- (& filename .~ "sharingan.yml") -}
   <$> getExecutablePath >>= \ymlx ->
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
