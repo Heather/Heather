@@ -1,12 +1,16 @@
+{-# LANGUAGE MultiWayIf #-}
+
 module Shell
   ( exec,
     exc,
+    setEnv,
     gpull,
     gclone,
     rebasefork,
     gentooSync
   ) where
 
+import System.Info (os)
 import System.Directory
 import System.FilePath((</>))
 
@@ -27,6 +31,12 @@ rebasefork path branch upstream =
                                 return True     -- rebase complete
                         else    return False    -- directory doesn't exist
                 else            return True     -- directory exists but it's not a git
+
+setEnv :: [Char] -> IO()
+setEnv env = exec eset
+             where eset = if | os `elem` ["win32", "mingw32", "cygwin32"] -> "set" ++ env
+                             | os `elem` ["darwin"] -> "export " ++ env
+                             | otherwise -> "export " ++ env
 
 gentooSync :: [Char] -> [Char] -> IO()
 gentooSync path jobs = exc path $ " cvs update "

@@ -4,23 +4,30 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go _ sync = (</> "sharingan.yml") -- (& filename .~ "sharingan.yml")
-  <$> takeDirectory 
+go :: Bool -> String -> String -> IO()
+go fast sync _ = (</> "sharingan.yml")                {- lens:                           -}
+  <$> takeDirectory                                   {- (& filename .~ "sharingan.yml") -}
   <$> getExecutablePath >>= \ymlx ->
-    doesFileExist ymlx  >>= (flip when $ lyricsBracket $ do
+    let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
-            let loc = (location repo)
+            let loc = location repo
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
                     printf " * %s <> %s\n" loc branch
-                    >> rebasefork loc branch (upstream repo)
-                    >>= ( flip when 
-                        $ let sharingan = (loc </> ".sharingan.yml")
-                          in doesFileExist sharingan >>= ( flip when $ do
-                            syncDatax <- yDecode sharingan :: IO Sharingan                  
-                            forM_ (script syncDatax) $ exc loc ))
-                    >> putStrLn <| replicate 92 '_' ) -- Control.FSharp high priority pipe ;)
+                    >>  let eye = ifSo 
+                               $ when (not fast)
+                               $ let shx = loc </> ".sharingan.yml"
+                                     vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan
+                                                    --TODO: language defaults
+                                                    forM_ (env syncDatax) $ setEnv
+                                                    forM_ (before_install syncDatax) $ exc loc
+                                                    forM_ (install syncDatax) $ exc loc
+                                                    forM_ (script syncDatax) $ exc loc
+                                 in doesFileExist shx >>= vs
+                        in rebasefork loc branch <| upstream repo >>= eye
+                    >>  putStrLn <| replicate 89 '_'
+    in doesFileExist ymlx >>= ymlprocess
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)

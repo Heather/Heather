@@ -38,18 +38,14 @@ main = do user      <- getAppUserDataDirectory "sharingan.lock"
                     else run
 
 data Options = Options  {
-    optJobs :: String,
-    optG    :: Bool,
-    optSync :: String,
-    optFast :: String -> String -> IO()
+    optJobs :: String,  optSync :: String,
+    optG    :: Bool,    optFast :: String -> String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
-    optJobs    = "2",
-    optG       = False,
-    optSync    = "",
-    optFast    = go False
+    optJobs    = "2",   optG       = False,
+    optSync    = "",    optFast    = go False
   }
 
 do_program :: Handle -> IO ()
@@ -99,9 +95,9 @@ fastReinstall opt   = return opt { optFast = go True }
 lyricsBracket :: IO() -> IO()
 lyricsBracket = bracket_
  ( do putStrLn "             Heaven Conceal                                                                 "
-      putStrLn "____________________________________________________________________________________________"
-   )( do putStrLn "   Done                                                                                     "
-         putStrLn "____________________________________________________________________________________________"
+      putStrLn "_________________________________________________________________________________________   "
+   )( do putStrLn "   Done                                                                                  "
+         putStrLn "_________________________________________________________________________________________"
     )
 
 go :: Bool -> String -> String -> IO()
@@ -113,14 +109,18 @@ go fast sync _ = (</> "sharingan.yml")                {- lens:                  
         forM_ rsdata $ \repo ->
             let loc = location repo
             in when (sync == "" || isInfixOf sync loc)
-                $ forM_ (branches repo) $ \branch -> do
+                $ forM_ (branches repo) $ \branch ->
                     printf " * %s <> %s\n" loc branch
                     >>  let eye = ifSo 
                                $ when (not fast)
                                $ let shx = loc </> ".sharingan.yml"
-                                     vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan                  
+                                     vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan
+                                                    --TODO: language defaults
+                                                    forM_ (env syncDatax) $ setEnv
+                                                    forM_ (before_install syncDatax) $ exc loc
+                                                    forM_ (install syncDatax) $ exc loc
                                                     forM_ (script syncDatax) $ exc loc
                                  in doesFileExist shx >>= vs
                         in rebasefork loc branch <| upstream repo >>= eye
-                    >>  putStrLn <| replicate 92 '_'
+                    >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess
