@@ -34,13 +34,13 @@ rebasefork path branch upstream =
 
 setEnv :: [Char] -> IO()
 setEnv env = exec eset
-             where eset = if | os `elem` ["win32", "mingw32", "cygwin32"] -> "set" ++ env
+             where eset = if | os `elem` ["win32", "mingw32"] -> "set " ++ env
                              | os `elem` ["darwin"] -> "export " ++ env
-                             | otherwise -> "export " ++ env
+                             | otherwise -> "export " ++ env -- "cygwin32"
 
 gentooSync :: [Char] -> [Char] -> IO()
 gentooSync path jobs = exc path $ " cvs update "
-            ++ "egencache --update --repo=gentoo --portdir="    ++ path
+            ++ " & egencache --update --repo=gentoo --portdir=" ++ path
             ++ " --jobs="                                       ++ jobs
 
 gpull :: [Char] -> [Char] -> IO()
