@@ -4,6 +4,17 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
+list _ = (</> "sharingan.yml")
+  <$> takeDirectory
+  <$> getExecutablePath >>= \ymlx ->
+    let ymlprocess = ifSo $ lyricsBracket $ do
+        rsdata <- yDecode ymlx :: IO [Repository]
+        forM_ rsdata $ \repo -> do
+            let loc = location repo
+            forM_ (branches repo) $ printf " * %s <> %s\n" loc
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
+
 go :: Bool -> String -> String -> IO()
 go fast sync _ = (</> "sharingan.yml")                {- lens:                           -}
   <$> takeDirectory                                   {- (& filename .~ "sharingan.yml") -}

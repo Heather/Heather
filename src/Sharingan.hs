@@ -64,6 +64,7 @@ options = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
+    Option ['l'] ["list"]    (NoArg list) "List repositories",
     Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
@@ -73,6 +74,7 @@ options = [
 genSync    ::   String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 
+list       ::   Options -> IO Options
 getDepot   ::   Options -> IO Options
 showV      ::   Options -> IO Options
 showHelp   ::   Options -> IO Options
@@ -99,6 +101,17 @@ lyricsBracket = bracket_
    )( do putStrLn "   Done                                                                                  "
          putStrLn "_________________________________________________________________________________________"
     )
+
+list _ = (</> "sharingan.yml")
+  <$> takeDirectory
+  <$> getExecutablePath >>= \ymlx ->
+    let ymlprocess = ifSo $ lyricsBracket $ do
+        rsdata <- yDecode ymlx :: IO [Repository]
+        forM_ rsdata $ \repo -> do
+            let loc = location repo
+            forM_ (branches repo) $ printf " * %s <> %s\n" loc
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
 
 go :: Bool -> String -> String -> IO()
 go fast sync _ = (</> "sharingan.yml")                {- lens:                           -}
