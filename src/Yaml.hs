@@ -2,12 +2,7 @@
 
 module Yaml
   ( Repository(..),
-    Sharingan,
-    language,
-    env,
-    script,
-    before_install,
-    install,
+    Sharingan(..),
     FromJSON,
     ToJSON,
     yDecode,
