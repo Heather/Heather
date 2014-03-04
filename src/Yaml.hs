@@ -12,6 +12,7 @@ module Yaml
     branches,
     upstream,
     FromJSON,
+    ToJSON,
     yDecode
   ) where
 
@@ -42,6 +43,12 @@ instance FromJSON Repository where
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML/JSON"
 
+instance ToJSON Repository where
+   toJSON (Repository loca br
+                      up) = object [ "location" .= loca
+                                   , "branches" .= br
+                                   , "upstream" .= up]
+
 instance FromJSON Sharingan where
     parseJSON (Object v) = Sharingan <$>
                            v .: "language" <*>
@@ -51,6 +58,14 @@ instance FromJSON Sharingan where
                            v .: "script"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML/JSON"
+
+instance ToJSON Sharingan where
+   toJSON (Sharingan lan en before inst
+                     sc) = object [ "language"        .= lan
+                                  , "env"             .= en
+                                  , "before_install"  .= before
+                                  , "install"         .= inst
+                                  , "script"          .= sc]
 
 yDecode :: FromJSON iFromJSONable => FilePath -> IO iFromJSONable
 yDecode fnm = do
