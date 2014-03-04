@@ -1,19 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Yaml
-  ( Repository,
+  ( Repository(..),
     Sharingan,
     language,
     env,
     script,
     before_install,
     install,
-    location,
-    branches,
-    upstream,
     FromJSON,
     ToJSON,
-    yDecode
+    yDecode,
+    yEncode
   ) where
 
 import Data.Yaml
@@ -71,3 +69,8 @@ yDecode :: FromJSON iFromJSONable => FilePath -> IO iFromJSONable
 yDecode fnm = do
     ymlData <- BS.readFile fnm
     return $ fromJust $ Data.Yaml.decode ymlData
+
+yEncode :: ToJSON iToJSONable => FilePath -> iToJSONable -> IO()
+yEncode fnm dat = do
+  let bs = Data.Yaml.encode dat
+  BS.writeFile fnm bs

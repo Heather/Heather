@@ -65,6 +65,7 @@ options = [
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
     Option ['l'] ["list"]    (NoArg list) "List repositories",
+    Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
@@ -85,6 +86,7 @@ showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 
+getA            ::   String -> Options -> IO Options
 getJ            ::   String -> Options -> IO Options
 gets            ::   String -> Options -> IO Options
 fastReinstall   ::   Options -> IO Options
@@ -101,6 +103,18 @@ lyricsBracket = bracket_
    )( do putStrLn "   Done                                                                                  "
          putStrLn "_________________________________________________________________________________________"
     )
+
+getA arg _ = (</> "sharingan.yml")
+  <$> takeDirectory
+  <$> getExecutablePath >>= \ymlx ->
+    let ymlprocess = ifSo $ do
+        rsdata  <- yDecode ymlx :: IO [Repository]
+        let newdata = (Repository arg 
+                                  ["master"] 
+                                  "upstream master") : rsdata
+        yEncode ymlx newdata
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
 
 list _ = (</> "sharingan.yml")
   <$> takeDirectory
