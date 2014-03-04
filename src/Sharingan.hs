@@ -105,7 +105,7 @@ lyricsBracket = bracket_
 list _ = (</> "sharingan.yml")
   <$> takeDirectory
   <$> getExecutablePath >>= \ymlx ->
-    let ymlprocess = ifSo $ lyricsBracket $ do
+    let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo -> do
             let loc = location repo

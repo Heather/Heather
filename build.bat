@@ -3,7 +3,7 @@
 echo        Stone word backfire with vengeance
                             echo                Hopeless divine intervention
                     
-  cabal           install --only-dependencies
+  cabal           install --only-dependencies   --force-reinstalls
 
 echo                            Leader, where's the peace you pursue
                                        echo    Can't let any more follow you
