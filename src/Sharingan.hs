@@ -19,6 +19,7 @@ import Control.Applicative
 import Control.Exception
 import Control.Eternal
 
+import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
 
 import Data.List (isInfixOf)
@@ -104,9 +105,17 @@ lyricsBracket = bracket_
          putStrLn "_________________________________________________________________________________________"
     )
 
-getA arg _ = (</> "sharingan.yml")
-  <$> takeDirectory
-  <$> getExecutablePath >>= \ymlx ->
+getConfig :: IO String
+getConfig =
+    {- Lens: (& filename .~ "sharingan.yml") -}
+    if | os `elem` ["win32", "mingw32", "cygwin32"] -> (</> "sharingan.yml") 
+                                                        <$> takeDirectory 
+                                                        <$> getExecutablePath
+       | otherwise -> return "/etc/sharingan.yml"
+  
+
+getA arg _ =
+  getConfig >>= \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
         let newdata = (Repository arg 
@@ -116,9 +125,8 @@ getA arg _ = (</> "sharingan.yml")
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-list _ = (</> "sharingan.yml")
-  <$> takeDirectory
-  <$> getExecutablePath >>= \ymlx ->
+list _ =
+  getConfig >>= \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo -> do
@@ -128,9 +136,8 @@ list _ = (</> "sharingan.yml")
                           >> exitWith ExitSuccess
 
 go :: Bool -> String -> String -> IO()
-go fast sync _ = (</> "sharingan.yml")                {- lens:                           -}
-  <$> takeDirectory                                   {- (& filename .~ "sharingan.yml") -}
-  <$> getExecutablePath >>= \ymlx ->
+go fast sync _ =                               
+  getConfig >>= \ymlx ->
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
