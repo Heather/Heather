@@ -4,21 +4,9 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-list _ = (</> "sharingan.yml")
-  <$> takeDirectory
-  <$> getExecutablePath >>= \ymlx ->
-    let ymlprocess = ifSo $ lyricsBracket $ do
-        rsdata <- yDecode ymlx :: IO [Repository]
-        forM_ rsdata $ \repo -> do
-            let loc = location repo
-            forM_ (branches repo) $ printf " * %s <> %s\n" loc
-    in doesFileExist ymlx >>= ymlprocess 
-                          >> exitWith ExitSuccess
-
 go :: Bool -> String -> String -> IO()
-go fast sync _ = (</> "sharingan.yml")                {- lens:                           -}
-  <$> takeDirectory                                   {- (& filename .~ "sharingan.yml") -}
-  <$> getExecutablePath >>= \ymlx ->
+go fast sync _ =                               
+  getConfig >>= \ymlx ->
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
@@ -26,16 +14,31 @@ go fast sync _ = (</> "sharingan.yml")                {- lens:                  
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ (branches repo) $ \branch ->
                     printf " * %s <> %s\n" loc branch
-                    >>  let eye = ifSo 
-                               $ when (not fast)
-                               $ let shx = loc </> ".sharingan.yml"
-                                     vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan
-                                                    --TODO: language defaults
-                                                    forM_ (env syncDatax) $ setEnv
-                                                    forM_ (before_install syncDatax) $ exc loc
-                                                    forM_ (install syncDatax) $ exc loc
-                                                    forM_ (script syncDatax) $ exc loc
-                                 in doesFileExist shx >>= vs
+                    >> let eye = ifSo 
+                            $ when (not fast)
+                            $ let shx = loc </> ".sharingan.yml"
+                                  sharinganProcess = ifSo 
+                                   $ do syncDatax <- yDecode shx :: IO Sharingan
+                                        let lang = map toLower $ language syncDatax
+                                            en = env syncDatax
+                                            be = before_install syncDatax
+                                            il = install syncDatax
+                                            sc = script syncDatax
+                                        forM_ en $ setEnv
+                                        forM_ be $ exc loc
+                                        case il of
+                                          [] -> case lang of
+                                                  "haskell" -> exc loc "cabal update"
+                                                  _         -> return () -- do nothing
+                                          _ -> forM_ il $ exc loc
+                                        case sc of
+                                          [] -> case lang of
+                                                  "c"       -> exc loc "make"
+                                                  "haskell" -> exc loc "cabal install"
+                                                  "rust"    -> exc loc "make"
+                                                  _         -> return () -- do nothing
+                                          _ -> forM_ sc $ exc loc
+                              in doesFileExist shx >>= sharinganProcess
                         in rebasefork loc branch <| upstream repo >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess
