@@ -5,6 +5,7 @@ import Shell
 import Tools
 {----------------------------------------------------------------------------------------}
 import Text.Printf
+import Data.Char (toLower)
 
 import System.Environment( getArgs )
 import System.Directory
@@ -82,9 +83,12 @@ showV      ::   Options -> IO Options
 showHelp   ::   Options -> IO Options
 genS       ::   Options -> IO Options
 
-getDepot _ =    depot_tools                     >> exitWith ExitSuccess
-showV _    =    printf "sharingan 0.0.1"        >> exitWith ExitSuccess
+showV _    =    printf "sharingan 0.0.2"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
+                exitWith ExitSuccess
+getDepot _ = do if (os `elem` ["win32", "mingw32", "cygwin32"]) 
+                  then depot_tools
+                  else putStrLn "this option is Win-only"
                 exitWith ExitSuccess
 
 getA            ::   String -> Options -> IO Options
@@ -149,11 +153,19 @@ go fast sync _ =
                                $ when (not fast)
                                $ let shx = loc </> ".sharingan.yml"
                                      vs = ifSo $ do syncDatax <- yDecode shx :: IO Sharingan
-                                                    --TODO: language defaults
-                                                    forM_ (env syncDatax) $ setEnv
-                                                    forM_ (before_install syncDatax) $ exc loc
-                                                    forM_ (install syncDatax) $ exc loc
-                                                    forM_ (script syncDatax) $ exc loc
+                                                    let lang = map toLower $ language syncDatax
+                                                        en = env syncDatax
+                                                        be = before_install syncDatax
+                                                        il = install syncDatax
+                                                        sc = script syncDatax
+                                                    forM_ en $ setEnv
+                                                    forM_ be $ exc loc
+                                                    forM_ il $ exc loc
+                                                    case sc of
+                                                      [] -> case lang of
+                                                              "haskell" -> exc loc "cabal install"
+                                                              _         -> return () -- do nothing
+                                                      _ -> forM_ sc $ exc loc
                                  in doesFileExist shx >>= vs
                         in rebasefork loc branch <| upstream repo >>= eye
                     >>  putStrLn <| replicate 89 '_'
