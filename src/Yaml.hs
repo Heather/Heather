@@ -26,7 +26,7 @@ data Sharingan = Sharingan {language :: String,
 data Repository = Repository {location :: String,
                               branches :: [String],
                               upstream :: String}
-                              deriving (Show)
+                              deriving (Show, Eq)
 
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>

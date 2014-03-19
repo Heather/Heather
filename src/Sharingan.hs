@@ -118,14 +118,17 @@ getConfig =
        | otherwise -> return "/etc/sharingan.yml"
   
 
-getA arg _ =
+getA arg _ = -- Add new stuff to sync
   getConfig >>= \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
-        let newdata = (Repository arg 
-                                  ["master"] 
-                                  "upstream master") : rsdata
-        yEncode ymlx newdata
+        let new = (Repository arg 
+                              ["master"] 
+                              "upstream master")
+        if (elem new rsdata)
+            then putStrLn "this repository is already in sync"
+            else let newdata = new : rsdata
+                 in yEncode ymlx newdata
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
