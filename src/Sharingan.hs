@@ -68,6 +68,7 @@ options = [
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
     Option ['l'] ["list"]    (NoArg list) "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
+    Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository",
     Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
@@ -92,6 +93,7 @@ getDepot _ = do if (os `elem` ["win32", "mingw32", "cygwin32"])
                 exitWith ExitSuccess
 
 getA            ::   String -> Options -> IO Options
+getD            ::   String -> Options -> IO Options
 getJ            ::   String -> Options -> IO Options
 gets            ::   String -> Options -> IO Options
 fastReinstall   ::   Options -> IO Options
@@ -129,6 +131,17 @@ getA arg _ = -- Add new stuff to sync
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
                  in yEncode ymlx newdata
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
+
+getD arg _ = -- Remove stuff from sync
+  getConfig >>= \ymlx ->
+    let ymlprocess = ifSo $ do
+        rsdata  <- yDecode ymlx :: IO [Repository]
+        let fd = filter notD rsdata
+                        where notD x = not $ isInfixOf arg
+                                           $ location x
+        yEncode ymlx fd
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
