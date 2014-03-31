@@ -1,11 +1,10 @@
 {-# LANGUAGE MultiWayIf, OverloadedStrings #-}
-{----------------------------------------------------------------------------------------}
+
 import Yaml
-import Shell
 import Tools
-{----------------------------------------------------------------------------------------}
+import SharinganProcess
+
 import Text.Printf
-import Data.Char (toLower)
 
 import System.Environment( getArgs )
 import System.Directory
@@ -172,28 +171,7 @@ go fast intera sync _ =
                     >> let eye = ifSo 
                             $ when (not fast)
                             $ let shx = loc </> ".sharingan.yml"
-                                  sharinganProcess = ifSo 
-                                   $ do syncDatax <- yDecode shx :: IO Sharingan
-                                        let lang = map toLower $ language syncDatax
-                                            en = env syncDatax
-                                            be = before_install syncDatax
-                                            il = install syncDatax
-                                            sc = script syncDatax
-                                        forM_ en $ setEnv
-                                        forM_ be $ exc loc
-                                        case il of
-                                          [] -> case lang of
-                                                  "haskell" -> exc loc "cabal update"
-                                                  _         -> return () -- do nothing
-                                          _ -> forM_ il $ exc loc
-                                        case sc of
-                                          [] -> case lang of
-                                                  "c"       -> exc loc "make"
-                                                  "haskell" -> exc loc "cabal install"
-                                                  "rust"    -> exc loc "make"
-                                                  _         -> return () -- do nothing
-                                          _ -> forM_ sc $ exc loc
-                              in doesFileExist shx >>= sharinganProcess
+                              in doesFileExist shx >>= sharingan shx loc
                         in rebasefork loc branch <| upstream repo >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess
