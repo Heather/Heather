@@ -40,13 +40,13 @@ main = do user      <- getAppUserDataDirectory "sharingan.lock"
                     else run
 
 data Options = Options  {
-    optJobs :: String,  optSync :: String,
-    optG    :: Bool,    optFast :: String -> String -> IO()
+    optJobs :: String,  optSync :: String,  optInteractive  :: Bool,
+    optG    :: Bool,    optFast :: Bool -> String -> String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
-    optJobs    = "2",   optG       = False,
+    optJobs    = "2",   optG       = False,     optInteractive = False,
     optSync    = "",    optFast    = go False
   }
 
@@ -57,9 +57,10 @@ do_program _ = do args <- getArgs
                   let Options { optSync = sync,
                                 optFast = run,
                                 optJobs = jobs,
-                                optG    = g } = opts
-                  if g  then genSync  jobs
-                        else run sync jobs
+                                optG    = g,
+                                optInteractive = i } = opts
+                  if g  then genSync jobs
+                        else run i sync jobs
 
 options :: [OptDescr (Options -> IO Options)]
 options = [
@@ -72,17 +73,19 @@ options = [
     Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
-    Option ['f'] ["fast"]    (NoArg fastReinstall) "fast sync, don't process .sharingan.yml files"
+    Option ['f'] ["fast"]    (NoArg fastReinstall) "fast sync, don't process .sharingan.yml files",
+    Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
   ]
 
 genSync    ::   String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 
-list       ::   Options -> IO Options
-getDepot   ::   Options -> IO Options
-showV      ::   Options -> IO Options
-showHelp   ::   Options -> IO Options
-genS       ::   Options -> IO Options
+list        ::   Options -> IO Options
+getDepot    ::   Options -> IO Options
+showV       ::   Options -> IO Options
+showHelp    ::   Options -> IO Options
+genS        ::   Options -> IO Options
+interactive ::   Options -> IO Options
 
 showV _    =    printf "sharingan 0.0.2"        >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
@@ -99,6 +102,7 @@ gets            ::   String -> Options -> IO Options
 fastReinstall   ::   Options -> IO Options
 
 genS opt            = return opt { optG = True }
+interactive opt     = return opt { optInteractive = True }
 getJ arg opt        = return opt { optJobs = arg }
 gets arg opt        = return opt { optSync = arg }
 fastReinstall opt   = return opt { optFast = go True }
@@ -155,8 +159,8 @@ list _ =
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-go :: Bool -> String -> String -> IO()
-go fast sync _ =                               
+go :: Bool -> Bool -> String -> String -> IO()
+go fast intera sync _ =                               
   getConfig >>= \ymlx ->
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
