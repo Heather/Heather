@@ -44,6 +44,6 @@ sharingan shx loc shxi = if shxi then
                         >> return fileExist
               makeCheck = exc loc "make"
               batCheck  = exc loc "build.bat"
-          in (return False) >>= test "make" makeCheck
+          in (return False) >>= test "Makefile" makeCheck
                             >>= test "build.bat" batCheck
                             >> return ()
