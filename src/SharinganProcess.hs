@@ -34,4 +34,6 @@ sharingan shx loc shxi = if shxi then
                   "rust"    -> exc loc "make"
                   _         -> return () -- do nothing
           _ -> forM_ sc $ exc loc
-     else putStrLn "hi"
+     else 
+      do doesFileExist "make" >>= ifSo $ exc loc "make"
+        
