@@ -8,6 +8,7 @@ import Yaml
 import Shell
 
 import System.Directory
+import System.FilePath(takeDirectory, (</>))
 
 import Data.Char (toLower)
 
@@ -36,7 +37,13 @@ sharingan shx loc shxi = if shxi then
                   "rust"    -> exc loc "make"
                   _         -> return () -- do nothing
           _ -> forM_ sc $ exc loc
-     else let makeCheck     = ifSo $ exc loc "make"
-              batCheck      = ifSo $ exc loc "build.bat"
-          in do doesFileExist "make"        >>= makeCheck
-                doesFileExist "build.bat"   >>= batCheck
+     else let test fe procx previous = if previous
+                then return True
+                else doesFileExist (loc </> fe) >>= \fileExist ->
+                        when fileExist procx
+                        >> return fileExist
+              makeCheck = exc loc "make"
+              batCheck  = exc loc "build.bat"
+          in (return False) >>= test "make" makeCheck
+                            >>= test "build.bat" batCheck
+                            >> return ()
