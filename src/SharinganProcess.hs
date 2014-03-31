@@ -7,6 +7,8 @@ module SharinganProcess
 import Yaml
 import Shell
 
+import System.Directory
+
 import Data.Char (toLower)
 
 import Control.Monad
@@ -34,6 +36,6 @@ sharingan shx loc shxi = if shxi then
                   "rust"    -> exc loc "make"
                   _         -> return () -- do nothing
           _ -> forM_ sc $ exc loc
-     else 
-      do doesFileExist "make" >>= ifSo $ exc loc "make"
+     else let makeCheck = ifSo $ exc loc "make"
+          in doesFileExist "make" >>= makeCheck
         
