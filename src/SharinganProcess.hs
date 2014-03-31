@@ -36,6 +36,7 @@ sharingan shx loc shxi = if shxi then
                   "rust"    -> exc loc "make"
                   _         -> return () -- do nothing
           _ -> forM_ sc $ exc loc
-     else let makeCheck = ifSo $ exc loc "make"
-          in doesFileExist "make" >>= makeCheck
-        
+     else let makeCheck     = ifSo $ exc loc "make"
+              batCheck      = ifSo $ exc loc "build.bat"
+          in do doesFileExist "make"        >>= makeCheck
+                doesFileExist "build.bat"   >>= batCheck
