@@ -171,7 +171,7 @@ go fast intera sync _ =
                     >> let eye = ifSo 
                             $ when (not fast)
                             $ let shx = loc </> ".sharingan.yml"
-                              in doesFileExist shx >>= sharingan shx loc
+                              in doesFileExist shx >>= sharingan intera shx loc
                         in rebasefork loc branch <| upstream repo >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess

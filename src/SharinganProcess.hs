@@ -15,8 +15,8 @@ import Data.Char (toLower)
 import Control.Monad
 import Control.Eternal
 
-sharingan :: String -> String -> Bool -> IO()
-sharingan shx loc shxi = if shxi then
+sharingan :: Bool -> String -> String -> Bool -> IO()
+sharingan intera shx loc shxi = if shxi then
      do syncDatax <- yDecode shx :: IO Sharingan
         let lang = map toLower $ language syncDatax
             en = env syncDatax
@@ -37,7 +37,8 @@ sharingan shx loc shxi = if shxi then
                   "rust"    -> exc loc "make"
                   _         -> return () -- do nothing
           _ -> forM_ sc $ exc loc
-     else let test fe procx previous = if previous
+     else when intera
+        $ let test fe procx previous = if previous
                 then return True
                 else doesFileExist (loc </> fe) >>= \fileExist ->
                         when fileExist procx
