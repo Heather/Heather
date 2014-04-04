@@ -10,7 +10,8 @@ import Shell
 import System.Directory
 import System.FilePath(takeDirectory, (</>))
 
-import Data.Char (toLower)
+import Data.Char
+import Data.List
 
 import Control.Monad
 import Control.Eternal
@@ -43,8 +44,23 @@ sharingan intera shx loc shxi = if shxi then
                 else doesFileExist (loc </> fe) >>= \fileExist ->
                         when fileExist procx
                         >> return fileExist
-              makeCheck = exc loc "make"
-              batCheck  = exc loc "build.bat"
-          in (return False) >>= test "Makefile" makeCheck
-                            >>= test "build.bat" batCheck
+              cabal previous = if previous
+                then return True
+                else do all <- getDirectoryContents "."
+                        let f = filter (\x -> any(`isSuffixOf` map toLower x)
+                                        [".cabal"]) $ all
+                        if (length f) > 0
+                          then do -- forM_ f $ \fnx ->
+                                  let build = do
+                                      exc loc "cabal install --only-dependencies"
+                                      exc loc "cabal configure"
+                                      exc loc "cabal build"
+                                  build
+                                  return True
+                          else return False
+              make = exc loc "make"
+              bat  = exc loc "build.bat"
+          in (return False) >>= test "build.bat" bat
+                            >>= test "Makefile" make
+                            >>= cabal
                             >> return ()
