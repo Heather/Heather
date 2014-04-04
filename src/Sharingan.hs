@@ -114,17 +114,23 @@ lyricsBracket = bracket_
          putStrLn "_________________________________________________________________________________________"
     )
 
-getConfig :: IO String
+getConfig :: IO FilePath
 getConfig =
-    {- Lens: (& filename .~ "sharingan.yml") -}
     if | os `elem` ["win32", "mingw32", "cygwin32"] -> (</> "sharingan.yml") 
-                                                        <$> takeDirectory 
-                                                        <$> getExecutablePath
+                                                                 <$> takeDirectory 
+                                                                 <$> getExecutablePath
        | otherwise -> return "/etc/sharingan.yml"
-  
 
+processChecks :: FilePath -> IO()
+processChecks cfg = 
+  let generate cfg = ifNot $ let nothing = [] :: [Repository]
+                             in yEncode cfg nothing
+  in doesFileExist cfg >>= generate cfg
+
+withConfig foo = liftM2 (>>) processChecks foo =<< getConfig
+  
 getA arg _ = -- Add new stuff to sync
-  getConfig >>= \ymlx ->
+  withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
         let new = (Repository arg 
@@ -138,7 +144,7 @@ getA arg _ = -- Add new stuff to sync
                           >> exitWith ExitSuccess
 
 getD arg _ = -- Remove stuff from sync
-  getConfig >>= \ymlx ->
+  withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
         let fd = filter notD rsdata
@@ -149,7 +155,7 @@ getD arg _ = -- Remove stuff from sync
                           >> exitWith ExitSuccess
 
 list _ =
-  getConfig >>= \ymlx ->
+  withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo -> do
@@ -159,8 +165,8 @@ list _ =
                           >> exitWith ExitSuccess
 
 go :: Bool -> Bool -> String -> String -> IO()
-go fast intera sync _ =                               
-  getConfig >>= \ymlx ->
+go fast intera sync _ =
+  withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
