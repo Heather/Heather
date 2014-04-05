@@ -19,5 +19,5 @@ Executable    sharingan
     , directory
     , bytestring
     , process
-    , eternal >= 0.0.3
+    , eternal >= 0.0.4
     
