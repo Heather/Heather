@@ -4,9 +4,9 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go :: Bool -> String -> String -> IO()
-go fast sync _ =                               
-  getConfig >>= \ymlx ->
+go :: Bool -> Bool -> String -> String -> IO()
+go fast intera sync _ =
+  withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
@@ -17,28 +17,7 @@ go fast sync _ =
                     >> let eye = ifSo 
                             $ when (not fast)
                             $ let shx = loc </> ".sharingan.yml"
-                                  sharinganProcess = ifSo 
-                                   $ do syncDatax <- yDecode shx :: IO Sharingan
-                                        let lang = map toLower $ language syncDatax
-                                            en = env syncDatax
-                                            be = before_install syncDatax
-                                            il = install syncDatax
-                                            sc = script syncDatax
-                                        forM_ en $ setEnv
-                                        forM_ be $ exc loc
-                                        case il of
-                                          [] -> case lang of
-                                                  "haskell" -> exc loc "cabal update"
-                                                  _         -> return () -- do nothing
-                                          _ -> forM_ il $ exc loc
-                                        case sc of
-                                          [] -> case lang of
-                                                  "c"       -> exc loc "make"
-                                                  "haskell" -> exc loc "cabal install"
-                                                  "rust"    -> exc loc "make"
-                                                  _         -> return () -- do nothing
-                                          _ -> forM_ sc $ exc loc
-                              in doesFileExist shx >>= sharinganProcess
+                              in doesFileExist shx >>= sharingan intera shx loc
                         in rebasefork loc branch <| upstream repo >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess
@@ -79,11 +58,6 @@ usage example :
 
 ``` shell
 D:\Heather\Contrib\P\H>sharingan -s coreu
-Locked by thread: ThreadId 1
- __________________________________________________________________________________________
-                    And who the hell do you think I've become?
-  Like the person inside, I've been opening up.
-                                                     I'm onto you. (I'm onto you.)
  __________________________________________________________________________________________
 D:\Heather\Contrib\P\coreutils <> master
 Already on 'master'
@@ -112,10 +86,5 @@ sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --
 sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --opt-level=3 -o build/true true/true.rs'
 sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --opt-level=3 -o build/wc wc/wc.rs'
 sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --opt-level=3 -o build/yes yes/yes.rs'
- __________________________________________________________________________________________
-     Cut out your tongue and feed it to the liars.
-                  Black hearts shed light on dying words.
-
-                                                            I wanna feel you burn.
  __________________________________________________________________________________________
 ```
