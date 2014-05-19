@@ -23,28 +23,45 @@ import Control.Eternal
 
 rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
 rebasefork path branch upstream =
-    doesDirectoryExist path                  >>= \dirExist ->
-        doesDirectoryExist <| path </> ".git" >>= \git ->
-         if git then if dirExist
-                        then setCurrentDirectory path >> do
-                                exec $ "git checkout " ++ branch
-                                    ++ " & git reset --hard"
-                                    ++ " & git rebase --abort"
-                                loc <- readProcess "git" ["log", "-n", "1", "--pretty=format:%H"] []
-                                rem <- readProcess "git" (["ls-remote"] ++ (splitOn " " upstream)) []
-                                let remote = (splitOn "\t" rem) !! 0
-                                putStrLn $ "Local: "  ++ loc
-                                putStrLn $ "Remote: " ++ remote
-                                if  remote == loc
-                                    then do putStrLn $ path ++ " is up to date"
-                                            return False -- repository is up to date
-                                    else do exec $ "git pull origin "             ++ branch
-                                                 ++ " & git fetch "               ++ upstream
-                                                 ++ " & git pull --rebase "       ++ upstream
-                                                 ++ " & git push --force origin " ++ branch
-                                            return True -- Sync
-                        else    return False    -- directory doesn't exist
-                else            return True     -- directory exists but it's not a git
+    doesDirectoryExist path >>= \dirExist ->
+        let chk foo previous = if previous
+                then return True
+                else foo
+
+            gitX = doesDirectoryExist <| path </> ".git" >>= \git ->
+                    if git then if dirExist
+                            then setCurrentDirectory path >> do
+                                    exec $ "git checkout " ++ branch
+                                        ++ " & git reset --hard"
+                                        ++ " & git rebase --abort"
+                                    loc <- readProcess "git" ["log", "-n", "1", "--pretty=format:%H"] []
+                                    rem <- readProcess "git" (["ls-remote"] ++ (splitOn " " upstream)) []
+                                    let remote = (splitOn "\t" rem) !! 0
+                                    putStrLn $ "Local: "  ++ loc
+                                    putStrLn $ "Remote: " ++ remote
+                                    if  remote == loc
+                                        then do putStrLn $ path ++ " is up to date"
+                                                return False -- repository is up to date
+                                        else do exec $ "git pull origin "             ++ branch
+                                                     ++ " & git fetch "               ++ upstream
+                                                     ++ " & git pull --rebase "       ++ upstream
+                                                     ++ " & git push --force origin " ++ branch
+                                                return True -- Sync
+                            else return True  -- TODO: clone
+                           else  return False -- directory exists but it's not a git
+
+            hgX = doesDirectoryExist <| path </> ".hg" >>= \hg ->
+                    if hg then if dirExist
+                            then setCurrentDirectory path >> do
+                                exec $ "hg pull --update --rebase" ++ upstream
+                                    ++ " & hg push " ++ branch
+                                    ++ " --force"
+                                return True   -- Sync
+                            else return True  -- TODO: clone
+                           else  return False -- directory exists but it's not a hg
+                        
+        in (return False) >>= chk gitX
+                          >>= chk hgX
 
 setEnv :: [Char] -> IO()
 setEnv env = exec eset
