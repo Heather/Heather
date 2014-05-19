@@ -36,12 +36,13 @@ rebasefork path branch upstream =
                                 putStrLn $ "Local: "  ++ loc
                                 putStrLn $ "Remote: " ++ remote
                                 if  remote == loc
-                                    then putStrLn $ path ++ " is up to date"
-                                    else exec $ "git pull origin "             ++ branch
-                                              ++ " & git fetch "               ++ upstream
-                                              ++ " & git pull --rebase "       ++ upstream
-                                              ++ " & git push --force origin " ++ branch
-                                return True     -- rebase complete
+                                    then do putStrLn $ path ++ " is up to date"
+                                            return False -- repository is up to date
+                                    else do exec $ "git pull origin "             ++ branch
+                                                 ++ " & git fetch "               ++ upstream
+                                                 ++ " & git pull --rebase "       ++ upstream
+                                                 ++ " & git push --force origin " ++ branch
+                                            return True -- Sync
                         else    return False    -- directory doesn't exist
                 else            return True     -- directory exists but it's not a git
 
