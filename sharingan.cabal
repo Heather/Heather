@@ -20,4 +20,5 @@ Executable    sharingan
     , bytestring
     , process
     , eternal >= 0.0.4
+    , split
     
