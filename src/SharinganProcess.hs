@@ -50,8 +50,7 @@ sharingan intera shx loc shxi = if shxi then
                         let f = filter (\x -> any(`isSuffixOf` map toLower x)
                                         [".cabal"]) $ all
                         if (length f) > 0
-                          then do -- forM_ f $ \fnx ->
-                                  let build = do
+                          then do let build = do
                                       exc loc "cabal install --only-dependencies"
                                       exc loc "cabal configure"
                                       exc loc "cabal build"
