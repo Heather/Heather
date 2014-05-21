@@ -19,11 +19,13 @@ import Control.Eternal
 sharingan :: Bool -> String -> String -> Bool -> IO()
 sharingan intera shx loc shxi = if shxi then
      do syncDatax <- yDecode shx :: IO Sharingan
-        let lang = map toLower $ language syncDatax
-            en = env syncDatax
-            be = before_install syncDatax
-            il = install syncDatax
-            sc = script syncDatax
+        let en   = env syncDatax
+            be   = before_install syncDatax
+            il   = install syncDatax
+            sc   = script syncDatax
+            lang = case language syncDatax of
+                        [] -> []
+                        ln -> map toLower ln
         forM_ en $ setEnv
         forM_ be $ exc loc
         case il of

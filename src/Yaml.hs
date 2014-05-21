@@ -63,7 +63,9 @@ instance ToJSON Sharingan where
 yDecode :: FromJSON iFromJSONable => FilePath -> IO iFromJSONable
 yDecode fnm = do
     ymlData <- BS.readFile fnm
-    return $ fromJust $ Data.Yaml.decode ymlData
+    return $ case Data.Yaml.decode ymlData of
+                Just decoded -> decoded
+                Nothing      -> error "Can't parse from YAML/JSON"
 
 yEncode :: ToJSON iToJSONable => FilePath -> iToJSONable -> IO()
 yEncode fnm dat = do
