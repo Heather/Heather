@@ -11,6 +11,7 @@ module Shell
   ) where
 
 import Data.Char
+import Data.List
 import Data.List.Split
 
 import System.Info (os)
@@ -30,9 +31,10 @@ dropSpaceTail maybeStuff (x:xs)
         | null maybeStuff = x : dropSpaceTail "" xs
         | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
-rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
-rebasefork path branch upstream =
-    doesDirectoryExist path >>= \dirExist ->
+rebasefork :: [Char] -> [Char] -> [[Char]] -> Bool -> IO Bool
+rebasefork path branch up sync =
+    let upstream = intercalate " " up
+    in doesDirectoryExist path >>= \dirExist ->
         let chk foo previous = if previous
                 then return True
                 else foo
@@ -40,16 +42,14 @@ rebasefork path branch upstream =
             gitX = doesDirectoryExist <| path </> ".git" >>= \git ->
                     if git then if dirExist
                             then setCurrentDirectory path >> do
-                                    let up = splitOn " " upstream
                                     exec $ "git checkout " ++ branch
                                         ++ " & git reset --hard"
                                         ++ " & git rebase --abort"
-                                    lox <- if (length up) > 1
-                                            then let ubranch = up !! 1
-                                                 in readProcess "git" [ "merge-base"
-                                                                      , ubranch
-                                                                      , "origin/" ++ branch
-                                                                      ] []
+                                    lox <- if (length up) > 1 && sync
+                                            then readProcess "git" [ "merge-base"
+                                                                   , up !! 1
+                                                                   , "origin/" ++ branch
+                                                                   ] []
                                             else readProcess "git" ["log", "-n", "1", "--pretty=format:%H"] []
                                     rem <- readProcess "git" (["ls-remote"] ++ up) []
                                     let remote = (splitOn "\t" rem) !! 0

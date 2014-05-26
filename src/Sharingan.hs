@@ -23,6 +23,7 @@ import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
 
 import Data.List (isInfixOf)
+import Data.List.Split
 
 main :: IO ()
 main = do user      <- getAppUserDataDirectory "sharingan.lock"
@@ -171,8 +172,11 @@ go fast intera sync _ =
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
             let loc = location repo
-                up  = upstream repo
+                up  = splitOn " " $ upstream repo
                 br  = branches repo
+                bsync = if (length up) > 1
+                            then up !! 1 `elem` br
+                            else False
             in when (sync == "" || isInfixOf sync loc)
                 $ forM_ br $ \branch ->
                     printf " * %s <> %s\n" loc branch
@@ -180,6 +184,6 @@ go fast intera sync _ =
                             $ when (not fast)
                             $ let shx = loc </> ".sharingan.yml"
                               in doesFileExist shx  >>= sharingan intera shx loc
-                        in rebasefork loc branch up >>= eye
+                        in rebasefork loc branch up bsync >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess
