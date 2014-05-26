@@ -10,6 +10,7 @@ module Shell
     gentooSync
   ) where
 
+import Data.Char
 import Data.List.Split
 
 import System.Info (os)
@@ -21,6 +22,14 @@ import System.Process
 import Control.Monad
 import Control.Eternal
 
+
+trim xs = dropSpaceTail "" $ dropWhile isSpace xs
+dropSpaceTail maybeStuff "" = ""
+dropSpaceTail maybeStuff (x:xs)
+        | isSpace x = dropSpaceTail (x:maybeStuff) xs
+        | null maybeStuff = x : dropSpaceTail "" xs
+        | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
+
 rebasefork :: [Char] -> [Char] -> [Char] -> IO Bool
 rebasefork path branch upstream =
     doesDirectoryExist path >>= \dirExist ->
@@ -31,12 +40,20 @@ rebasefork path branch upstream =
             gitX = doesDirectoryExist <| path </> ".git" >>= \git ->
                     if git then if dirExist
                             then setCurrentDirectory path >> do
+                                    let up = splitOn " " upstream
                                     exec $ "git checkout " ++ branch
                                         ++ " & git reset --hard"
                                         ++ " & git rebase --abort"
-                                    loc <- readProcess "git" ["log", "-n", "1", "--pretty=format:%H"] []
-                                    rem <- readProcess "git" (["ls-remote"] ++ (splitOn " " upstream)) []
+                                    lox <- if (length up) > 1
+                                            then let ubranch = up !! 1
+                                                 in readProcess "git" [ "merge-base"
+                                                                      , ubranch
+                                                                      , "origin/" ++ branch
+                                                                      ] []
+                                            else readProcess "git" ["log", "-n", "1", "--pretty=format:%H"] []
+                                    rem <- readProcess "git" (["ls-remote"] ++ up) []
                                     let remote = (splitOn "\t" rem) !! 0
+                                        loc    = trim lox
                                     putStrLn $ "Local: "  ++ loc
                                     putStrLn $ "Remote: " ++ remote
                                     if  remote == loc

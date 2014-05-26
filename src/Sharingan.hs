@@ -23,7 +23,6 @@ import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
 
 import Data.List (isInfixOf)
-import Data.List.Split
 
 main :: IO ()
 main = do user      <- getAppUserDataDirectory "sharingan.lock"
