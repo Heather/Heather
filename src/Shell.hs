@@ -45,18 +45,20 @@ rebasefork path branch up sync =
                                     exec $ "git checkout " ++ branch
                                         ++ " & git reset --hard"
                                         ++ " & git rebase --abort"
-                                    lox <- if (length up) > 1 && sync
+                                    loc <- if (length up) > 1 && sync
                                             then readProcess "git" [ "merge-base"
                                                                    , up !! 1
                                                                    , "origin/" ++ branch
                                                                    ] []
-                                            else readProcess "git" ["log", "-n", "1", "--pretty=format:%H"] []
+                                            else readProcess "git" ["log", "-n", "1"
+                                                                   , "--pretty=format:%H"
+                                                                   ] []
                                     rem <- readProcess "git" (["ls-remote"] ++ up) []
                                     let remote = (splitOn "\t" rem) !! 0
-                                        loc    = trim lox
-                                    putStrLn $ "Local: "  ++ loc
+                                        local  = trim loc
+                                    putStrLn $ "Local: "  ++ local
                                     putStrLn $ "Remote: " ++ remote
-                                    if  remote == loc
+                                    if  remote == local
                                         then do putStrLn $ path ++ " is up to date"
                                                 return True -- repository is up to date
                                         else do exec $ "git pull origin "             ++ branch
