@@ -60,7 +60,7 @@ rebasefork path branch up sync =
                                     putStrLn $ "Remote: " ++ remote
                                     if  remote == local
                                         then do putStrLn $ path ++ " is up to date"
-                                                return True -- repository is up to date
+                                                return False -- repository is up to date
                                         else do exec $ "git pull origin "             ++ branch
                                                      ++ " & git fetch "               ++ upstream
                                                      ++ " & git pull --rebase "       ++ upstream
