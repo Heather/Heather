@@ -175,7 +175,11 @@ list _ =
                           >> exitWith ExitSuccess
                           
 mkSharingan _ = -- Create .sharingan.yml template
-  let new = (Sharingan "haskell" [] [] [] ["cabal install"])
+  let langM = Just "haskell"
+      envM  = Just []
+      biM   = Just []
+      iM    = Just []
+      new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
 go :: Bool -> Bool -> Bool -> String -> String -> IO()

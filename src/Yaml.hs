@@ -16,11 +16,11 @@ import Control.Applicative
 
 import qualified Data.ByteString.Char8 as BS
 
-data Sharingan = Sharingan {language :: String,
-                            env :: [String],
-                            before_install :: [String],
-                            install:: [String],
-                            script :: [String]}
+data Sharingan = Sharingan {language        :: Maybe String,
+                            env             :: Maybe [String],
+                            before_install  :: Maybe [String],
+                            install         :: Maybe [String],
+                            script          :: [String]}
                             deriving (Show)
 
 data Repository = Repository {location :: String,
@@ -44,10 +44,10 @@ instance ToJSON Repository where
 
 instance FromJSON Sharingan where
     parseJSON (Object v) = Sharingan <$>
-                           v .: "language" <*>
-                           v .: "env" <*>
-                           v .: "before_install" <*>
-                           v .: "install" <*>
+                           v .:? "language" <*>
+                           v .:? "env" <*>
+                           v .:? "before_install" <*>
+                           v .:? "install" <*>
                            v .: "script"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML"
