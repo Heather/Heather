@@ -68,7 +68,10 @@ options :: [OptDescr (Options -> IO Options)]
 options = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
+    
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
+    Option []    ["make"]    (NoArg mkSharingan) "Create .sharingan.yml template",
+    
     Option ['l'] ["list"]    (NoArg list) "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository",
@@ -85,6 +88,7 @@ genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 
 list            ::   Options -> IO Options
 getDepot        ::   Options -> IO Options
+mkSharingan     ::   Options -> IO Options
 showV           ::   Options -> IO Options
 showHelp        ::   Options -> IO Options
 genS            ::   Options -> IO Options
@@ -169,6 +173,10 @@ list _ =
             forM_ (branches repo) $ printf " * %s <> %s\n" loc
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
+                          
+mkSharingan _ = -- Create .sharingan.yml template
+  let new = (Sharingan "haskell" [] [] [] ["cabal install"])
+  in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
 go :: Bool -> Bool -> Bool -> String -> String -> IO()
 go fast intera force sync _ =

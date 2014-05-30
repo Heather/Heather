@@ -34,7 +34,7 @@ instance FromJSON Repository where
                            v .: "branches" <*>
                            v .: "upstream"
     -- A non-Object value is of the wrong type, so fail.
-    parseJSON _ = error "Can't parse Repository from YAML/JSON"
+    parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON Repository where
    toJSON (Repository loca br
@@ -50,7 +50,7 @@ instance FromJSON Sharingan where
                            v .: "install" <*>
                            v .: "script"
     -- A non-Object value is of the wrong type, so fail.
-    parseJSON _ = error "Can't parse Sharingan from YAML/JSON"
+    parseJSON _ = error "Can't parse Sharingan from YAML"
 
 instance ToJSON Sharingan where
    toJSON (Sharingan lan en before inst
@@ -65,7 +65,7 @@ yDecode fnm = do
     ymlData <- BS.readFile fnm
     return $ case Data.Yaml.decode ymlData of
                 Just decoded -> decoded
-                Nothing      -> error "Can't parse from YAML/JSON"
+                Nothing      -> error "Can't parse from YAML"
 
 yEncode :: ToJSON iToJSONable => FilePath -> iToJSONable -> IO()
 yEncode fnm dat = do
