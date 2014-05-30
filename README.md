@@ -88,3 +88,21 @@ sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --
 sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --opt-level=3 -o build/yes yes/yes.rs'
  __________________________________________________________________________________________
 ```
+
+```shell
+>sharingan --help
+Usage: sharingan [optional things]
+  -v         --version        Display Version
+  -h         --help           Display Help
+  -D         --depot          Get Google depot tools with git and python
+             --make           Create .sharingan.yml template
+  -l         --list           List repositories
+  -a STRING  --add=STRING     Add repository
+  -d STRING  --delete=STRING  Delete repository
+  -g         --gentoo         Synchronize cvs portagee tree Gentoo x86
+  -j STRING  --jobs=STRING    Maximum parallel jobs
+  -s STRING  --sync=STRING    sync single repository
+  -q         --quick          quick sync, don't process .sharingan.yml files
+  -f         --force          force process .sharingan.yml files
+  -i         --interactive    trying guess what to do for each repository
+```
