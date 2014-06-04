@@ -22,6 +22,7 @@ import Control.Eternal
 import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
 
+import Data.Maybe
 import Data.List (isInfixOf)
 import Data.List.Split
 
@@ -144,8 +145,8 @@ getA arg _ = -- Add new stuff to sync
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
         let new = (Repository arg 
-                              ["master"] 
-                              "upstream master")
+                              ["master"] "upstream master"
+                              Nothing)
         if (elem new rsdata)
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
@@ -191,6 +192,7 @@ go fast intera force sync _ =
             let loc = location repo
                 up  = splitOn " " $ upstream repo
                 br  = branches repo
+                ps  = post_rebuild repo
                 bsync = if (length up) > 1
                             then up !! 1 `elem` br
                             else False
@@ -199,8 +201,12 @@ go fast intera force sync _ =
                     printf " * %s <> %s\n" loc branch
                     >> let eye r =
                             when ((r || force) && (not fast))
-                            $ let shx = loc </> ".sharingan.yml"
-                              in doesFileExist shx  >>= sharingan intera shx loc
+                            $ do let shx = loc </> ".sharingan.yml"
+                                 doesFileExist shx >>= sharingan intera shx loc
+                                 when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                        let pshx = psc </> ".sharingan.yml"
+                                                        in doesFileExist pshx
+                                                            >>= sharingan intera pshx psc
                         in rebasefork loc branch up bsync >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess

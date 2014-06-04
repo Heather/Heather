@@ -23,24 +23,27 @@ data Sharingan = Sharingan {language        :: Maybe String,
                             script          :: [String]}
                             deriving (Show)
 
-data Repository = Repository {location :: String,
-                              branches :: [String],
-                              upstream :: String}
+data Repository = Repository {location      :: String,
+                              branches      :: [String],
+                              upstream      :: String,
+                              post_rebuild  :: Maybe [String]}
                               deriving (Show, Eq)
 
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
-                           v .: "location" <*>
-                           v .: "branches" <*>
-                           v .: "upstream"
+                           v .:  "location" <*>
+                           v .:  "branches" <*>
+                           v .:  "upstream" <*>
+                           v .:? "post_rebuild"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON Repository where
-   toJSON (Repository loca br
-                      up) = object [ "location" .= loca
-                                   , "branches" .= br
-                                   , "upstream" .= up]
+   toJSON (Repository loca br up
+                      pr) = object [ "location"     .= loca
+                                   , "branches"     .= br
+                                   , "upstream"     .= up
+                                   , "post_rebuild" .= pr]
 
 instance FromJSON Sharingan where
     parseJSON (Object v) = Sharingan <$>
