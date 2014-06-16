@@ -67,25 +67,37 @@ do_program _ = do args <- getArgs
                   if g  then genSync jobs
                         else run i f sync jobs
 
-options :: [OptDescr (Options -> IO Options)]
-options = [
+gOptions :: [OptDescr (Options -> IO Options)]
+gOptions = [
     Option ['v'] ["version"] (NoArg showV) "Display Version",
     Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
     
-    Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
     Option []    ["make"]    (NoArg mkSharingan) "Create .sharingan.yml template",
     Option []    ["config"]  (NoArg config) "Edit .sharingan.yml config file",
     
     Option ['l'] ["list"]    (NoArg list) "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository",
-    Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     Option ['q'] ["quick"]    (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
     Option ['f'] ["force"]    (NoArg forceReinstall) "force process .sharingan.yml files",
     Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
   ]
+  
+winOptions :: [OptDescr (Options -> IO Options)]
+winOptions = [
+    Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python"
+  ]
+  
+nixOptions :: [OptDescr (Options -> IO Options)]
+nixOptions = [
+    Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86"
+  ]
+  
+options :: [OptDescr (Options -> IO Options)]
+options = gOptions ++ if | os `elem` ["win32", "mingw32", "cygwin32"] -> winOptions
+                         | otherwise -> nixOptions
 
 genSync    ::   String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
@@ -101,7 +113,7 @@ interactive     ::   Options -> IO Options
 fastReinstall   ::   Options -> IO Options
 forceReinstall  ::   Options -> IO Options
 
-showV _    =    printf "sharingan 0.0.2" >> exitWith ExitSuccess
+showV _    = do putStrLn $ "sharingan 0.0.3 " ++ (show os) ; exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 forM_ [0..10] $ \i -> do
                     let progress = fromIntegral i / 10
@@ -137,8 +149,8 @@ lyricsBracket = bracket_
 getConfig :: IO FilePath
 getConfig =
     if | os `elem` ["win32", "mingw32", "cygwin32"] -> (</> "sharingan.yml") 
-                                                                 <$> takeDirectory 
-                                                                 <$> getExecutablePath
+                                                        <$> takeDirectory 
+                                                        <$> getExecutablePath
        | otherwise -> return "/etc/sharingan.yml"
 
 processChecks :: FilePath -> IO()
