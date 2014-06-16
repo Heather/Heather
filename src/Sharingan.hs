@@ -58,12 +58,9 @@ do_program :: Handle -> IO ()
 do_program _ = do args <- getArgs
                   let ( actions, _, _ ) = getOpt RequireOrder options args
                   opts <- foldl (>>=) (return defaultOptions) actions
-                  let Options { optSync = sync,
-                                optForce = f,
-                                optFast = run,
-                                optJobs = jobs,
-                                optG    = g,
-                                optInteractive = i } = opts
+                  let Options { optSync = sync,     optForce = f,
+                                optFast = run,      optJobs = jobs,
+                                optG    = g,        optInteractive = i } = opts
                   if g  then genSync jobs
                         else run i f sync jobs
 
@@ -118,12 +115,10 @@ showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" option
                 forM_ [0..10] $ \i -> do
                     let progress = fromIntegral i / 10
                     putProgress $ drawProgressBar 40 progress ++ " " ++ drawPercentage progress
-                    threadDelay 150000
+                    threadDelay 50000
                 hPutChar stderr '\n'
                 exitWith ExitSuccess
-getDepot _ = do if (os `elem` ["win32", "mingw32", "cygwin32"]) 
-                  then depot_tools
-                  else putStrLn "this option is Win-only"
+getDepot _ = do depot_tools
                 exitWith ExitSuccess
 
 getA            ::   String -> Options -> IO Options
