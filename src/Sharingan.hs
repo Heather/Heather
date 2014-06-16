@@ -7,7 +7,7 @@ import ProgressBar
 
 import Text.Printf
 
-import System.Environment( getArgs )
+import System.Environment( getArgs, getEnv )
 import System.Directory
 import System.Exit
 import System.Console.GetOpt
@@ -74,6 +74,7 @@ options = [
     
     Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python",
     Option []    ["make"]    (NoArg mkSharingan) "Create .sharingan.yml template",
+    Option []    ["config"]  (NoArg config) "Edit .sharingan.yml config file",
     
     Option ['l'] ["list"]    (NoArg list) "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
@@ -92,6 +93,7 @@ genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 list            ::   Options -> IO Options
 getDepot        ::   Options -> IO Options
 mkSharingan     ::   Options -> IO Options
+config          ::   Options -> IO Options
 showV           ::   Options -> IO Options
 showHelp        ::   Options -> IO Options
 genS            ::   Options -> IO Options
@@ -189,6 +191,12 @@ mkSharingan _ = -- Create .sharingan.yml template
       iM    = Just []
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
+  
+config _ = do
+    editor <- getEnv "EDITOR"
+    withConfig $ \ymlx ->
+        exec $ editor ++ " " ++ ymlx
+    exitWith ExitSuccess
 
 go :: Bool -> Bool -> Bool -> String -> String -> IO()
 go fast intera force sync _ =
