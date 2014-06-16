@@ -22,6 +22,7 @@ import System.Process
 
 import Control.Monad
 import Control.Eternal
+import Control.Concurrent
 
 
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
@@ -89,9 +90,12 @@ setEnv env = exec eset
                              | otherwise -> "export " ++ env -- "cygwin32"
 
 gentooSync :: [Char] -> [Char] -> IO()
-gentooSync path jobs = exc path $ " cvs update "
+gentooSync path jobs = do
+    putStrLn "updating..."
+    forkIO $ exc path $ " cvs update "
             ++ " & egencache --update --repo=gentoo --portdir=" ++ path
-            ++ " --jobs="                                       ++ jobs
+            ++ " --jobs="
+    putStrLn "Done"
 
 gpull :: [Char] -> [Char] -> IO()
 gpull path branch =
