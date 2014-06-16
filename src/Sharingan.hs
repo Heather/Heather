@@ -3,6 +3,7 @@
 import Yaml
 import Tools
 import SharinganProcess
+import ProgressBar
 
 import Text.Printf
 
@@ -18,6 +19,7 @@ import Control.Monad
 import Control.Applicative
 import Control.Exception
 import Control.Eternal
+import Control.Concurrent
 
 import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
@@ -97,8 +99,13 @@ interactive     ::   Options -> IO Options
 fastReinstall   ::   Options -> IO Options
 forceReinstall  ::   Options -> IO Options
 
-showV _    =    printf "sharingan 0.0.2"        >> exitWith ExitSuccess
+showV _    =    printf "sharingan 0.0.2" >> exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
+                forM_ [0..10] $ \i -> do
+                    let progress = fromIntegral i / 10
+                    putProgress $ drawProgressBar 40 progress ++ " " ++ drawPercentage progress
+                    threadDelay 150000
+                hPutChar stderr '\n'
                 exitWith ExitSuccess
 getDepot _ = do if (os `elem` ["win32", "mingw32", "cygwin32"]) 
                   then depot_tools

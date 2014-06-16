@@ -10,10 +10,13 @@ module Shell
     gentooSync
   ) where
 
+import ProgressBar
+
 import Data.Char
 import Data.List
 import Data.List.Split
 
+import System.IO
 import System.Info (os)
 import System.Directory
 import System.FilePath((</>))
@@ -23,7 +26,6 @@ import System.Process
 import Control.Monad
 import Control.Eternal
 import Control.Concurrent
-
 
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
 dropSpaceTail maybeStuff "" = ""
@@ -92,10 +94,12 @@ setEnv env = exec eset
 gentooSync :: [Char] -> [Char] -> IO()
 gentooSync path jobs = do
     putStrLn "updating..."
+    putProgress $ drawProgressBar 40 0 ++ " " ++ drawPercentage 0
     forkIO $ exc path $ " cvs update "
             ++ " & egencache --update --repo=gentoo --portdir=" ++ path
             ++ " --jobs="
-    putStrLn "Done"
+    putProgress $ drawProgressBar 40 100 ++ " " ++ drawPercentage 100
+    hPutChar stderr '\n'
 
 gpull :: [Char] -> [Char] -> IO()
 gpull path branch =
