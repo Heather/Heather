@@ -34,8 +34,8 @@ dropSpaceTail maybeStuff (x:xs)
         | null maybeStuff = x : dropSpaceTail "" xs
         | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
-rebasefork :: [Char] -> [Char] -> [[Char]] -> Bool -> IO Bool
-rebasefork path branch up sync =
+rebasefork :: [Char] -> [Char] -> [[Char]] -> Bool -> Bool -> IO Bool
+rebasefork path branch up unsafe sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
         let chk foo previous = if previous
@@ -45,9 +45,10 @@ rebasefork path branch up sync =
             gitX = doesDirectoryExist <| path </> ".git" >>= \git ->
                     if git then if dirExist
                             then setCurrentDirectory path >> do
-                                    exec $ "git checkout " ++ branch
-                                        ++ " & git reset --hard"
-                                        ++ " & git rebase --abort"
+                                    when (not unsafe) 
+                                        $ exec $ "git checkout " ++ branch
+                                                                 ++ " & git reset --hard"
+                                                                 ++ " & git rebase --abort"
                                     loc <- if (length up) > 1 && sync
                                             then readProcess "git" [ "merge-base"
                                                                    , up !! 1

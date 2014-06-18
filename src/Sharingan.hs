@@ -44,14 +44,15 @@ main = do user      <- getAppUserDataDirectory "sharingan.lock"
 
 data Options = Options  {
     optJobs :: String,  optSync :: String,  optInteractive  :: Bool,
-    optG    :: Bool,    optForce :: Bool,
-    optFast :: Bool -> Bool -> String -> String -> IO()
+    optG    :: Bool,    optForce :: Bool, optUnsafe :: Bool,
+    optFast :: Bool -> Bool -> Bool -> String -> String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
     optJobs    = "2",   optG       = False,     optInteractive = False,
-    optSync    = "",    optForce   = False,     optFast    = go False
+    optSync    = "",    optForce   = False,     optUnsafe = False,
+    optFast    = go False
   }
 
 do_program :: Handle -> IO ()
@@ -59,10 +60,10 @@ do_program _ = do args <- getArgs
                   let ( actions, _, _ ) = getOpt RequireOrder options args
                   opts <- foldl (>>=) (return defaultOptions) actions
                   let Options { optSync = sync,     optForce = f,
-                                optFast = run,      optJobs = jobs,
+                                optFast = run,      optJobs = jobs, optUnsafe = unsafe,
                                 optG    = g,        optInteractive = i } = opts
                   if g  then genSync jobs
-                        else run i f sync jobs
+                        else run unsafe i f sync jobs
 
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
@@ -77,6 +78,8 @@ gOptions = [
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
+    
+    Option ['u'] ["unsafe"]   (NoArg runUnsafe) "do not process reset before sync",
     Option ['q'] ["quick"]    (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
     Option ['f'] ["force"]    (NoArg forceReinstall) "force process .sharingan.yml files",
     Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
@@ -109,6 +112,7 @@ genS            ::   Options -> IO Options
 interactive     ::   Options -> IO Options
 fastReinstall   ::   Options -> IO Options
 forceReinstall  ::   Options -> IO Options
+runUnsafe       ::   Options -> IO Options
 
 showV _    = do putStrLn $ "sharingan 0.0.3 " ++ (show os) ; exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
@@ -131,6 +135,7 @@ interactive opt     = return opt { optInteractive = True }
 getJ arg opt        = return opt { optJobs = arg }
 gets arg opt        = return opt { optSync = arg }
 forceReinstall opt  = return opt { optForce = True }
+runUnsafe opt       = return opt { optUnsafe = True }
 fastReinstall opt   = return opt { optFast  = go True }
 
 lyricsBracket :: IO() -> IO()
@@ -205,8 +210,8 @@ config _ = do
         exec $ editor ++ " " ++ ymlx
     exitWith ExitSuccess
 
-go :: Bool -> Bool -> Bool -> String -> String -> IO()
-go fast intera force sync _ =
+go :: Bool -> Bool -> Bool -> Bool -> String -> String -> IO()
+go unsafe fast intera force sync _ =
   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
@@ -229,6 +234,6 @@ go fast intera force sync _ =
                                                         let pshx = psc </> ".sharingan.yml"
                                                         in doesFileExist pshx
                                                             >>= sharingan intera pshx psc
-                        in rebasefork loc branch up bsync >>= eye
+                        in rebasefork loc branch up unsafe bsync >>= eye
                     >>  putStrLn <| replicate 89 '_'
     in doesFileExist ymlx >>= ymlprocess
