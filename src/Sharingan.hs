@@ -211,7 +211,7 @@ config _ = do
     exitWith ExitSuccess
 
 go :: Bool -> Bool -> Bool -> Bool -> String -> String -> IO()
-go unsafe fast intera force sync _ =
+go fast unsafe intera force sync _ =
   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ lyricsBracket $ do
         rsdata <- yDecode ymlx :: IO [Repository]
