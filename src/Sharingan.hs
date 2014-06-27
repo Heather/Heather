@@ -29,9 +29,17 @@ import Data.List (isInfixOf)
 import Data.List.Split
 
 main :: IO ()
-main = do user      <- getAppUserDataDirectory "sharingan.lock"
+main = do args <- getArgs
+          let ( actions, _, _ ) = getOpt RequireOrder options args
+          opts <- foldl (>>=) (return defaultOptions) actions
+          let Options { optSync = sync,     optForce = f,
+                        optFast = start,    optJobs = jobs, optUnsafe = unsafe,
+                        optG    = g,        optInteractive = i } = opts
+          user      <- getAppUserDataDirectory "sharingan.lock"
           locked    <- doesFileExist user
-          let run = withFile user WriteMode do_program
+          let gogo = if g then genSync jobs
+                          else start unsafe i f sync jobs
+              run = withFile user WriteMode (do_program gogo)
                        `finally` removeFile user
           if locked then do
                         putStrLn "There is already one instance of this program running."
@@ -55,15 +63,8 @@ defaultOptions = Options {
     optFast    = go False
   }
 
-do_program :: Handle -> IO ()
-do_program _ = do args <- getArgs
-                  let ( actions, _, _ ) = getOpt RequireOrder options args
-                  opts <- foldl (>>=) (return defaultOptions) actions
-                  let Options { optSync = sync,     optForce = f,
-                                optFast = run,      optJobs = jobs, optUnsafe = unsafe,
-                                optG    = g,        optInteractive = i } = opts
-                  if g  then genSync jobs
-                        else run unsafe i f sync jobs
+do_program :: IO() -> Handle -> IO()
+do_program gogo _ = gogo
 
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
