@@ -143,7 +143,7 @@ lyricsBracket :: IO() -> IO()
 lyricsBracket = bracket_
  ( do putStrLn "             Heaven Conceal                                                                 "
       putStrLn "_________________________________________________________________________________________   "
-   )( do putStrLn "   Done                                                                                  "
+   )( do putStrLn "   THERE IS NO LIGHT NO HOPE ONLY DESPAIR!!!                                             "
          putStrLn "_________________________________________________________________________________________"
     )
 
