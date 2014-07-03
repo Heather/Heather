@@ -1,5 +1,7 @@
 {-# LANGUAGE MultiWayIf, OverloadedStrings #-}
 
+import Despair
+
 import Yaml
 import Tools
 import SharinganProcess
@@ -115,7 +117,7 @@ fastReinstall   ::   Options -> IO Options
 forceReinstall  ::   Options -> IO Options
 runUnsafe       ::   Options -> IO Options
 
-showV _    = do putStrLn $ "sharingan 0.0.3 " ++ (show os) ; exitWith ExitSuccess
+showV _    = do putStrLn $ "sharingan 0.0.4 " ++ (show os) ; exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 forM_ [0..10] $ \i -> do
                     let progress = fromIntegral i / 10
@@ -138,14 +140,6 @@ gets arg opt        = return opt { optSync = arg }
 forceReinstall opt  = return opt { optForce = True }
 runUnsafe opt       = return opt { optUnsafe = True }
 fastReinstall opt   = return opt { optFast  = go True }
-
-lyricsBracket :: IO() -> IO()
-lyricsBracket = bracket_
- ( do putStrLn "             Heaven Conceal                                                                 "
-      putStrLn "_________________________________________________________________________________________   "
-   )( do putStrLn "   THERE IS NO LIGHT NO HOPE THERE IS ONLY DESPAIR!!!                                    "
-         putStrLn "_________________________________________________________________________________________"
-    )
 
 getConfig :: IO FilePath
 getConfig =
@@ -214,7 +208,7 @@ config _ = do
 go :: Bool -> Bool -> Bool -> Bool -> String -> String -> IO()
 go fast unsafe intera force sync _ =
   withConfig $ \ymlx ->                           
-    let ymlprocess = ifSo $ lyricsBracket $ do
+    let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
             let loc = location repo
