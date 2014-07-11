@@ -76,7 +76,7 @@ gOptions = [
     Option []    ["make"]    (NoArg mkSharingan) "Create .sharingan.yml template",
     Option []    ["config"]  (NoArg config) "Edit .sharingan.yml config file",
     
-    Option ['l'] ["list"]    (NoArg list) "List repositories",
+    Option ['l'] ["list"]    (OptArg list "STRING") "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository",
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
@@ -105,7 +105,6 @@ options = gOptions ++ if | os `elem` ["win32", "mingw32", "cygwin32"] -> winOpti
 genSync    ::   String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 
-list            ::   Options -> IO Options
 getDepot        ::   Options -> IO Options
 mkSharingan     ::   Options -> IO Options
 config          ::   Options -> IO Options
@@ -128,6 +127,7 @@ showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" option
 getDepot _ = do depot_tools
                 exitWith ExitSuccess
 
+list            ::   Maybe String -> Options -> IO Options
 getA            ::   String -> Options -> IO Options
 getD            ::   String -> Options -> IO Options
 getJ            ::   String -> Options -> IO Options
@@ -181,11 +181,14 @@ getD arg _ = -- Remove stuff from sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-list _ =
+list arg _ =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
-        rsdata <- yDecode ymlx :: IO [Repository]
-        forM_ rsdata $ \repo ->
+         rsdata <- yDecode ymlx :: IO [Repository]
+         let rdd = case arg of
+                    Just s  -> filter (\r -> isInfixOf s (location r)) rsdata
+                    Nothing -> rsdata
+         forM_ rdd $ \repo ->
             let loc  = location repo
                 sstr = " - " ++ loc ++ " : "
                 empt = replicate (length sstr) ' '
