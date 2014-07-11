@@ -4,23 +4,26 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go :: Bool -> Bool -> String -> String -> IO()
-go fast intera sync _ =
+go :: Bool -> Bool -> Bool -> Bool -> String -> String -> IO()
+go fast unsafe intera force sync _ =
   withConfig $ \ymlx ->                           
-    let ymlprocess = ifSo $ lyricsBracket $ do
+    let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
-            let loc = location repo
+                u b = do printf " - %s : %s\n" loc b
+                         rebasefork loc b up unsafe bsync
+                eye r = when ((r || force) && (not fast))
+                            $ do let shx = loc </> ".sharingan.yml"
+                                 doesFileExist shx >>= sharingan intera shx loc
+                                 when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                        let pshx = psc </> ".sharingan.yml"
+                                                        in doesFileExist pshx
+                                                            >>= sharingan intera pshx psc
             in when (sync == "" || isInfixOf sync loc)
-                $ forM_ (branches repo) $ \branch ->
-                    printf " * %s <> %s\n" loc branch
-                    >> let eye = ifSo 
-                            $ when (not fast)
-                            $ let shx = loc </> ".sharingan.yml"
-                              in doesFileExist shx >>= sharingan intera shx loc
-                        in rebasefork loc branch <| upstream repo >>= eye
-                    >>  putStrLn <| replicate 89 '_'
-    in doesFileExist ymlx >>= ymlprocess
+                $ do forM_ (tails br)
+                        $ \case x:[] -> u x >>= eye
+                                x:xs -> u x >>= (\_ -> return ())
+                                []   -> return ()
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
@@ -28,30 +31,30 @@ go fast intera sync _ =
 per-repository config example (`.sharingan.yml`):
 ```yaml
 script:
-  - make -f Makefile-x
+    - bash configure --disable-debug
+    - make
 ```
 
 config example (`sharingan.yml`):
 
 ```yaml
--   location: D:\Heather\Contrib\P\coreutils
-    branches: 
-        - master
-    upstream: upstream master
--   location: D:\Heather\Contrib\P\Nemerle
-    branches: 
-        - master
-        - indent
-    upstream: upstream master
--   location: D:\TFS\log4net
-    branches: 
-        - trunk
-        - heather
-    upstream: upstream trunk
--   location: D:\Heather\Contrib\P\fsharp
-    branches: 
-        - heather
-    upstream: upstream fsharp_31
+- post_rebuild: null
+  branches:
+  - master
+  - heather
+  location: D:\Heather\Contrib\P\rust
+  upstream: upstream master
+- post_rebuild: null
+  branches:
+  - master
+  location: D:\Heather\clay
+  upstream: upstream master
+- post_rebuild: null
+  branches:
+  - master
+  - heather
+  location: D:\Heather\FSharpPlus
+  upstream: upstream master
 ```
 
 usage example :
@@ -94,15 +97,18 @@ sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --
 Usage: sharingan [optional things]
   -v         --version        Display Version
   -h         --help           Display Help
-  -D         --depot          Get Google depot tools with git and python
              --make           Create .sharingan.yml template
+             --config         Edit .sharingan.yml config file
   -l         --list           List repositories
+
   -a STRING  --add=STRING     Add repository
   -d STRING  --delete=STRING  Delete repository
-  -g         --gentoo         Synchronize cvs portagee tree Gentoo x86
   -j STRING  --jobs=STRING    Maximum parallel jobs
   -s STRING  --sync=STRING    sync single repository
+
+  -u         --unsafe         do not process reset before sync
   -q         --quick          quick sync, don't process .sharingan.yml files
   -f         --force          force process .sharingan.yml files
   -i         --interactive    trying guess what to do for each repository
+  -D         --depot          Get Google depot tools with git and python
 ```
