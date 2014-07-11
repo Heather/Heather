@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf, LambdaCase, OverloadedStrings #-}
 
 import Despair
 
@@ -27,7 +27,7 @@ import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
 
 import Data.Maybe
-import Data.List (isInfixOf)
+import Data.List
 import Data.List.Split
 
 main :: IO ()
@@ -117,12 +117,12 @@ fastReinstall   ::   Options -> IO Options
 forceReinstall  ::   Options -> IO Options
 runUnsafe       ::   Options -> IO Options
 
-showV _    = do putStrLn $ "sharingan 0.0.4 " ++ (show os) ; exitWith ExitSuccess
+showV _    = do putStrLn $ "sharingan 0.0.5 " ++ (show os) ; exitWith ExitSuccess
 showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 forM_ [0..10] $ \i -> do
                     let progress = fromIntegral i / 10
                     putProgress $ drawProgressBar 40 progress ++ " " ++ drawPercentage progress
-                    threadDelay 50000
+                    threadDelay 30000
                 hPutChar stderr '\n'
                 exitWith ExitSuccess
 getDepot _ = do depot_tools
@@ -168,7 +168,7 @@ getA arg _ = -- Add new stuff to sync
             else let newdata = new : rsdata
                  in yEncode ymlx newdata
     in doesFileExist ymlx >>= ymlprocess 
-                          >> exitWith ExitSuccess
+                          >>  exitWith ExitSuccess
 
 getD arg _ = -- Remove stuff from sync
   withConfig $ \ymlx ->
@@ -185,12 +185,18 @@ list _ =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
-        forM_ rsdata $ \repo -> do
-            let loc = location repo
-            forM_ (branches repo) $ printf " * %s <> %s\n" loc
+        forM_ rsdata $ \repo ->
+            let loc  = location repo
+                sstr = " - " ++ loc ++ " : "
+                empt = replicate (length sstr) ' '
+                brx  = (branches repo)
+            in if (length brx) == 0
+                then printf " - %s\n" loc
+                else do printf "%s%s\n" sstr $ head brx
+                        forM_ (drop 1 brx) $ printf "%s%s\n" empt
     in doesFileExist ymlx >>= ymlprocess 
-                          >> exitWith ExitSuccess
-                          
+                          >>  exitWith ExitSuccess
+
 mkSharingan _ = -- Create .sharingan.yml template
   let langM = Just "haskell"
       envM  = Just []
@@ -198,7 +204,7 @@ mkSharingan _ = -- Create .sharingan.yml template
       iM    = Just []
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
-  
+
 config _ = do
     editor <- getEnv "EDITOR"
     withConfig $ \ymlx ->
@@ -218,17 +224,20 @@ go fast unsafe intera force sync _ =
                 bsync = if (length up) > 1
                             then up !! 1 `elem` br
                             else False
-            in when (sync == "" || isInfixOf sync loc)
-                $ forM_ br $ \branch ->
-                    printf " * %s <> %s\n" loc branch
-                    >> let eye r =
-                            when ((r || force) && (not fast))
+                u b = do printf " - %s : %s\n" loc b
+                         rebasefork loc b up unsafe bsync
+                eye r = when ((r || force) && (not fast))
                             $ do let shx = loc </> ".sharingan.yml"
                                  doesFileExist shx >>= sharingan intera shx loc
                                  when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
                                                         let pshx = psc </> ".sharingan.yml"
                                                         in doesFileExist pshx
                                                             >>= sharingan intera pshx psc
-                        in rebasefork loc branch up unsafe bsync >>= eye
-                    >>  putStrLn <| replicate 89 '_'
+            in when (sync == "" || isInfixOf sync loc)
+                $ do forM_ (tails br)
+                        $ \case x:[] -> u x >>= eye
+                                x:xs -> u x >>= (\_ -> return ())
+                                []   -> return ()
+                     putStrLn <| replicate 89 '_'
+
     in doesFileExist ymlx >>= ymlprocess
