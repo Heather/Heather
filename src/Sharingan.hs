@@ -5,7 +5,9 @@ import Despair
 import Yaml
 import Tools
 import SharinganProcess
-import ProgressBar
+
+--TODO: Use progress bar
+--import ProgressBar
 
 import Text.Printf
 
@@ -29,6 +31,9 @@ import System.FilePath(takeDirectory, (</>))
 import Data.Maybe
 import Data.List
 import Data.List.Split
+
+version :: String
+version = "0.0.6"
 
 main :: IO ()
 main = do args <- getArgs
@@ -116,13 +121,11 @@ fastReinstall   ::   Options -> IO Options
 forceReinstall  ::   Options -> IO Options
 runUnsafe       ::   Options -> IO Options
 
-showV _    = do putStrLn $ "sharingan 0.0.5 " ++ (show os) ; exitWith ExitSuccess
-showHelp _ = do putStrLn $ usageInfo "Usage: sharingan [optional things]" options
-                forM_ [0..10] $ \i -> do
-                    let progress = fromIntegral i / 10
-                    putProgress $ drawProgressBar 40 progress ++ " " ++ drawPercentage progress
-                    threadDelay 30000
-                hPutChar stderr '\n'
+printver  :: IO ()
+printver   = putStrLn $ "Sharingan " ++ version ++ " " ++ (show os)
+showV _    = printver >> exitWith ExitSuccess
+showHelp _ = do printver
+                putStrLn $ usageInfo "Usage: sharingan [optional things]" options
                 exitWith ExitSuccess
 getDepot _ = do depot_tools
                 exitWith ExitSuccess
