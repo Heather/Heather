@@ -33,7 +33,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.0.6"
+version = "0.0.7"
 
 main :: IO ()
 main = do args <- getArgs
@@ -165,7 +165,7 @@ getA arg _ = -- Add new stuff to sync
         rsdata  <- yDecode ymlx :: IO [Repository]
         let new = (Repository arg 
                               ["master"] "upstream master"
-                              Nothing)
+                              Nothing Nothing)
         if (elem new rsdata)
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
@@ -227,6 +227,9 @@ go fast unsafe intera force sync _ =
                 up  = splitOn " " $ upstream repo
                 br  = branches repo
                 ps  = post_rebuild repo
+                enb = case (enabled repo) of
+                        Just er -> er
+                        Nothing -> True
                 u b = do printf " - %s : %s\n" loc b
                          rebasefork loc b up unsafe $ if (length up) > 1
                                                         then up !! 1 `elem` br
@@ -238,7 +241,7 @@ go fast unsafe intera force sync _ =
                                                         let pshx = psc </> ".sharingan.yml"
                                                         in doesFileExist pshx
                                                             >>= sharingan intera pshx psc
-            in when (sync == "" || isInfixOf sync loc)
+            in when ((sync == "" && enb) || isInfixOf sync loc)
                 $ do forM_ (tails br)
                         $ \case x:[] -> u x >>= eye
                                 x:xs -> u x >>= (\_ -> return ())

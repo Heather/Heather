@@ -26,6 +26,7 @@ data Sharingan = Sharingan {language        :: Maybe String,
 data Repository = Repository {location      :: String,
                               branches      :: [String],
                               upstream      :: String,
+                              enabled       :: Maybe Bool,
                               post_rebuild  :: Maybe [String]}
                               deriving (Show, Eq)
 
@@ -34,15 +35,17 @@ instance FromJSON Repository where
                            v .:  "location" <*>
                            v .:  "branches" <*>
                            v .:  "upstream" <*>
+                           v .:? "enabled"  <*>
                            v .:? "post_rebuild"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON Repository where
-   toJSON (Repository loca br up
+   toJSON (Repository loca br up enb
                       pr) = object [ "location"     .= loca
                                    , "branches"     .= br
                                    , "upstream"     .= up
+                                   , "enabled"      .= enb
                                    , "post_rebuild" .= pr]
 
 instance FromJSON Sharingan where
