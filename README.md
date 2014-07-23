@@ -10,8 +10,17 @@ go fast unsafe intera force sync _ =
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
+            let loc = location repo
+                up  = splitOn " " $ upstream repo
+                br  = branches repo
+                ps  = post_rebuild repo
+                enb = case (enabled repo) of
+                        Just er -> er
+                        Nothing -> True
                 u b = do printf " - %s : %s\n" loc b
-                         rebasefork loc b up unsafe bsync
+                         rebasefork loc b up unsafe $ if (length up) > 1
+                                                        then up !! 1 `elem` br
+                                                        else False
                 eye r = when ((r || force) && (not fast))
                             $ do let shx = loc </> ".sharingan.yml"
                                  doesFileExist shx >>= sharingan intera shx loc
@@ -19,11 +28,14 @@ go fast unsafe intera force sync _ =
                                                         let pshx = psc </> ".sharingan.yml"
                                                         in doesFileExist pshx
                                                             >>= sharingan intera pshx psc
-            in when (sync == "" || isInfixOf sync loc)
+            in when ((sync == "" && enb) || isInfixOf sync loc)
                 $ do forM_ (tails br)
                         $ \case x:[] -> u x >>= eye
                                 x:xs -> u x >>= (\_ -> return ())
                                 []   -> return ()
+                     putStrLn <| replicate 89 '_'
+
+    in doesFileExist ymlx >>= ymlprocess
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
@@ -94,21 +106,22 @@ sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --
 
 ```shell
 >sharingan --help
+Sharingan 0.0.8 "mingw32"
 Usage: sharingan [optional things]
-  -v         --version        Display Version
-  -h         --help           Display Help
-             --make           Create .sharingan.yml template
-             --config         Edit .sharingan.yml config file
-  -l         --list           List repositories
-
-  -a STRING  --add=STRING     Add repository
-  -d STRING  --delete=STRING  Delete repository
-  -j STRING  --jobs=STRING    Maximum parallel jobs
-  -s STRING  --sync=STRING    sync single repository
-
-  -u         --unsafe         do not process reset before sync
-  -q         --quick          quick sync, don't process .sharingan.yml files
-  -f         --force          force process .sharingan.yml files
-  -i         --interactive    trying guess what to do for each repository
-  -D         --depot          Get Google depot tools with git and python
+  -v          --version         Display Version
+  -h          --help            Display Help
+              --make            Create .sharingan.yml template
+              --config          Edit .sharingan.yml config file
+  -l[STRING]  --list[=STRING]   List repositories
+  -a STRING   --add=STRING      Add repository
+  -d STRING   --delete=STRING   Delete repository / repositories
+              --enable=STRING   Enable repository / repositories
+              --disable=STRING  Disable repository / repositories
+  -j STRING   --jobs=STRING     Maximum parallel jobs
+  -s STRING   --sync=STRING     sync single repository
+  -u          --unsafe          do not process reset before sync
+  -q          --quick           quick sync, don't process .sharingan.yml files
+  -f          --force           force process .sharingan.yml files
+  -i          --interactive     trying guess what to do for each repository
+  -D          --depot           Get Google depot tools with git and python
 ```

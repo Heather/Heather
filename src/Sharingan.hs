@@ -33,7 +33,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.0.7"
+version = "0.0.8"
 
 main :: IO ()
 main = do args <- getArgs
@@ -83,13 +83,18 @@ gOptions = [
     
     Option ['l'] ["list"]    (OptArg list "STRING") "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
-    Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository",
+    Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository / repositories",
+    
+    Option []    ["enable"]  (ReqArg (enable True) "STRING") "Enable repository / repositories",
+    Option []    ["disable"] (ReqArg (enable False) "STRING") "Disable repository / repositories",
+    
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     
-    Option ['u'] ["unsafe"]   (NoArg runUnsafe) "do not process reset before sync",
-    Option ['q'] ["quick"]    (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
-    Option ['f'] ["force"]    (NoArg forceReinstall) "force process .sharingan.yml files",
+    Option ['u'] ["unsafe"]  (NoArg runUnsafe) "do not process reset before sync",
+    Option ['q'] ["quick"]   (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
+    Option ['f'] ["force"]   (NoArg forceReinstall) "force process .sharingan.yml files",
+    
     Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
   ]
   
@@ -181,6 +186,23 @@ getD arg _ = -- Remove stuff from sync
                         where notD x = not $ isInfixOf arg
                                            $ location x
         yEncode ymlx fd
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
+
+enable :: Bool -> String -> Options -> IO Options
+enable en arg _ =
+  withConfig $ \ymlx ->
+    let ymlprocess = ifSo $ do
+        rsdata <- yDecode ymlx :: IO [Repository]
+        let ed = map enR rsdata
+                        where enR x = if isInfixOf arg $ location x
+                                            then (Repository (location x)
+                                                             (branches x)
+                                                             (upstream x)
+                                                             (Just en)
+                                                             (post_rebuild x))
+                                            else x
+        yEncode ymlx ed
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
