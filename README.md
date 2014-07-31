@@ -11,20 +11,19 @@ go fast nonops unsafe intera force syn _ =
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
             let loc = location repo
-                up  = splitOn " " $ upstream repo
-                br  = branches repo
-                ps  = post_rebuild repo
-                enb = case (enabled repo) of
-                        Just er -> er
-                        Nothing -> True
                 sync = case syn of
                             Nothing -> if (length nonops) > 0 then Just $ nonops !! 0
                                                               else Nothing
                             Just _  -> syn
             in when (case sync of
                             Just snc -> isInfixOf snc loc
-                            Nothing  -> enb)
-                $ let u b = do printf " - %s : %s\n" loc b
+                            Nothing  -> case (enabled repo) of
+                                                Just er -> er
+                                                Nothing -> True)
+                $ let up  = splitOn " " $ upstream repo
+                      br  = branches repo
+                      ps  = post_rebuild repo
+                      u b = do printf " - %s : %s\n" loc b
                                rebasefork loc b up unsafe $ if (length up) > 1
                                                                 then up !! 1 `elem` br
                                                                 else False
