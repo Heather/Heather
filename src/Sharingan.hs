@@ -33,11 +33,11 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.0.8"
+version = "0.0.9"
 
 main :: IO ()
 main = do args <- getArgs
-          let ( actions, _, _ ) = getOpt RequireOrder options args
+          let ( actions, nonops, _ ) = getOpt RequireOrder options args
           opts <- foldl (>>=) (return defaultOptions) actions
           let Options { optSync = sync,     optForce = f,
                         optFast = start,    optJobs = jobs, optUnsafe = unsafe,
@@ -45,7 +45,7 @@ main = do args <- getArgs
           user      <- getAppUserDataDirectory "sharingan.lock"
           locked    <- doesFileExist user
           let gogo = if g then genSync jobs
-                          else start unsafe i f sync jobs
+                          else start nonops unsafe i f sync jobs
               run = withFile user WriteMode (do_program gogo)
                        `finally` removeFile user
           if locked then do
@@ -58,15 +58,15 @@ main = do args <- getArgs
                     else run
 
 data Options = Options  {
-    optJobs :: String,  optSync :: String,  optInteractive  :: Bool,
-    optG    :: Bool,    optForce :: Bool, optUnsafe :: Bool,
-    optFast :: Bool -> Bool -> Bool -> String -> String -> IO()
+    optJobs :: Maybe String,  optSync :: Maybe String,
+    optInteractive :: Bool, optG :: Bool, optForce :: Bool, optUnsafe :: Bool,
+    optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
-    optJobs    = "2",   optG       = False,     optInteractive = False,
-    optSync    = "",    optForce   = False,     optUnsafe = False,
+    optJobs    = Nothing, optG       = False,     optInteractive = False,
+    optSync    = Nothing, optForce   = False,     optUnsafe = False,
     optFast    = go False
   }
 
@@ -112,7 +112,7 @@ options :: [OptDescr (Options -> IO Options)]
 options = gOptions ++ if | os `elem` ["win32", "mingw32", "cygwin32"] -> winOptions
                          | otherwise -> nixOptions
 
-genSync    ::   String -> IO()
+genSync    ::   Maybe String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 
 getDepot        ::   Options -> IO Options
@@ -143,8 +143,8 @@ gets            ::   String -> Options -> IO Options
 
 genS opt            = return opt { optG = True }
 interactive opt     = return opt { optInteractive = True }
-getJ arg opt        = return opt { optJobs = arg }
-gets arg opt        = return opt { optSync = arg }
+getJ arg opt        = return opt { optJobs = Just arg }
+gets arg opt        = return opt { optSync = Just arg }
 forceReinstall opt  = return opt { optForce = True }
 runUnsafe opt       = return opt { optUnsafe = True }
 fastReinstall opt   = return opt { optFast  = go True }
@@ -239,8 +239,8 @@ config _ = do
         exec $ editor ++ " " ++ ymlx
     exitWith ExitSuccess
 
-go :: Bool -> Bool -> Bool -> Bool -> String -> String -> IO()
-go fast unsafe intera force sync _ =
+go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
+go fast nonops unsafe intera force syn _ =
   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
@@ -252,22 +252,28 @@ go fast unsafe intera force sync _ =
                 enb = case (enabled repo) of
                         Just er -> er
                         Nothing -> True
-                u b = do printf " - %s : %s\n" loc b
-                         rebasefork loc b up unsafe $ if (length up) > 1
-                                                        then up !! 1 `elem` br
-                                                        else False
-                eye r = when ((r || force) && (not fast))
-                            $ do let shx = loc </> ".sharingan.yml"
-                                 doesFileExist shx >>= sharingan intera shx loc
-                                 when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
-                                                        let pshx = psc </> ".sharingan.yml"
-                                                        in doesFileExist pshx
-                                                            >>= sharingan intera pshx psc
-            in when ((sync == "" && enb) || isInfixOf sync loc)
-                $ do forM_ (tails br)
-                        $ \case x:[] -> u x >>= eye
-                                x:xs -> u x >>= (\_ -> return ())
-                                []   -> return ()
-                     putStrLn <| replicate 89 '_'
+                sync = case syn of
+                            Nothing -> if (length nonops) > 0 then Just $ nonops !! 0
+                                                              else Nothing
+                            Just _  -> syn
+            in when (case sync of
+                            Just snc -> isInfixOf snc loc
+                            Nothing  -> enb)
+                $ let u b = do printf " - %s : %s\n" loc b
+                               rebasefork loc b up unsafe $ if (length up) > 1
+                                                                then up !! 1 `elem` br
+                                                                else False
+                      eye r = when ((r || force) && (not fast))
+                                $ do let shx = loc </> ".sharingan.yml"
+                                     doesFileExist shx >>= sharingan intera shx loc
+                                     when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                            let pshx = psc </> ".sharingan.yml"
+                                                            in doesFileExist pshx
+                                                                >>= sharingan intera pshx psc
+                  in do forM_ (tails br)
+                         $ \case x:[] -> u x >>= eye
+                                 x:xs -> u x >>= (\_ -> return ())
+                                 []   -> return ()
+                        putStrLn <| replicate 89 '_'
 
     in doesFileExist ymlx >>= ymlprocess

@@ -34,7 +34,7 @@ dropSpaceTail maybeStuff (x:xs)
         | null maybeStuff = x : dropSpaceTail "" xs
         | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
-rebasefork :: [Char] -> [Char] -> [[Char]] -> Bool -> Bool -> IO Bool
+rebasefork :: String -> String -> [String] -> Bool -> Bool -> IO Bool
 rebasefork path branch up unsafe sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
@@ -86,28 +86,31 @@ rebasefork path branch up unsafe sync =
         in (return False) >>= chk gitX
                           >>= chk hgX
 
-setEnv :: [Char] -> IO()
+setEnv :: String -> IO()
 setEnv env = exec eset
              where eset = if | os `elem` ["win32", "mingw32"] -> "set " ++ env
                              | os `elem` ["darwin"] -> "export " ++ env
                              | otherwise -> "export " ++ env -- "cygwin32"
 
-gentooSync :: [Char] -> [Char] -> IO()
+gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
+    let j = case jobs of
+                Just jj -> jj
+                Nothing -> "2"
     putStrLn "updating..."
     putProgress $ drawProgressBar 40 0 ++ " " ++ drawPercentage 0
     forkIO $ exc path $ " cvs update "
             ++ " & egencache --update --repo=gentoo --portdir=" ++ path
-            ++ " --jobs="
+            ++ " --jobs=" ++ j
     putProgress $ drawProgressBar 40 100 ++ " " ++ drawPercentage 100
     hPutChar stderr '\n'
 
-gpull :: [Char] -> [Char] -> IO()
+gpull :: String -> String -> IO()
 gpull path branch =
     doesDirectoryExist path >>= (flip when
         $ exc path $ "git pull origin " ++ branch)
 
-gclone :: [Char] -> [Char] -> IO()
+gclone :: String -> String -> IO()
 gclone path project =
     doesDirectoryExist path >>= \dirExist -> 
         if dirExist then putStrLn $ "directory already exist"
