@@ -4,8 +4,8 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go :: Bool -> Bool -> Bool -> Bool -> String -> String -> IO()
-go fast unsafe intera force sync _ =
+go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
+go fast nonops unsafe intera force syn _ =
   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
@@ -17,25 +17,29 @@ go fast unsafe intera force sync _ =
                 enb = case (enabled repo) of
                         Just er -> er
                         Nothing -> True
-                u b = do printf " - %s : %s\n" loc b
-                         rebasefork loc b up unsafe $ if (length up) > 1
-                                                        then up !! 1 `elem` br
-                                                        else False
-                eye r = when ((r || force) && (not fast))
-                            $ do let shx = loc </> ".sharingan.yml"
-                                 doesFileExist shx >>= sharingan intera shx loc
-                                 when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
-                                                        let pshx = psc </> ".sharingan.yml"
-                                                        in doesFileExist pshx
-                                                            >>= sharingan intera pshx psc
-            in when ((sync == "" && enb) || isInfixOf sync loc)
-                $ do forM_ (tails br)
-                        $ \case x:[] -> u x >>= eye
-                                x:xs -> u x >>= (\_ -> return ())
-                                []   -> return ()
-                     putStrLn <| replicate 89 '_'
-
-    in doesFileExist ymlx >>= ymlprocess
+                sync = case syn of
+                            Nothing -> if (length nonops) > 0 then Just $ nonops !! 0
+                                                              else Nothing
+                            Just _  -> syn
+            in when (case sync of
+                            Just snc -> isInfixOf snc loc
+                            Nothing  -> enb)
+                $ let u b = do printf " - %s : %s\n" loc b
+                               rebasefork loc b up unsafe $ if (length up) > 1
+                                                                then up !! 1 `elem` br
+                                                                else False
+                      eye r = when ((r || force) && (not fast))
+                                $ do let shx = loc </> ".sharingan.yml"
+                                     doesFileExist shx >>= sharingan intera shx loc
+                                     when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                            let pshx = psc </> ".sharingan.yml"
+                                                            in doesFileExist pshx
+                                                                >>= sharingan intera pshx psc
+                  in do forM_ (tails br)
+                         $ \case x:[] -> u x >>= eye
+                                 x:xs -> u x >>= (\_ -> return ())
+                                 []   -> return ()
+                        putStrLn <| replicate 89 '_'
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
