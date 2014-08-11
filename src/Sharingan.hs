@@ -213,10 +213,14 @@ list arg _ =
          let rdd = case arg of
                     Just s  -> filter (\r -> isInfixOf s (location r)) rsdata
                     Nothing -> rsdata
+             maxl = maximum $ map (\x -> length $ last $ splitOn "\\" $ location x) rdd
          forM_ rdd $ \repo ->
             let loc  = location repo
                 name = last $ splitOn "\\" loc
-                sstr = " - " ++ name ++ " : "
+                lnam = (maxl + 1) - (length name)
+                adds = if lnam > 0 then replicate lnam ' '
+                                   else ""
+                sstr = " - " ++ name ++ adds ++ " : "
                 empt = replicate (length sstr) ' '
                 brx  = (branches repo)
             in if (length brx) == 0
