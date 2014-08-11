@@ -33,7 +33,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.0.9"
+version = "0.1.0"
 
 main :: IO ()
 main = do args <- getArgs
@@ -215,7 +215,8 @@ list arg _ =
                     Nothing -> rsdata
          forM_ rdd $ \repo ->
             let loc  = location repo
-                sstr = " - " ++ loc ++ " : "
+                name = last $ splitOn "\\" loc
+                sstr = " - " ++ name ++ " : "
                 empt = replicate (length sstr) ' '
                 brx  = (branches repo)
             in if (length brx) == 0
