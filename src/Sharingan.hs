@@ -33,19 +33,19 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.1.0"
+version = "0.1.1"
 
 main :: IO ()
 main = do args <- getArgs
           let ( actions, nonops, _ ) = getOpt RequireOrder options args
           opts <- foldl (>>=) (return defaultOptions) actions
-          let Options { optSync = sync,     optForce = f,
+          let Options { optSync = sync,     optSyncGroup = syncGroup, optForce = f,
                         optFast = start,    optJobs = jobs, optUnsafe = unsafe,
                         optG    = g,        optInteractive = i } = opts
           user      <- getAppUserDataDirectory "sharingan.lock"
           locked    <- doesFileExist user
           let gogo = if g then genSync jobs
-                          else start nonops unsafe i f sync jobs
+                          else start nonops unsafe i f sync syncGroup jobs
               run = withFile user WriteMode (do_program gogo)
                        `finally` removeFile user
           if locked then do
@@ -58,15 +58,16 @@ main = do args <- getArgs
                     else run
 
 data Options = Options  {
-    optJobs :: Maybe String,  optSync :: Maybe String,
+    optJobs :: Maybe String,  optSync :: Maybe String, optSyncGroup :: Maybe String,
     optInteractive :: Bool, optG :: Bool, optForce :: Bool, optUnsafe :: Bool,
-    optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
+    optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
   }
 
 defaultOptions :: Options
 defaultOptions = Options {
-    optJobs    = Nothing, optG       = False,     optInteractive = False,
-    optSync    = Nothing, optForce   = False,     optUnsafe = False,
+    optJobs    = Nothing, optG = False, optInteractive = False,
+    optSync    = Nothing, optSyncGroup = Nothing,
+    optForce   = False, optUnsafe = False,
     optFast    = go False
   }
 
@@ -90,6 +91,7 @@ gOptions = [
     
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
+    Option ['g'] ["group"]   (ReqArg getg "STRING") "sync some repository group",
     
     Option ['u'] ["unsafe"]  (NoArg runUnsafe) "do not process reset before sync",
     Option ['q'] ["quick"]   (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
@@ -105,7 +107,7 @@ winOptions = [
   
 nixOptions :: [OptDescr (Options -> IO Options)]
 nixOptions = [
-    Option ['g'] ["gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86"
+    Option ['G'] ["Gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86"
   ]
   
 options :: [OptDescr (Options -> IO Options)]
@@ -140,11 +142,13 @@ getA            ::   String -> Options -> IO Options
 getD            ::   String -> Options -> IO Options
 getJ            ::   String -> Options -> IO Options
 gets            ::   String -> Options -> IO Options
+getg            ::   String -> Options -> IO Options
 
 genS opt            = return opt { optG = True }
 interactive opt     = return opt { optInteractive = True }
 getJ arg opt        = return opt { optJobs = Just arg }
 gets arg opt        = return opt { optSync = Just arg }
+getg arg opt        = return opt { optSyncGroup = Just arg }
 forceReinstall opt  = return opt { optForce = True }
 runUnsafe opt       = return opt { optUnsafe = True }
 fastReinstall opt   = return opt { optFast  = go True }
@@ -170,7 +174,7 @@ getA arg _ = -- Add new stuff to sync
         rsdata  <- yDecode ymlx :: IO [Repository]
         let new = (Repository arg 
                               ["master"] "upstream master"
-                              Nothing Nothing)
+                              Nothing Nothing Nothing)
         if (elem new rsdata)
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
@@ -200,7 +204,8 @@ enable en arg _ =
                                                              (branches x)
                                                              (upstream x)
                                                              (Just en)
-                                                             (post_rebuild x))
+                                                             (post_rebuild x)
+                                                             (syncGroup x))
                                             else x
         yEncode ymlx ed
     in doesFileExist ymlx >>= ymlprocess 
@@ -244,25 +249,32 @@ config _ = do
         exec $ editor ++ " " ++ ymlx
     exitWith ExitSuccess
 
-go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
-go fast nonops unsafe intera force syn _ =
+go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
+go fast nonops unsafe intera force syn synGroup _ =
   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
         forM_ rsdata $ \repo ->
-            let loc = location repo
+            let loc  = location repo
+                gr   = syncGroup repo
                 sync = case syn of
                             Nothing -> if (length nonops) > 0 then Just $ nonops !! 0
                                                               else Nothing
                             Just _  -> syn
+                isenabled = case (enabled repo) of
+                                Just en -> en
+                                Nothing -> True
             in when (case sync of
                             Just snc -> isInfixOf snc loc
-                            Nothing  -> case (enabled repo) of
-                                                Just er -> er
-                                                Nothing -> True)
+                            Nothing  -> case synGroup of
+                                            Just sg -> case gr of
+                                                        Just gg -> isenabled && gg == sg
+                                                        Nothing -> False
+                                            Nothing -> isenabled
+                                        )
                 $ let up  = splitOn " " $ upstream repo
                       br  = branches repo
-                      ps  = post_rebuild repo
+                      ps  = post_rebuild repo                      
                       u b = do printf " - %s : %s\n" loc b
                                rebasefork loc b up unsafe $ if (length up) > 1
                                                                 then up !! 1 `elem` br
