@@ -10,7 +10,7 @@ module Shell
     gentooSync
   ) where
 
-import ProgressBar
+-- import ProgressBar
 
 import Data.Char
 import Data.List
@@ -98,12 +98,13 @@ gentooSync path jobs = do
                 Just jj -> jj
                 Nothing -> "2"
     putStrLn "updating..."
-    putProgress $ drawProgressBar 40 0 ++ " " ++ drawPercentage 0
-    forkIO $ exc path $ " cvs update "
+    -- putProgress $ drawProgressBar 40 0 ++ " " ++ drawPercentage 0
+    -- forkIO $ 
+    exc path $ " cvs update "
             ++ " & egencache --update --repo=gentoo --portdir=" ++ path
             ++ " --jobs=" ++ j
-    putProgress $ drawProgressBar 40 100 ++ " " ++ drawPercentage 100
-    hPutChar stderr '\n'
+    -- putProgress $ drawProgressBar 40 100 ++ " " ++ drawPercentage 100
+    -- hPutChar stderr '\n'
 
 gpull :: String -> String -> IO()
 gpull path branch =
