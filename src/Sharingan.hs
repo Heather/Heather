@@ -33,7 +33,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.1.1"
+version = "0.1.2"
 
 main :: IO ()
 main = do args <- getArgs
@@ -277,8 +277,8 @@ go fast nonops unsafe intera force syn synGroup _ =
                       ps  = post_rebuild repo                      
                       u b = do printf " - %s : %s\n" loc b
                                rebasefork loc b up unsafe $ if (length up) > 1
-                                                                then up !! 1 `elem` br
-                                                                else False
+                                                              then up !! 1 `elem` br
+                                                              else False
                       eye r = when ((r || force) && (not fast))
                                 $ do let shx = loc </> ".sharingan.yml"
                                      doesFileExist shx >>= sharingan intera shx loc

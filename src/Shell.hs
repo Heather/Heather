@@ -34,7 +34,7 @@ dropSpaceTail maybeStuff (x:xs)
         | null maybeStuff = x : dropSpaceTail "" xs
         | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
-rebasefork :: String -> String -> [String] -> Bool -> Bool -> IO Bool
+rebasefork :: String -> String -> [String] -> Bool ->  Bool -> IO Bool
 rebasefork path branch up unsafe sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
@@ -49,11 +49,14 @@ rebasefork path branch up unsafe sync =
                                         $ exec $ "git checkout " ++ branch
                                                                  ++ " & git reset --hard"
                                                                  ++ " & git rebase --abort"
-                                    loc <- if (length up) > 1 && sync
-                                            then readProcess "git" [ "merge-base"
-                                                                   , up !! 1
-                                                                   , "origin/" ++ branch
-                                                                   ] []
+                                    loc <- if (length up) > 1
+                                            then if sync then readProcess "git" [ "merge-base"
+                                                                                 , up !! 1
+                                                                                 , "origin/" ++ branch
+                                                                                 ] []
+                                                         else readProcess "git" [ "rev-parse"
+                                                                                , intercalate "/" up
+                                                                                ] []
                                             else readProcess "git" ["log", "-n", "1"
                                                                    , "--pretty=format:%H"
                                                                    ] []
