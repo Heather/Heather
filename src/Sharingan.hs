@@ -20,7 +20,6 @@ import Control.Monad
 import Control.Applicative
 import Control.Exception
 import Control.Eternal
-import Control.Concurrent
 
 import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
