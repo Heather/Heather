@@ -10,8 +10,6 @@ module Shell
     gentooSync
   ) where
 
--- import ProgressBar
-
 import Data.Char
 import Data.List
 import Data.List.Split
@@ -25,7 +23,6 @@ import System.Process
 
 import Control.Monad
 import Control.Eternal
-import Control.Concurrent
 
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
 dropSpaceTail maybeStuff "" = ""
@@ -34,7 +31,7 @@ dropSpaceTail maybeStuff (x:xs)
         | null maybeStuff = x : dropSpaceTail "" xs
         | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
-rebasefork :: String -> String -> [String] -> Bool ->  Bool -> IO Bool
+rebasefork :: String -> String -> [String] -> Bool -> Bool -> IO Bool
 rebasefork path branch up unsafe sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
@@ -67,14 +64,14 @@ rebasefork path branch up unsafe sync =
                                     putStrLn $ "Remote: " ++ remote
                                     if  remote == local
                                         then do putStrLn $ path ++ " is up to date"
-                                                return False -- repository is up to date
+                                                return True
                                         else do exec $ "git pull origin "             ++ branch
                                                      ++ " & git fetch "               ++ upstream
                                                      ++ " & git pull --rebase "       ++ upstream
                                                      ++ " & git push --force origin " ++ branch
-                                                return True -- Sync
-                            else return True  -- TODO: clone
-                           else  return False -- directory exists but it's not a git
+                                                return True
+                            else return True
+                           else  return False
 
             hgX = doesDirectoryExist <| path </> ".hg" >>= \hg ->
                     if hg then if dirExist
@@ -92,8 +89,8 @@ rebasefork path branch up unsafe sync =
 setEnv :: String -> IO()
 setEnv env = exec eset
              where eset = if | os `elem` ["win32", "mingw32"] -> "set " ++ env
-                             | os `elem` ["darwin"] -> "export " ++ env
-                             | otherwise -> "export " ++ env -- "cygwin32"
+                             | os `elem` ["darwin", "cygwin32"] -> "export " ++ env
+                             | otherwise -> "export " ++ env
 
 gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
@@ -101,13 +98,9 @@ gentooSync path jobs = do
                 Just jj -> jj
                 Nothing -> "2"
     putStrLn "updating..."
-    -- putProgress $ drawProgressBar 40 0 ++ " " ++ drawPercentage 0
-    -- forkIO $ 
     exc path $ " cvs update "
             ++ " & egencache --update --repo=gentoo --portdir=" ++ path
             ++ " --jobs=" ++ j
-    -- putProgress $ drawProgressBar 40 100 ++ " " ++ drawPercentage 100
-    -- hPutChar stderr '\n'
 
 gpull :: String -> String -> IO()
 gpull path branch =

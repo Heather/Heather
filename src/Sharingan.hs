@@ -6,9 +6,6 @@ import Yaml
 import Tools
 import SharinganProcess
 
---TODO: Use progress bar
---import ProgressBar
-
 import Text.Printf
 
 import System.Environment( getArgs, getEnv )
