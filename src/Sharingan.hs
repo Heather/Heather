@@ -51,23 +51,25 @@ main = do args <- getArgs
                         putStrLn "Remove lock and start application? (Y/N)"
                         hFlush stdout
                         str <- getLine
-                        if | str `elem` ["Y", "y"] -> run
-                           | otherwise             -> return ()
+                        if str `elem` ["Y", "y"] then run
+                                                 else return ()
                     else run
 
-data Options = Options  {
-    optJobs :: Maybe String,  optSync :: Maybe String, optSyncGroup :: Maybe String,
-    optInteractive :: Bool, optG :: Bool, optForce :: Bool, optUnsafe :: Bool,
-    optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
-  }
+data Options = Options 
+    { optJobs :: Maybe String,      optSync :: Maybe String
+    , optSyncGroup :: Maybe String, optInteractive :: Bool
+    , optG :: Bool,                 optForce :: Bool
+    , optUnsafe :: Bool
+    , optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
+    }
 
 defaultOptions :: Options
-defaultOptions = Options {
-    optJobs    = Nothing, optG = False, optInteractive = False,
-    optSync    = Nothing, optSyncGroup = Nothing,
-    optForce   = False, optUnsafe = False,
-    optFast    = go False
-  }
+defaultOptions = Options 
+    { optJobs = Nothing,        optG = False
+    , optInteractive = False,   optSync = Nothing
+    , optSyncGroup = Nothing,   optForce = False
+    , optUnsafe = False,        optFast = go False
+    }
 
 do_program :: IO() -> Handle -> IO()
 do_program gogo _ = gogo
