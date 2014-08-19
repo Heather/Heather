@@ -19,7 +19,7 @@ Executable    sharingan
     , directory
     , bytestring
     , process
-    , eternal >= 0.0.4
+    , eternal >= 0.0.7
     , split
     , despair
     , io-reactive >= 0.1.3
