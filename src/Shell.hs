@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE MultiWayIf, LambdaCase #-}
 
 module Shell
   ( exec,
@@ -21,8 +21,27 @@ import System.FilePath((</>))
 
 import System.Process
 
+import Control.Exception
+
 import Control.Monad
 import Control.Eternal
+import Control.Concurrent
+import Control.Concurrent.Reactive
+import Control.Concurrent.Async
+
+-- | Progress bar meter.
+data Progress
+    = Progress { pr_inc  :: IO ()
+               , pr_done :: IO ()
+               }
+-- | Create a progress bar
+mkProgress :: Handle  -> IO Progress
+mkProgress h = reactiveObjectIO 0 $ \ _pid req act done ->
+  Progress { pr_inc = do hPutStr h "."
+                         hFlush h
+           , pr_done = do hPutStr h "\nDone\n"
+                          hFlush h 
+                          done }
 
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
 dropSpaceTail maybeStuff "" = ""
@@ -92,15 +111,23 @@ setEnv env = exec eset
                              | os `elem` ["darwin", "cygwin32"] -> "export " ++ env
                              | otherwise -> "export " ++ env
 
+gentooProcess :: Progress -> Maybe (Either SomeException a) -> IO ()
+gentooProcess r = \case Nothing -> pr_inc r >> threadDelay 10000
+                        Just _e -> case _e of
+                                    Left ex -> putStrLn $ "Caught exception: " ++ show ex
+                                    Right _ -> pr_done r
+
 gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
     let j = case jobs of
                 Just jj -> jj
                 Nothing -> "2"
     putStrLn "updating..."
-    exc path $ " cvs update "
-            ++ " & egencache --update --repo=gentoo --portdir=" ++ path
-            ++ " --jobs=" ++ j
+    rpr <- mkProgress stdout
+    prc <- async (exc path $ " cvs update "
+                    ++ " & egencache --update --repo=gentoo --portdir=" ++ path
+                    ++ " --jobs=" ++ j)
+    gentooProcess rpr =<< poll prc
 
 gpull :: String -> String -> IO()
 gpull path branch =

@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.1.2
+version:       0.1.3
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Cynede@Gentoo.org>
@@ -22,4 +22,5 @@ Executable    sharingan
     , eternal >= 0.0.4
     , split
     , despair
-    
+    , io-reactive >= 0.1.3
+    , async
