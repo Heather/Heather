@@ -30,15 +30,16 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.1.2"
+version = "0.1.3"
 
 main :: IO ()
 main = do args <- getArgs
           let ( actions, nonops, _ ) = getOpt RequireOrder options args
-          opts <- foldl (>>=) (return defaultOptions) actions
-          let Options { optSync = sync,     optSyncGroup = syncGroup, optForce = f,
-                        optFast = start,    optJobs = jobs, optUnsafe = unsafe,
-                        optG    = g,        optInteractive = i } = opts
+          Options { optSync = sync, optSyncGroup = syncGroup
+                  , optForce = f,   optFast = start
+                  , optJobs = jobs, optUnsafe = unsafe
+                  , optG    = g,    optInteractive = i 
+                  } <- foldl (>>=) (return defaultOptions) actions
           user      <- getAppUserDataDirectory "sharingan.lock"
           locked    <- doesFileExist user
           let gogo = if g then genSync jobs
