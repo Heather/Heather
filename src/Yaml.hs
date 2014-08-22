@@ -27,6 +27,7 @@ data Repository = Repository {location      :: String,
                               branches      :: [String],
                               upstream      :: String,
                               enabled       :: Maybe Bool,
+                              clean         :: Maybe Bool,
                               post_rebuild  :: Maybe [String],
                               syncGroup     :: Maybe String}
                               deriving (Show, Eq)
@@ -37,17 +38,19 @@ instance FromJSON Repository where
                            v .:  "branches" <*>
                            v .:  "upstream" <*>
                            v .:? "enabled"  <*>
+                           v .:? "clean"    <*>
                            v .:? "post_rebuild" <*>
                            v .:? "group"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON Repository where
-   toJSON (Repository loca br up enb pr
+   toJSON (Repository loca br up enb cln pr
                       gr) = object [ "location"     .= loca
                                    , "branches"     .= br
                                    , "upstream"     .= up
                                    , "enabled"      .= enb
+                                   , "clean"        .= cln
                                    , "post_rebuild" .= pr
                                    , "group"        .= gr]
 

@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.1.3"
+version = "0.1.4"
 
 main :: IO ()
 main = do args <- getArgs
@@ -174,7 +174,7 @@ getA arg _ = -- Add new stuff to sync
         rsdata  <- yDecode ymlx :: IO [Repository]
         let new = (Repository arg 
                               ["master"] "upstream master"
-                              Nothing Nothing Nothing)
+                              Nothing Nothing Nothing Nothing)
         if (elem new rsdata)
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
@@ -204,6 +204,7 @@ enable en arg _ =
                                                              (branches x)
                                                              (upstream x)
                                                              (Just en)
+                                                             (clean x)
                                                              (post_rebuild x)
                                                              (syncGroup x))
                                             else x
@@ -274,11 +275,14 @@ go fast nonops unsafe intera force syn synGroup _ =
                                         )
                 $ let up  = splitOn " " $ upstream repo
                       br  = branches repo
-                      ps  = post_rebuild repo                      
+                      ps  = post_rebuild repo
+                      cln = case (clean repo) of
+                               Just cl -> cl
+                               Nothing -> False
                       u b = do printf " - %s : %s\n" loc b
-                               rebasefork loc b up unsafe $ if (length up) > 1
-                                                              then up !! 1 `elem` br
-                                                              else False
+                               rebasefork loc b up unsafe cln $ if (length up) > 1
+                                                                  then up !! 1 `elem` br
+                                                                  else False
                       eye r = when ((r || force) && (not fast))
                                 $ do let shx = loc </> ".sharingan.yml"
                                      doesFileExist shx >>= sharingan intera shx loc
