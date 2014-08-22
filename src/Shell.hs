@@ -47,7 +47,7 @@ rebasefork path branch up unsafe sync =
                                     when (not unsafe) 
                                         $ exec $ "git checkout " ++ branch
                                                                  ++ " & git reset --hard"
-                                                                 ++ " & git clean -sdf"
+                                                                 ++ " & git clean -xdf"
                                                                  ++ " & git rebase --abort"
                                     loc <- if (length up) > 1
                                             then if sync then readProcess "git" [ "merge-base"
