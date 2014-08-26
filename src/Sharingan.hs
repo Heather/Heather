@@ -2,19 +2,20 @@
 
 import Despair
 
+import Model
 import Yaml
 import Tools
+import Config
 import SharinganProcess
 
 import Text.Printf
 
 import System.Environment( getArgs, getEnv )
+import System.Info (os)
 import System.Directory
 import System.Exit
 import System.Console.GetOpt
 import System.IO
-
-import System.Environment.Executable ( getExecutablePath )
 
 import Control.Monad
 import Control.Applicative
@@ -22,7 +23,6 @@ import Control.Exception
 import Control.Eternal
 import Control.Concurrent
 
-import System.Info (os)
 import System.FilePath(takeDirectory, (</>))
 
 import Data.Maybe
@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.1.4"
+version = "0.1.5"
 
 main :: IO ()
 main = do args <- getArgs
@@ -54,14 +54,6 @@ main = do args <- getArgs
                         if str `elem` ["Y", "y"] then run
                                                  else return ()
                     else run
-
-data Options = Options 
-    { optJobs :: Maybe String,      optSync :: Maybe String
-    , optSyncGroup :: Maybe String, optInteractive :: Bool
-    , optG :: Bool,                 optForce :: Bool
-    , optUnsafe :: Bool
-    , optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
-    }
 
 defaultOptions :: Options
 defaultOptions = Options 
@@ -152,21 +144,6 @@ getg arg opt        = return opt { optSyncGroup = Just arg }
 forceReinstall opt  = return opt { optForce = True }
 runUnsafe opt       = return opt { optUnsafe = True }
 fastReinstall opt   = return opt { optFast  = go True }
-
-getConfig :: IO FilePath
-getConfig =
-    if | os `elem` ["win32", "mingw32", "cygwin32"] -> (</> "sharingan.yml") 
-                                                        <$> takeDirectory 
-                                                        <$> getExecutablePath
-       | otherwise -> return "/etc/sharingan.yml"
-
-processChecks :: FilePath -> IO()
-processChecks cfg = 
-  let generate cfg = ifNot $ let nothing = [] :: [Repository]
-                             in yEncode cfg nothing
-  in doesFileExist cfg >>= generate cfg
-
-withConfig foo = liftM2 (>>) processChecks foo =<< getConfig
   
 getA arg _ = -- Add new stuff to sync
   withConfig $ \ymlx ->
@@ -174,7 +151,7 @@ getA arg _ = -- Add new stuff to sync
         rsdata  <- yDecode ymlx :: IO [Repository]
         let new = (Repository arg 
                               ["master"] "upstream master"
-                              Nothing Nothing Nothing Nothing)
+                              Nothing Nothing Nothing Nothing Nothing)
         if (elem new rsdata)
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
@@ -190,25 +167,6 @@ getD arg _ = -- Remove stuff from sync
                         where notD x = not $ isInfixOf arg
                                            $ location x
         yEncode ymlx fd
-    in doesFileExist ymlx >>= ymlprocess 
-                          >> exitWith ExitSuccess
-
-enable :: Bool -> String -> Options -> IO Options
-enable en arg _ =
-  withConfig $ \ymlx ->
-    let ymlprocess = ifSo $ do
-        rsdata <- yDecode ymlx :: IO [Repository]
-        let ed = map enR rsdata
-                        where enR x = if isInfixOf arg $ location x
-                                            then (Repository (location x)
-                                                             (branches x)
-                                                             (upstream x)
-                                                             (Just en)
-                                                             (clean x)
-                                                             (post_rebuild x)
-                                                             (syncGroup x))
-                                            else x
-        yEncode ymlx ed
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
@@ -276,13 +234,14 @@ go fast nonops unsafe intera force syn synGroup _ =
                 $ let up  = splitOn " " $ upstream repo
                       br  = branches repo
                       ps  = post_rebuild repo
+                      hs  = hash repo
                       cln = case (clean repo) of
                                Just cl -> cl
                                Nothing -> False
                       u b = do printf " - %s : %s\n" loc b
-                               rebasefork loc b up unsafe cln $ if (length up) > 1
-                                                                  then up !! 1 `elem` br
-                                                                  else False
+                               rebasefork loc b up unsafe cln hs $ if (length up) > 1
+                                                                     then up !! 1 `elem` br
+                                                                     else False
                       eye r = when ((r || force) && (not fast))
                                 $ do let shx = loc </> ".sharingan.yml"
                                      doesFileExist shx >>= sharingan intera shx loc

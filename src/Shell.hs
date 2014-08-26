@@ -24,6 +24,7 @@ import System.Process
 import Control.Monad
 import Control.Eternal
 
+import Config
 import AsyncReactive
 
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
@@ -33,8 +34,8 @@ dropSpaceTail maybeStuff (x:xs)
         | null maybeStuff = x : dropSpaceTail "" xs
         | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
-rebasefork :: String -> String -> [String] -> Bool -> Bool -> Bool -> IO Bool
-rebasefork path branch up unsafe cln sync =
+rebasefork :: String -> String -> [String] -> Bool -> Bool -> Maybe String -> Bool -> IO Bool
+rebasefork path branch up unsafe cln hs sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
         let chk foo previous = if previous
@@ -49,17 +50,19 @@ rebasefork path branch up unsafe cln sync =
                                                                  ++ " & git reset --hard"
                                                                  ++ " & git rebase --abort"
                                     when cln $ exec "git clean -xdf" 
-                                    loc <- if (length up) > 1
-                                            then if sync then readProcess "git" [ "merge-base"
-                                                                                 , up !! 1
-                                                                                 , "origin/" ++ branch
-                                                                                 ] []
-                                                         else readProcess "git" [ "rev-parse"
-                                                                                , intercalate "/" up
-                                                                                ] []
-                                            else readProcess "git" ["log", "-n", "1"
-                                                                   , "--pretty=format:%H"
-                                                                   ] []
+                                    loc <- case hs of
+                                            Just hsh -> return hsh
+                                            _ -> if (length up) > 1
+                                                    then if sync then readProcess "git" [ "merge-base"
+                                                                                         , up !! 1
+                                                                                         , "origin/" ++ branch
+                                                                                         ] []
+                                                                 else readProcess "git" [ "rev-parse"
+                                                                                        , intercalate "/" up
+                                                                                        ] []
+                                                    else readProcess "git" ["log", "-n", "1"
+                                                                           , "--pretty=format:%H"
+                                                                           ] []
                                     rem <- readProcess "git" (["ls-remote"] ++ up) []
                                     let remote = (splitOn "\t" rem) !! 0
                                         local  = trim loc
@@ -72,6 +75,7 @@ rebasefork path branch up unsafe cln sync =
                                                      ++ " & git fetch "               ++ upstream
                                                      ++ " & git pull --rebase "       ++ upstream
                                                      ++ " & git push --force origin " ++ branch
+                                                hashupdate remote path
                                                 return True
                             else return True
                            else  return False
