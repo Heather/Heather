@@ -16,22 +16,22 @@ import Control.Applicative
 
 import qualified Data.ByteString.Char8 as BS
 
-data Sharingan = Sharingan {language        :: Maybe String,
-                            env             :: Maybe [String],
-                            before_install  :: Maybe [String],
-                            install         :: Maybe [String],
-                            script          :: [String]}
-                            deriving (Show)
+data Sharingan = Sharingan { language        :: Maybe String
+                           , env             :: Maybe [String]
+                           , before_install  :: Maybe [String]
+                           , install         :: Maybe [String]
+                           , script          :: [String]
+                           } deriving (Show)
 
-data Repository = Repository {location      :: String,
-                              branches      :: [String],
-                              upstream      :: String,
-                              enabled       :: Maybe Bool,
-                              clean         :: Maybe Bool,
-                              post_rebuild  :: Maybe [String],
-                              syncGroup     :: Maybe String,
-                              hash          :: Maybe String}
-                              deriving (Show, Eq)
+data Repository = Repository { location      :: String
+                             , branches      :: [String]
+                             , upstream      :: String
+                             , enabled       :: Maybe Bool
+                             , clean         :: Maybe Bool
+                             , post_rebuild  :: Maybe [String]
+                             , syncGroup     :: Maybe String
+                             , hash          :: Maybe String
+                             } deriving (Show, Eq)
 
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>

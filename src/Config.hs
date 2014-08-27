@@ -45,36 +45,20 @@ enable en arg _ =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
-        let ed = map enR rsdata
-                        where enR x = if isInfixOf arg $ location x
-                                            then (Repository (location x)
-                                                             (branches x)
-                                                             (upstream x)
-                                                             (Just en)
-                                                             (clean x)
-                                                             (post_rebuild x)
-                                                             (syncGroup x)
-                                                             (hash x))
-                                            else x
-        yEncode ymlx ed
+        let fr x = if isInfixOf arg $ location x
+                    then x { enabled = Just en }
+                    else x
+        yEncode ymlx $ map fr rsdata
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
 hashupdate :: String -> String -> IO ()
-hashupdate hash rep =
+hashupdate hsh rep =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
-        let ed = map enR rsdata
-                        where enR x = if rep == (location x)
-                                            then (Repository (location x)
-                                                             (branches x)
-                                                             (upstream x)
-                                                             (enabled x)
-                                                             (clean x)
-                                                             (post_rebuild x)
-                                                             (syncGroup x)
-                                                             (Just hash))
-                                            else x
-        yEncode ymlx ed
+        let fr x = if rep == location x
+                    then x { hash = Just hsh }
+                    else x
+        yEncode ymlx $ map fr rsdata
     in doesFileExist ymlx >>= ymlprocess
