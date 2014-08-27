@@ -163,10 +163,12 @@ getD arg _ = -- Remove stuff from sync
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
-        let fd = filter notD rsdata
-                        where notD x = not $ isInfixOf arg
-                                           $ location x
-        yEncode ymlx fd
+        let iio x = isInfixOf arg $ location x
+            findx = find iio rsdata
+        case findx of
+            Just fnd -> do yEncode ymlx $ filter (/= fnd) rsdata
+                           putStrLn $ (location fnd) ++ " is removed"
+            Nothing  -> putStrLn $ arg ++ " repo not found"
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
