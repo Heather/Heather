@@ -233,7 +233,7 @@ go fast nonops unsafe intera force syn synGroup _ =
                                         )
                 $ let up  = splitOn " " $ upstream repo
                       br  = branches repo
-                      ps  = post_rebuild repo
+                      ps  = postRebuild repo
                       hs  = hash repo
                       cln = case (clean repo) of
                                Just cl -> cl

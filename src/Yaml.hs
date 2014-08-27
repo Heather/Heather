@@ -28,7 +28,7 @@ data Repository = Repository { location      :: String
                              , upstream      :: String
                              , enabled       :: Maybe Bool
                              , clean         :: Maybe Bool
-                             , post_rebuild  :: Maybe [String]
+                             , postRebuild  :: Maybe [String]
                              , syncGroup     :: Maybe String
                              , hash          :: Maybe String
                              } deriving (Show, Eq)
@@ -40,7 +40,7 @@ instance FromJSON Repository where
                            v .:  "upstream" <*>
                            v .:? "enabled"  <*>
                            v .:? "clean"    <*>
-                           v .:? "post_rebuild" <*>
+                           v .:? "postRebuild" <*>
                            v .:? "group" <*>
                            v .:? "hash"
     -- A non-Object value is of the wrong type, so fail.
@@ -53,7 +53,7 @@ instance ToJSON Repository where
                                    , "upstream"     .= up
                                    , "enabled"      .= enb
                                    , "clean"        .= cln
-                                   , "post_rebuild" .= pr
+                                   , "postRebuild" .= pr
                                    , "group"        .= gr
                                    , "hash"         .= hs]
 
