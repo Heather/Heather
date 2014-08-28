@@ -60,16 +60,25 @@ sharingan intera shx loc shxi = if shxi then
                         let f = filter (\x -> any(`isSuffixOf` map toLower x)
                                         [".cabal"]) $ all
                         if (length f) > 0
-                          then do let build = do
-                                      exc loc "cabal install --only-dependencies"
-                                      exc loc "cabal configure"
-                                      exc loc "cabal build"
-                                  build
+                          then do exc loc "cabal install --only-dependencies"
+                                  exc loc "cabal configure"
+                                  exc loc "cabal build"
+                                  return True
+                          else return False 
+              ipkg previous = if previous
+                then return True
+                else do all <- getDirectoryContents "."
+                        let f = filter (\x -> any(`isSuffixOf` map toLower x)
+                                        [".ipkg"]) $ all
+                        if (length f) > 0
+                          then do let f0 = f !! 0
+                                  exc loc $ "idris --clean " ++ f0
+                                  exc loc $ "idris --install " ++ f0
                                   return True
                           else return False
-              make = exc loc "make"
-              bat  = exc loc "build.bat"
-          in (return False) >>= test "build.bat" bat
-                            >>= test "Makefile" make
+          in (return False) >>= test "install.bat" (exc loc "install.bat")
+                            >>= test "build.bat" (exc loc "build.bat")
+                            >>= test "Makefile" (exc loc "make")
                             >>= cabal
+                            >>= ipkg
                             >> return ()
