@@ -47,9 +47,10 @@ rebasefork path branch up unsafe processClean hs sync =
                             then setCurrentDirectory path >> do
                                 currentbranch <- readProcess "git" ["rev-parse", "--abbrev-ref", "HEAD"] []
                                 let cbr = trim currentbranch
-                                when (cbr /= branch) $ exec $ "git checkout " ++ branch
-                                when (not unsafe)    $ exec $ "git reset --hard & git rebase --abort"
-                                when (processClean)  $ exec $ "git clean -xdf"
+                                    whe c s = when c $ exec s
+                                whe (cbr /= branch) $ "git checkout " ++ branch
+                                whe (not unsafe)    $ "git reset --hard & git rebase --abort"
+                                whe (processClean)  $ "git clean -xdf"
                                 loc <- case hs of
                                         Just hsh -> return hsh
                                         _ -> if (length up) > 1
@@ -110,9 +111,8 @@ gentooSync path jobs = do
                     ++ " --jobs=" ++ j)
 
 gpull :: String -> String -> IO()
-gpull path branch =
-    doesDirectoryExist path >>= (flip when
-        $ exc path $ "git pull origin " ++ branch)
+gpull path branch = doesDirectoryExist path 
+                    >>= (ifSo $ exc path $ "git pull origin " ++ branch)
 
 gclone :: String -> String -> IO()
 gclone path project =
