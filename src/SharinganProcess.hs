@@ -17,7 +17,7 @@ import Control.Monad
 import Control.Eternal
 
 sharingan :: Bool -> String -> String -> Bool -> IO()
-sharingan intera shx loc shxi = if shxi then
+sharingan interactive shx loc shxi = if shxi then
      do syncDatax <- yDecode shx :: IO Sharingan
         let en   = case env syncDatax of
                     Just []   -> []
@@ -48,7 +48,7 @@ sharingan intera shx loc shxi = if shxi then
                   "rust"    -> exc loc "make"
                   _         -> return () -- do nothing
           _ -> forM_ sc $ exc loc
-     else when intera
+     else when interactive
         $ let test fe procx previous = if previous
                 then return True
                 else doesFileExist (loc </> fe) >>= \fileExist ->
