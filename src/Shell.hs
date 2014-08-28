@@ -45,7 +45,8 @@ rebasefork path branch up unsafe processClean hs sync =
             gitX = doesDirectoryExist <| path </> ".git" >>= \git ->
                     if git then if dirExist
                             then setCurrentDirectory path >> do
-                                cbr <- readProcess "git" ["rev-parse", "--abbrev-ref", "HEAD"] []
+                                currentbranch <- readProcess "git" ["rev-parse", "--abbrev-ref", "HEAD"] []
+                                let cbr = trim currentbranch
                                 when (cbr /= branch) $ exec $ "git checkout " ++ branch
                                 when (not unsafe)    $ exec $ "git reset --hard & git rebase --abort"
                                 when (processClean)  $ exec $ "git clean -xdf"
