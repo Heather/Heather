@@ -4,6 +4,7 @@ module Config
   ( getConfig
   , processChecks
   , withConfig
+  , config
   , enable
   , hashupdate
   ) where
@@ -18,6 +19,7 @@ import System.Environment.Executable ( getExecutablePath )
 import System.Console.GetOpt
 import System.Exit
 import System.FilePath(takeDirectory, (</>))
+import System.Environment( getEnv )
 
 import Control.Monad
 import Control.Applicative
@@ -39,6 +41,13 @@ processChecks cfg =
   in doesFileExist cfg >>= generate cfg
 
 withConfig foo = liftM2 (>>) processChecks foo =<< getConfig
+
+config :: Options -> IO Options
+config _ = do
+    editor <- getEnv "EDITOR"
+    withConfig $ \ymlx ->
+        exec $ editor ++ " " ++ ymlx
+    exitWith ExitSuccess
 
 enable :: Bool -> String -> Options -> IO Options
 enable en arg _ =

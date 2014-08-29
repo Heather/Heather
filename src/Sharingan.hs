@@ -10,7 +10,7 @@ import SharinganProcess
 
 import Text.Printf
 
-import System.Environment( getArgs, getEnv )
+import System.Environment( getArgs )
 import System.Info (os)
 import System.Directory
 import System.Exit
@@ -111,7 +111,6 @@ genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 
 getDepot        ::   Options -> IO Options
 mkSharingan     ::   Options -> IO Options
-config          ::   Options -> IO Options
 showV           ::   Options -> IO Options
 showHelp        ::   Options -> IO Options
 genS            ::   Options -> IO Options
@@ -203,12 +202,6 @@ mkSharingan _ = -- Create .sharingan.yml template
       iM    = Just []
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
-
-config _ = do
-    editor <- getEnv "EDITOR"
-    withConfig $ \ymlx ->
-        exec $ editor ++ " " ++ ymlx
-    exitWith ExitSuccess
 
 go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
 go fast nonops unsafe intera force syn synGroup _ =
