@@ -129,8 +129,6 @@ getDepot _ = do depot_tools
                 exitWith ExitSuccess
 
 list            ::   Maybe String -> Options -> IO Options
-getA            ::   String -> Options -> IO Options
-getD            ::   String -> Options -> IO Options
 getJ            ::   String -> Options -> IO Options
 gets            ::   String -> Options -> IO Options
 getg            ::   String -> Options -> IO Options
@@ -143,33 +141,6 @@ getg arg opt        = return opt { optSyncGroup = Just arg }
 forceReinstall opt  = return opt { optForce = True }
 runUnsafe opt       = return opt { optUnsafe = True }
 fastReinstall opt   = return opt { optFast  = go True }
-  
-getA arg _ = -- Add new stuff to sync
-  withConfig $ \ymlx ->
-    let ymlprocess = ifSo $ do
-        rsdata  <- yDecode ymlx :: IO [Repository]
-        let new = (Repository arg 
-                              ["master"] "upstream master"
-                              Nothing Nothing Nothing Nothing Nothing)
-        if (elem new rsdata)
-            then putStrLn "this repository is already in sync"
-            else let newdata = new : rsdata
-                 in yEncode ymlx newdata
-    in doesFileExist ymlx >>= ymlprocess 
-                          >>  exitWith ExitSuccess
-
-getD arg _ = -- Remove stuff from sync
-  withConfig $ \ymlx ->
-    let ymlprocess = ifSo $ do
-        rsdata  <- yDecode ymlx :: IO [Repository]
-        let iio x = isInfixOf arg $ location x
-            findx = find iio rsdata
-        case findx of
-            Just fnd -> do yEncode ymlx $ filter (/= fnd) rsdata
-                           putStrLn $ (location fnd) ++ " is removed"
-            Nothing  -> putStrLn $ arg ++ " repo not found"
-    in doesFileExist ymlx >>= ymlprocess 
-                          >> exitWith ExitSuccess
 
 list arg _ =
   withConfig $ \ymlx ->

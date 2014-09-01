@@ -5,6 +5,8 @@ module Config
   , processChecks
   , withConfig
   , config
+  , getA
+  , getD
   , enable
   , hashupdate
   ) where
@@ -48,6 +50,35 @@ config _ = do
     withConfig $ \ymlx ->
         exec $ editor ++ " " ++ ymlx
     exitWith ExitSuccess
+
+getA :: String -> Options -> IO Options
+getA arg _ = -- Add new stuff to sync
+  withConfig $ \ymlx ->
+    let ymlprocess = ifSo $ do
+        rsdata <- yDecode ymlx :: IO [Repository]
+        let new = (Repository arg 
+                              ["master"] "upstream master"
+                              Nothing Nothing Nothing Nothing Nothing)
+        if (elem new rsdata)
+            then putStrLn "this repository is already in sync"
+            else let newdata = new : rsdata
+                 in yEncode ymlx newdata
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
+
+getD :: String -> Options -> IO Options
+getD arg _ = -- Remove stuff from sync
+  withConfig $ \ymlx ->
+    let ymlprocess = ifSo $ do
+        rsdata  <- yDecode ymlx :: IO [Repository]
+        let iio x = isInfixOf arg $ location x
+            findx = find iio rsdata
+        case findx of
+            Just fnd -> do yEncode ymlx $ filter (/= fnd) rsdata
+                           putStrLn $ (location fnd) ++ " is removed"
+            Nothing  -> putStrLn $ arg ++ " repo not found"
+    in doesFileExist ymlx >>= ymlprocess 
+                          >> exitWith ExitSuccess
 
 enable :: Bool -> String -> Options -> IO Options
 enable en arg _ =
