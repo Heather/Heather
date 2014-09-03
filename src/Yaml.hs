@@ -83,6 +83,4 @@ yDecode fnm = do
                 Nothing      -> error "Can't parse from YAML"
 
 yEncode :: ToJSON iToJSONable => FilePath -> iToJSONable -> IO()
-yEncode fnm dat = do
-  let bs = Data.Yaml.encode dat
-  BS.writeFile fnm bs
+yEncode fnm dat = BS.writeFile fnm $ Data.Yaml.encode dat
