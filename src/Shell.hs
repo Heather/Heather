@@ -10,7 +10,6 @@ module Shell
     gentooSync
   ) where
 
-import Data.Char
 import Data.List
 import Data.List.Split
 
@@ -26,13 +25,6 @@ import Control.Eternal
 
 import Config
 import AsyncReactive
-
-trim xs = dropSpaceTail "" $ dropWhile isSpace xs
-dropSpaceTail maybeStuff "" = ""
-dropSpaceTail maybeStuff (x:xs)
-        | isSpace x = dropSpaceTail (x:maybeStuff) xs
-        | null maybeStuff = x : dropSpaceTail "" xs
-        | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
 
 rebasefork :: String -> String -> [String] -> Bool -> Bool -> Maybe String -> Bool -> IO Bool
 rebasefork path branch up unsafe processClean hs sync =
