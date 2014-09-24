@@ -10,7 +10,6 @@ import Control.Exception
 import Control.Monad
 import Control.Eternal
 import Control.Concurrent
-import Control.Concurrent.Reactive
 import Control.Concurrent.Async
 
 data Progress
