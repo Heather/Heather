@@ -94,9 +94,10 @@ setEnv env = exec eset
 
 gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
-    let j = case jobs of
-                Just jj -> jj
-                Nothing -> "2"
+    j <-  case jobs of
+            Just jj -> return jj
+            Nothing -> if | os `elem` ["win32", "mingw32"] -> return "2"
+                          | otherwise -> readProcess "nproc" [] []
     putStrLn "updating..."
     asyncReactive (exc path $ " cvs update "
                     ++ " & egencache --update --repo=gentoo --portdir=" ++ path
