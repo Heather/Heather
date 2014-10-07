@@ -3,6 +3,7 @@
 module Yaml
   ( Repository(..)
   , Sharingan(..)
+  , Defaults(..)
   , FromJSON
   , ToJSON
   , yDecode
@@ -32,6 +33,9 @@ data Repository = Repository { location      :: String
                              , syncGroup     :: Maybe String
                              , hash          :: Maybe String
                              } deriving (Show, Eq)
+
+data Defaults = Defaults { quick :: Maybe Bool
+                         }
 
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
@@ -74,6 +78,15 @@ instance ToJSON Sharingan where
                                   , "before_install"  .= before
                                   , "install"         .= inst
                                   , "script"          .= sc]
+
+instance FromJSON Defaults where
+    parseJSON (Object v) = Defaults <$>
+                           v .:? "quick"
+    -- A non-Object value is of the wrong type, so fail.
+    parseJSON _ = error "Can't parse Defaults from YAML"
+
+instance ToJSON Defaults where
+   toJSON (Defaults q) = object [ "quick" .= q ]
 
 yDecode :: FromJSON iFromJSONable => FilePath -> IO iFromJSONable
 yDecode fnm = do

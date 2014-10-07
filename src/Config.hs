@@ -2,9 +2,13 @@
 
 module Config
   ( getConfig
+  , getDefaultsConfig
   , processChecks
+  , processDefaultsChecks
   , withConfig
+  , withDefaultsConfig
   , config
+  , defaultsConfig
   , getA
   , getD
   , enable
@@ -36,18 +40,39 @@ getConfig =
                                                         <$> getExecutablePath
        | otherwise -> return "/etc/sharingan.yml"
 
+getDefaultsConfig :: IO FilePath
+getDefaultsConfig =
+    if | os `elem` ["win32", "mingw32", "cygwin32"] -> (</> "sharinganDefaults.yml") 
+                                                        <$> takeDirectory 
+                                                        <$> getExecutablePath
+       | otherwise -> return "/etc/sharinganDefaults.yml"
+
 processChecks :: FilePath -> IO()
 processChecks cfg = 
   let generate cfg = ifNot $ let nothing = [] :: [Repository]
                              in yEncode cfg nothing
   in doesFileExist cfg >>= generate cfg
 
+processDefaultsChecks :: FilePath -> IO()
+processDefaultsChecks cfg = 
+  let generate cfg = ifNot $ let nothing = (Defaults Nothing)
+                             in yEncode cfg nothing
+  in doesFileExist cfg >>= generate cfg
+
 withConfig foo = liftM2 (>>) processChecks foo =<< getConfig
+withDefaultsConfig foo = liftM2 (>>) processDefaultsChecks foo =<< getDefaultsConfig
 
 config :: Options -> IO Options
 config _ = do
     editor <- getEnv "EDITOR"
     withConfig $ \ymlx ->
+        exec $ editor ++ " " ++ ymlx
+    exitWith ExitSuccess
+
+defaultsConfig :: Options -> IO Options
+defaultsConfig _ = do
+    editor <- getEnv "EDITOR"
+    withDefaultsConfig $ \ymlx ->
         exec $ editor ++ " " ++ ymlx
     exitWith ExitSuccess
 

@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.2.1"
+version = "0.2.2"
 
 main :: IO ()
 main = do args <- getArgs
@@ -73,6 +73,7 @@ gOptions = [
     
     Option []    ["make"]    (NoArg mkSharingan) "Create .sharingan.yml template",
     Option []    ["config"]  (NoArg config) "Edit .sharingan.yml config file",
+    Option []    ["defaults"](NoArg defaultsConfig) "Edit .sharinganDefaults.yml config file",
     
     Option ['l'] ["list"]    (OptArg list "STRING") "List repositories",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
@@ -176,9 +177,11 @@ mkSharingan _ = -- Create .sharingan.yml template
 
 go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
 go fast nonops unsafe intera force syn synGroup _ =
-  withConfig $ \ymlx ->                           
+  withDefaultsConfig $ \defx ->
+   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
+        dfdata <- yDecode defx :: IO Defaults
         forM_ rsdata $ \repo ->
             let loc  = location repo
                 gr   = syncGroup repo
@@ -204,11 +207,14 @@ go fast nonops unsafe intera force syn synGroup _ =
                       cln = case (clean repo) of
                                Just cl -> cl
                                Nothing -> False
+                      noq = case (quick dfdata) of
+                                Just qc -> not qc
+                                Nothing -> True
                       u b = do printf " - %s : %s\n" loc b
                                rebasefork loc b up unsafe cln hs $ if (length up) > 1
                                                                      then up !! 1 `elem` br
                                                                      else False
-                      eye r = when ((r || force) && (not fast))
+                      eye r = when ((r || force) && (not fast) && noq)
                                 $ do let shx = loc </> ".sharingan.yml"
                                      doesFileExist shx >>= sharingan intera shx loc
                                      when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
