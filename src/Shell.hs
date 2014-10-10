@@ -27,7 +27,7 @@ import Config
 import AsyncReactive
 
 rebasefork :: String -> String -> [String] -> Bool -> Bool -> Maybe String -> Bool -> IO Bool
-rebasefork path branch up unsafe processClean hs sync =
+rebasefork path branch up unsafe processClean rhash sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
         let chk foo previous = if previous
@@ -43,13 +43,13 @@ rebasefork path branch up unsafe processClean hs sync =
                                 whe (cbr /= branch) $ "git checkout " ++ branch
                                 whe (not unsafe)    $ "git reset --hard & git rebase --abort"
                                 whe (processClean)  $ "git clean -xdf"
-                                loc <- case hs of
+                                loc <- case rhash of
                                         Just hsh -> return hsh
                                         _ -> if (length up) > 1
                                                 then if sync then readProcess "git" [ "merge-base"
-                                                                                     , up !! 1
-                                                                                     , "origin/" ++ branch
-                                                                                     ] []
+                                                                                    , up !! 1
+                                                                                    , "origin/" ++ branch
+                                                                                    ] []
                                                              else readProcess "git" [ "rev-parse"
                                                                                     , intercalate "/" up
                                                                                     ] []
@@ -59,13 +59,21 @@ rebasefork path branch up unsafe processClean hs sync =
                                 rem <- readProcess "git" (["ls-remote"] ++ up) []
                                 let remote = (splitOn "\t" rem) !! 0
                                     local  = trim loc
-                                putStrLn $ "Local: "  ++ local
+                                putStrLn $ "Last Merge: "  ++ local
                                 putStrLn $ "Remote: " ++ remote
-                                if  remote == local
+                                if remote == local
                                     then do putStrLn $ path ++ " is up to date"
                                             return True
-                                    else do exec $ "git pull origin "             ++ branch
-                                                 ++ " & git fetch "               ++ upstream
+                                    else do rlc <- readProcess "git" ["ls-remote", "origin", branch] []
+                                            lrc <- readProcess "git" ["log", "-n", "1"
+                                                                     , "--pretty=format:%H"
+                                                                     ] []
+                                            let remloc = (splitOn "\t" rlc) !! 0
+                                                locloc = trim lrc
+                                            putStrLn $ "Origin: " ++ remloc
+                                            putStrLn $ "Local: "  ++ locloc
+                                            whe (remloc /= locloc) $ "git pull origin " ++ branch
+                                            exec $ " git fetch "                  ++ upstream
                                                  ++ " & git pull --rebase "       ++ upstream
                                                  ++ " & git push --force origin " ++ branch
                                             hashupdate remote path
