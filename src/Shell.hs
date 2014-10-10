@@ -11,6 +11,7 @@ module Shell
   ) where
 
 import Data.List
+import Data.Maybe
 import Data.List.Split
 
 import System.IO
@@ -65,9 +66,10 @@ rebasefork path branch up unsafe processClean rhash sync =
                                     then do putStrLn $ path ++ " is up to date"
                                             return True
                                     else do rlc <- readProcess "git" ["ls-remote", "origin", branch] []
-                                            lrc <- readProcess "git" ["log", "-n", "1"
-                                                                     , "--pretty=format:%H"
-                                                                     ] []
+                                            lrc <- if isNothing rhash then readProcess "git" ["log", "-n", "1"
+                                                                                             , "--pretty=format:%H"
+                                                                                             ] []
+                                                                      else return loc
                                             let remloc = (splitOn "\t" rlc) !! 0
                                                 locloc = trim lrc
                                             putStrLn $ "Origin: " ++ remloc
