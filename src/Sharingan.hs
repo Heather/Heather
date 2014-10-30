@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.2.3"
+version = "0.2.4"
 
 main :: IO ()
 main = do args <- getArgs
@@ -214,15 +214,15 @@ go fast nonops unsafe intera force syn synGroup _ =
                                rebasefork loc b up unsafe cln hs $ if (length up) > 1
                                                                      then up !! 1 `elem` br
                                                                      else False
-                      eye r = when ((r || force) && (not fast) && noq)
-                                $ do let shx = loc </> ".sharingan.yml"
-                                     doesFileExist shx >>= sharingan intera shx loc
-                                     when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
-                                                            let pshx = psc </> ".sharingan.yml"
-                                                            in doesFileExist pshx
-                                                                >>= sharingan intera pshx psc
+                      eye (_, r) = when ((r || force) && (not fast) && noq)
+                                    $ do let shx = loc </> ".sharingan.yml"
+                                         doesFileExist shx >>= sharingan intera shx loc
+                                         when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                                let pshx = psc </> ".sharingan.yml"
+                                                                in doesFileExist pshx
+                                                                    >>= sharingan intera pshx psc
                   in do forM_ (tails br)
-                         $ \case x:[] -> u x >>= eye
+                         $ \case x:[] -> u x >>= eye -- Tail
                                  x:xs -> u x >>= (\_ -> return ())
                                  []   -> return ()
                         putStrLn <| replicate 89 '_'

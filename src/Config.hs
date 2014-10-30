@@ -3,14 +3,19 @@
 module Config
   ( getConfig
   , getDefaultsConfig
+  
   , processChecks
   , processDefaultsChecks
+  
   , withConfig
   , withDefaultsConfig
+  
   , config
   , defaultsConfig
+  
   , getA
   , getD
+  
   , enable
   , hashupdate
   ) where

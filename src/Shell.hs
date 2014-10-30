@@ -27,12 +27,12 @@ import Control.Eternal
 import Config
 import AsyncReactive
 
-rebasefork :: String -> String -> [String] -> Bool -> Bool -> Maybe String -> Bool -> IO Bool
+rebasefork :: String -> String -> [String] -> Bool -> Bool -> Maybe String -> Bool -> IO (Bool, Bool)
 rebasefork path branch up unsafe processClean rhash sync =
     let upstream = intercalate " " up
     in doesDirectoryExist path >>= \dirExist ->
-        let chk foo previous = if previous
-                then return True
+        let chk foo (previous,doU) = if previous
+                then return (previous, doU)
                 else foo
 
             gitX = doesDirectoryExist <| path </> ".git" >>= \git ->
@@ -64,7 +64,7 @@ rebasefork path branch up unsafe processClean rhash sync =
                                 putStrLn $ "Remote: " ++ remote
                                 if remote == local
                                     then do putStrLn $ path ++ " is up to date"
-                                            return True
+                                            return (True, False)
                                     else do rlc <- readProcess "git" ["ls-remote", "origin", branch] []
                                             lrc <- if isNothing rhash then readProcess "git" ["log", "-n", "1"
                                                                                              , "--pretty=format:%H"
@@ -79,9 +79,9 @@ rebasefork path branch up unsafe processClean rhash sync =
                                                  ++ " & git pull --rebase "       ++ upstream
                                                  ++ " & git push --force origin " ++ branch
                                             hashupdate remote path
-                                            return True
-                            else return True
-                           else  return False
+                                            return (True, True)
+                            else return (True, True)
+                           else  return (False, False)
 
             hgX = doesDirectoryExist <| path </> ".hg" >>= \hg ->
                     if hg then if dirExist
@@ -89,18 +89,17 @@ rebasefork path branch up unsafe processClean rhash sync =
                                 exec $ "hg pull --update --rebase" ++ upstream
                                     ++ " & hg push " ++ branch
                                     ++ " --force"
-                                return True   -- Sync
-                            else return True  -- TODO: clone
-                           else  return False -- directory exists but it's not a hg
-                        
-        in (return False) >>= chk gitX
-                          >>= chk hgX
+                                return (True, True)    -- Sync
+                            else return (True, False)  -- TODO: clone
+                           else  return (False, False) -- directory exists but it's not a hg
+
+        in (return (False, False)) >>= (chk gitX)
+                                   >>= (chk hgX)
 
 setEnv :: String -> IO()
-setEnv env = exec eset
-             where eset = if | os `elem` ["win32", "mingw32"] -> "set " ++ env
-                             | os `elem` ["darwin", "cygwin32"] -> "export " ++ env
-                             | otherwise -> "export " ++ env
+setEnv env = exec $ if | os `elem` ["win32", "mingw32"] -> "set " ++ env
+                       | os `elem` ["darwin", "cygwin32"] -> "export " ++ env
+                       | otherwise -> "export " ++ env
 
 gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
