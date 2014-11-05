@@ -13,8 +13,8 @@ module Config
   , config
   , defaultsConfig
   
-  , getA
-  , getD
+  , getA, getAC
+  , getD, getDC
   
   , enable
   , hashupdate
@@ -96,6 +96,10 @@ getA arg _ = -- Add new stuff to sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
+getAC :: Options -> IO Options
+getAC o = do cdir <- getCurrentDirectory
+             getA cdir o
+
 getD :: String -> Options -> IO Options
 getD arg _ = -- Remove stuff from sync
   withConfig $ \ymlx ->
@@ -109,6 +113,10 @@ getD arg _ = -- Remove stuff from sync
             Nothing  -> putStrLn $ arg ++ " repo not found"
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
+
+getDC :: Options -> IO Options
+getDC o = do cdir <- getCurrentDirectory
+             getD cdir o
 
 enable :: Bool -> String -> Options -> IO Options
 enable en arg _ =

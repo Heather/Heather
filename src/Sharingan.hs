@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.2.4"
+version = "0.2.5"
 
 main :: IO ()
 main = do args <- getArgs
@@ -76,8 +76,10 @@ gOptions = [
     Option []    ["defaults"](NoArg defaultsConfig) "Edit .sharinganDefaults.yml config file",
     
     Option ['l'] ["list"]    (OptArg list "STRING") "List repositories",
+    Option ['c'] ["add-curr"](NoArg getAC) "Add current repository",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository / repositories",
+    Option [] ["delete-curr"](NoArg getDC) "Delete current repository",
     
     Option []    ["enable"]  (ReqArg (enable True) "STRING") "Enable repository / repositories",
     Option []    ["disable"] (ReqArg (enable False) "STRING") "Disable repository / repositories",
