@@ -1,14 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Yaml
-  ( Repository(..)
-  , Sharingan(..)
-  , Defaults(..)
-  , FromJSON
+  ( FromJSON
   , ToJSON
   , yDecode
   , yEncode
   ) where
+
+import Model
 
 import Data.Yaml
 import Data.Maybe (fromJust)
@@ -17,29 +16,10 @@ import Control.Applicative
 
 import qualified Data.ByteString.Char8 as BS
 
-data Sharingan = Sharingan { language        :: Maybe String
-                           , env             :: Maybe [String]
-                           , before_install  :: Maybe [String]
-                           , install         :: Maybe [String]
-                           , script          :: [String]
-                           } deriving (Show)
-
-data Repository = Repository { location      :: String
-                             , branches      :: [String]
-                             , upstream      :: String
-                             , enabled       :: Maybe Bool
-                             , clean         :: Maybe Bool
-                             , postRebuild  :: Maybe [String]
-                             , syncGroup     :: Maybe String
-                             , hash          :: Maybe String
-                             } deriving (Show, Eq)
-
-data Defaults = Defaults { quick :: Maybe Bool
-                         }
-
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
                            v .:  "location" <*>
+                           v .:  "task"     <*>
                            v .:  "branches" <*>
                            v .:  "upstream" <*>
                            v .:? "enabled"  <*>
@@ -51,13 +31,14 @@ instance FromJSON Repository where
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON Repository where
-   toJSON (Repository loca br up enb cln pr gr
+   toJSON (Repository loca tsk br up enb cln pr gr
                       hs) = object [ "location"     .= loca
+                                   , "task"         .= tsk
                                    , "branches"     .= br
                                    , "upstream"     .= up
                                    , "enabled"      .= enb
                                    , "clean"        .= cln
-                                   , "postRebuild" .= pr
+                                   , "postRebuild"  .= pr
                                    , "group"        .= gr
                                    , "hash"         .= hs]
 

@@ -20,8 +20,8 @@ module Config
   , hashupdate
   ) where
 
-import Yaml
 import Model
+import Yaml
 
 import System.Directory
 import System.IO
@@ -81,12 +81,17 @@ defaultsConfig _ = do
         exec $ editor ++ " " ++ ymlx
     exitWith ExitSuccess
 
+{- TODO : Calc hash right here
+readProcess "git" ["log", "-n", "1"
+                  , "--pretty=format:%H"
+                  ] []
+-}
 getA :: String -> Options -> IO Options
 getA arg _ = -- Add new stuff to sync
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
-        let new = (Repository arg 
+        let new = (Repository arg "rebase" -- rebase as default task
                               ["master"] "upstream master"
                               Nothing Nothing Nothing Nothing Nothing)
         if (elem new rsdata)

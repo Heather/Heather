@@ -1,9 +1,10 @@
 module SharinganProcess
-  ( sharingan,
-    gentooSync,
-    rebasefork
+  ( sharingan
+  , gentooSync
+  , amaterasu
   ) where
 
+import Model
 import Yaml
 import Shell
 

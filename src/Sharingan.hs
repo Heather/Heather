@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.2.5"
+version = "0.2.6"
 
 main :: IO ()
 main = do args <- getArgs
@@ -203,6 +203,7 @@ go fast nonops unsafe intera force syn synGroup _ =
                                             Nothing -> isenabled
                                         )
                 $ let up  = splitOn " " $ upstream repo
+                      tsk = task repo
                       br  = branches repo
                       ps  = postRebuild repo
                       hs  = hash repo
@@ -213,9 +214,9 @@ go fast nonops unsafe intera force syn synGroup _ =
                                 Just qc -> not qc
                                 Nothing -> True
                       u b = do printf " - %s : %s\n" loc b
-                               rebasefork loc b up unsafe cln hs $ if (length up) > 1
-                                                                     then up !! 1 `elem` br
-                                                                     else False
+                               amaterasu loc tsk b up unsafe cln hs $ if (length up) > 1
+                                                                       then up !! 1 `elem` br
+                                                                       else False
                       eye (_, r) = when ((r || force) && (not fast) && noq)
                                     $ do let shx = loc </> ".sharingan.yml"
                                          doesFileExist shx >>= sharingan intera shx loc

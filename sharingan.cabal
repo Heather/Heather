@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.2.5
+version:       0.2.6
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Cynede@Gentoo.org>
@@ -11,7 +11,7 @@ Executable    sharingan
   Main-Is:    Sharingan.hs
   Hs-Source-Dirs: src
   Build-Depends:
-    base >= 4.3 && < 5
+    base >= 4.3 && < 666
     , yaml
     , executable-path
     , zip-archive
