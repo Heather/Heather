@@ -214,7 +214,7 @@ go fast nonops unsafe intera force syn synGroup _ =
                                 Just qc -> not qc
                                 Nothing -> True
                       u b = do printf " - %s : %s\n" loc b
-                               amaterasu loc tsk b up unsafe cln hs $ if (length up) > 1
+                               amaterasu tsk loc b up unsafe cln hs $ if (length up) > 1
                                                                        then up !! 1 `elem` br
                                                                        else False
                       eye (_, r) = when ((r || force) && (not fast) && noq)

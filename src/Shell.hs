@@ -31,9 +31,9 @@ setEnv env = exec $ if | os `elem` ["win32", "mingw32"] -> "set " ++ env
                        | otherwise -> "export " ++ env
 
 amaterasu :: String -> String -> String -> [String] -> Bool -> Bool -> Maybe String -> Bool -> IO (Bool, Bool)
-amaterasu path "rebase" b up us pc rhash sync = rebasefork path b up us pc rhash sync
-amaterasu path "pull" b up us pc rhash sync = pull path b up us pc rhash sync
-amaterasu path custom _ _ unsafe processClean _ _ = do
+amaterasu "rebase"  = rebasefork
+amaterasu "pull"    = pull
+amaterasu custom    = \path _ _ unsafe processClean _ _ -> do
     doesDirectoryExist <| path </> ".git" >>= \git ->
         when git $ do
             when processClean $ exec "git clean -xdf"
