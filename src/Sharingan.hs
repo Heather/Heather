@@ -30,7 +30,7 @@ import Data.List
 import Data.List.Split
 
 version :: String
-version = "0.2.6"
+version = "0.2.7"
 
 main :: IO ()
 main = do args <- getArgs
