@@ -143,8 +143,7 @@ rebasefork path branch up unsafe processClean rhash sync =
                                             putStrLn $ "Local: "  ++ locloc
                                             whe (remloc /= locloc) $ "git pull origin " ++ branch
                                             whe (remloc /= remote) 
-                                                  $ " git fetch "                  ++ upstream
-                                                 ++ " & git pull --rebase "       ++ upstream
+                                                  $ " & git pull --rebase "       ++ upstream
                                                  ++ " & git push --force origin " ++ branch
                                             hashupdate remote path
                                             return (True, True)
