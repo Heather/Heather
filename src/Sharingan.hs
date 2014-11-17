@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, LambdaCase, OverloadedStrings #-}
+﻿{-# LANGUAGE MultiWayIf, LambdaCase, OverloadedStrings, Arrows, CPP #-}
 
 import Despair
 
@@ -14,7 +14,6 @@ import System.Environment( getArgs )
 import System.Info (os)
 import System.Directory
 import System.Exit
-import System.Console.GetOpt
 import System.IO
 
 import Control.Monad
@@ -29,53 +28,104 @@ import Data.Maybe
 import Data.List
 import Data.List.Split
 
-version :: String
-version = "0.2.7"
+import Paths_Sharingan (version)
+import Data.Version (showVersion)
+
+import Options.Applicative
+import Options.Applicative.Arrows
+#if __GLASGOW_HASKELL__ <= 702
+import Data.Monoid
+(<>) :: Monoid a => a -> a -> a
+(<>) = mappend
+#endif
+
+data Args = Args CommonOpts Command deriving Show
+  
+data CommonOpts = CommonOpts
+    { optVerbosity :: Int 
+    }
+    deriving Show
+  
+data Command
+    = Sync
+    | MakeSharingan
+    | Config
+    | DefaultsConf
+    | List
+    | Depot
+    | Gentoo
+    deriving Show
+
+_version :: Parser (a -> a)
+_version = infoOption ("Sharingan " ++ (showVersion version) ++ " " ++ os)
+  (  long "version" <> help "Print version information" )
+
+parser :: Parser Args
+parser = runA $ proc () -> do
+  opts <- asA commonOpts -< ()
+  cmds <- (asA . hsubparser)
+            ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
+           <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
+           <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
+           <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
+           <> command "list"        (info (pure List)           (progDesc "List repositories"))
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+           <> command "depot"       (info (pure Depot)          (progDesc "Get Google depot tools with git and python"))
+#else
+           <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
+#endif
+            ) -< ()
+  A _version >>> A helper -< Args opts cmds
+
+commonOpts :: Parser CommonOpts
+commonOpts = CommonOpts
+  <$> option auto
+      ( short 'v'
+         <> long "verbose"
+         <> metavar "LEVEL"
+         <> help "Set verbosity to LEVEL"
+         <> value 0 )
+
+syncParser :: Parser Command
+syncParser = pure Sync
+
+run :: Args -> IO ()
+run (Args _ MakeSharingan)  = mkSharingan
+run (Args _ Config)         = config
+run (Args _ DefaultsConf)   = defaultsConfig
+run (Args _ List)           = list Nothing      -- TODO: args
+run (Args opts Sync)        = sync opts         -- TODO: args
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+run (Args _ getDepot)       = depot_tools
+#else
+run (Args opts Gentoo)      = genSync Nothing   -- TODO: args
+#endif
 
 main :: IO ()
-main = do args <- getArgs
-          let ( actions, nonops, _ ) = getOpt RequireOrder options args
-          Options { optSync = sync, optSyncGroup = syncGroup
-                  , optForce = f,   optFast = start
-                  , optJobs = jobs, optUnsafe = unsafe
-                  , optG    = g,    optInteractive = i 
-                  } <- foldl (>>=) (return defaultOptions) actions
-          user      <- getAppUserDataDirectory "sharingan.lock"
-          locked    <- doesFileExist user
-          let gogo = if g then genSync jobs
-                          else start nonops unsafe i f sync syncGroup jobs
-              run = withFile user WriteMode (do_program gogo)
-                       `finally` removeFile user
-          if locked then do
-                        putStrLn "There is already one instance of this program running."
-                        putStrLn "Remove lock and start application? (Y/N)"
-                        hFlush stdout
-                        str <- getLine
-                        if str `elem` ["Y", "y"] then run
-                                                 else return ()
+main = execParser opts >>= run
+  where opts = info parser
+          ( fullDesc <> progDesc ""
+                     <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
+
+sync :: CommonOpts -> IO ()
+sync o = do user <- getAppUserDataDirectory "sharingan.lock"
+            lock <- doesFileExist user
+            let gogo = go False [] False False False Nothing Nothing
+                run = withFile user WriteMode (do_program gogo)
+                         `finally` removeFile user
+            if lock then do putStrLn "There is already one instance of this program running."
+                            putStrLn "Remove lock and start application? (Y/N)"
+                            hFlush stdout
+                            str <- getLine
+                            if str `elem` ["Y", "y"] then run
+                                                     else return ()
                     else run
+  where do_program :: IO() -> Handle -> IO()
+        do_program gogo _ = gogo
 
-defaultOptions :: Options
-defaultOptions = Options 
-    { optJobs = Nothing,        optG = False
-    , optInteractive = False,   optSync = Nothing
-    , optSyncGroup = Nothing,   optForce = False
-    , optUnsafe = False,        optFast = go False
-    }
-
-do_program :: IO() -> Handle -> IO()
-do_program gogo _ = gogo
-
+{- TODO: add options
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
-    Option ['v'] ["version"] (NoArg showV) "Display Version",
-    Option ['h'] ["help"]    (NoArg showHelp) "Display Help",
-    
-    Option []    ["make"]    (NoArg mkSharingan) "Create .sharingan.yml template",
-    Option []    ["config"]  (NoArg config) "Edit .sharingan.yml config file",
-    Option []    ["defaults"](NoArg defaultsConfig) "Edit .sharinganDefaults.yml config file",
-    
-    Option ['l'] ["list"]    (OptArg list "STRING") "List repositories",
     Option ['c'] ["add-curr"](NoArg getAC) "Add current repository",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository / repositories",
@@ -94,58 +144,15 @@ gOptions = [
     
     Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
   ]
-  
-winOptions :: [OptDescr (Options -> IO Options)]
-winOptions = [
-    Option ['D'] ["depot"]   (NoArg getDepot) "Get Google depot tools with git and python"
-  ]
-  
-nixOptions :: [OptDescr (Options -> IO Options)]
-nixOptions = [
-    Option ['G'] ["Gentoo"]  (NoArg genS) "Synchronize cvs portagee tree Gentoo x86"
-  ]
-  
-options :: [OptDescr (Options -> IO Options)]
-options = gOptions ++ if | os `elem` ["win32", "mingw32", "cygwin32"] -> winOptions
-                         | otherwise -> nixOptions
+-}
 
+#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 genSync    ::   Maybe String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
+#endif
 
-getDepot        ::   Options -> IO Options
-mkSharingan     ::   Options -> IO Options
-showV           ::   Options -> IO Options
-showHelp        ::   Options -> IO Options
-genS            ::   Options -> IO Options
-interactive     ::   Options -> IO Options
-fastReinstall   ::   Options -> IO Options
-forceReinstall  ::   Options -> IO Options
-runUnsafe       ::   Options -> IO Options
-
-printver  :: IO ()
-printver   = putStrLn $ "Sharingan " ++ version ++ " " ++ (show os)
-showV _    = printver >> exitWith ExitSuccess
-showHelp _ = do printver
-                putStrLn $ usageInfo "Usage: sharingan [optional things]" options
-                exitWith ExitSuccess
-getDepot _ = do depot_tools
-                exitWith ExitSuccess
-
-list            ::   Maybe String -> Options -> IO Options
-getJ            ::   String -> Options -> IO Options
-gets            ::   String -> Options -> IO Options
-getg            ::   String -> Options -> IO Options
-
-genS opt            = return opt { optG = True }
-interactive opt     = return opt { optInteractive = True }
-getJ arg opt        = return opt { optJobs = Just arg }
-gets arg opt        = return opt { optSync = Just arg }
-getg arg opt        = return opt { optSyncGroup = Just arg }
-forceReinstall opt  = return opt { optForce = True }
-runUnsafe opt       = return opt { optUnsafe = True }
-fastReinstall opt   = return opt { optFast  = go True }
-
-list arg _ =
+list :: Maybe String -> IO()
+list arg =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
          rsdata <- yDecode ymlx :: IO [Repository]
@@ -169,7 +176,8 @@ list arg _ =
     in doesFileExist ymlx >>= ymlprocess 
                           >>  exitWith ExitSuccess
 
-mkSharingan _ = -- Create .sharingan.yml template
+mkSharingan :: IO ()
+mkSharingan = -- Create .sharingan.yml template
   let langM = Just "haskell"
       envM  = Just []
       biM   = Just []
@@ -177,8 +185,8 @@ mkSharingan _ = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
-go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
-go fast nonops unsafe intera force syn synGroup _ =
+go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
+go fast nonops unsafe intera force syn synGroup =
   withDefaultsConfig $ \defx ->
    withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do

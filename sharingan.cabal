@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.2.7
+version:       0.2.8
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Cynede@Gentoo.org>
@@ -23,3 +23,4 @@ Executable    sharingan
     , split
     , despair
     , async
+    , optparse-applicative

@@ -27,7 +27,6 @@ import System.Directory
 import System.IO
 import System.Info (os)
 import System.Environment.Executable ( getExecutablePath )
-import System.Console.GetOpt
 import System.Exit
 import System.FilePath(takeDirectory, (</>))
 import System.Environment( getEnv )
@@ -67,27 +66,25 @@ processDefaultsChecks cfg =
 withConfig foo = liftM2 (>>) processChecks foo =<< getConfig
 withDefaultsConfig foo = liftM2 (>>) processDefaultsChecks foo =<< getDefaultsConfig
 
-config :: Options -> IO Options
-config _ = do
-    editor <- getEnv "EDITOR"
-    withConfig $ \ymlx ->
-        exec $ editor ++ " " ++ ymlx
-    exitWith ExitSuccess
+config :: IO()
+config = do editor <- getEnv "EDITOR"
+            withConfig $ \ymlx ->
+                exec $ editor ++ " " ++ ymlx
+            exitWith ExitSuccess
 
-defaultsConfig :: Options -> IO Options
-defaultsConfig _ = do
-    editor <- getEnv "EDITOR"
-    withDefaultsConfig $ \ymlx ->
-        exec $ editor ++ " " ++ ymlx
-    exitWith ExitSuccess
+defaultsConfig :: IO ()
+defaultsConfig = do editor <- getEnv "EDITOR"
+                    withDefaultsConfig $ \ymlx ->
+                        exec $ editor ++ " " ++ ymlx
+                    exitWith ExitSuccess
 
 {- TODO : Calc hash right here
 readProcess "git" ["log", "-n", "1"
                   , "--pretty=format:%H"
                   ] []
 -}
-getA :: String -> Options -> IO Options
-getA arg _ = -- Add new stuff to sync
+getA :: String -> IO ()
+getA arg = -- Add new stuff to sync
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]
@@ -101,12 +98,11 @@ getA arg _ = -- Add new stuff to sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-getAC :: Options -> IO Options
-getAC o = do cdir <- getCurrentDirectory
-             getA cdir o
+getAC :: IO ()
+getAC = getCurrentDirectory >>= getA
 
-getD :: String -> Options -> IO Options
-getD arg _ = -- Remove stuff from sync
+getD :: String -> IO ()
+getD arg = -- Remove stuff from sync
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata  <- yDecode ymlx :: IO [Repository]
@@ -119,12 +115,11 @@ getD arg _ = -- Remove stuff from sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-getDC :: Options -> IO Options
-getDC o = do cdir <- getCurrentDirectory
-             getD cdir o
+getDC :: IO ()
+getDC = getCurrentDirectory >>= getD
 
-enable :: Bool -> String -> Options -> IO Options
-enable en arg _ =
+enable :: Bool -> String -> IO ()
+enable en arg =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
         rsdata <- yDecode ymlx :: IO [Repository]

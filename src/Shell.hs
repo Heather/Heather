@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, LambdaCase #-}
+{-# LANGUAGE MultiWayIf, LambdaCase, CPP #-}
 
 module Shell
   ( amaterasu
@@ -165,6 +165,7 @@ rebasefork path branch up unsafe processClean rhash sync =
 
 gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
+#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
     j <-  case jobs of
             Just jj -> return jj
             Nothing -> if | os `elem` ["win32", "mingw32"] -> return "2"
@@ -173,3 +174,6 @@ gentooSync path jobs = do
     asyncReactive (exc path $ " cvs update "
                     ++ " & egencache --update --repo=gentoo --portdir=" ++ path
                     ++ " --jobs=" ++ j)
+#else
+    return ()
+#endif

@@ -2,7 +2,6 @@ module Model
   ( Repository(..)
   , Sharingan(..)
   , Defaults(..)  
-  , Options(..)
   ) where
 
 data Sharingan = Sharingan { language        :: Maybe String
@@ -25,11 +24,3 @@ data Repository = Repository { location      :: String
 
 data Defaults = Defaults { quick :: Maybe Bool
                          }
-
-data Options = Options 
-    { optJobs :: Maybe String,      optSync :: Maybe String
-    , optSyncGroup :: Maybe String, optInteractive :: Bool
-    , optG :: Bool,                 optForce :: Bool
-    , optUnsafe :: Bool
-    , optFast :: [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> Maybe String -> IO()
-    }
