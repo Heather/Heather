@@ -10,7 +10,6 @@ import SharinganProcess
 
 import Text.Printf
 
-import System.Environment( getArgs )
 import System.Info (os)
 import System.Directory
 import System.Exit
