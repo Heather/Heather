@@ -44,9 +44,15 @@ data CommonOpts = CommonOpts
     { optVerbosity :: Int 
     }
     deriving Show
-  
+    
+data SyncOpts = SyncOpts
+    { syncForce :: Bool
+    , syncFilter :: Maybe String
+    }
+    deriving Show
+
 data Command
-    = Sync
+    = Sync SyncOpts
     | MakeSharingan
     | Config
     | DefaultsConf
@@ -82,22 +88,31 @@ parser = runA $ proc () -> do
 
 commonOpts :: Parser CommonOpts
 commonOpts = CommonOpts
-  <$> option auto
-      ( short 'v'
-         <> long "verbose"
-         <> metavar "LEVEL"
-         <> help "Set verbosity to LEVEL"
-         <> value 0 )
+  <$> option auto ( short 'v' <> long "verbose"
+                              <> metavar "LEVEL"
+                              <> help "Set verbosity to LEVEL"
+                              <> value 0 )
 
 syncParser :: Parser Command
-syncParser = pure Sync
+syncParser = runA $ proc () -> do
+    syncO   <- asA syncOpts -< ()
+    returnA -< Sync syncO
+
+syncOpts :: Parser SyncOpts
+syncOpts = runA $ proc () -> do
+  force   <- asA (switch (short 'f' <> long "force")) -< ()
+  -- filter  <- asA (argument str (metavar "TARGET...")) -< ()
+  -- filter  <- (asA . strOption) ( long "filter" ) -< ()
+  returnA -< SyncOpts { syncForce = force
+                      , syncFilter = Nothing
+                      }
 
 run :: Args -> IO ()
 run (Args _ MakeSharingan)  = mkSharingan
 run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ List)           = list Nothing      -- TODO: args
-run (Args opts Sync)        = sync opts         -- TODO: args
+run (Args opts (Sync so))   = sync opts so      -- TODO: args
 run (Args _ Add)            = getAC
 run (Args _ Delete)         = getDC
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
@@ -112,19 +127,21 @@ main = execParser opts >>= run
           ( fullDesc <> progDesc ""
                      <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
 
-sync :: CommonOpts -> IO ()
-sync o = do user <- getAppUserDataDirectory "sharingan.lock"
-            lock <- doesFileExist user
-            let gogo = go False [] False False False Nothing Nothing
-                run = withFile user WriteMode (do_program gogo)
-                         `finally` removeFile user
-            if lock then do putStrLn "There is already one instance of this program running."
-                            putStrLn "Remove lock and start application? (Y/N)"
-                            hFlush stdout
-                            str <- getLine
-                            if str `elem` ["Y", "y"] then run
-                                                     else return ()
-                    else run
+sync :: CommonOpts -> SyncOpts -> IO ()
+sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
+               lock <- doesFileExist user
+               let force    = syncForce so
+                   filter   = syncFilter so
+                   gogo     = go False [] False False force filter Nothing
+                   run      = withFile user WriteMode (do_program gogo)
+                                `finally` removeFile user
+               if lock then do putStrLn "There is already one instance of this program running."
+                               putStrLn "Remove lock and start application? (Y/N)"
+                               hFlush stdout
+                               str <- getLine
+                               if str `elem` ["Y", "y"] then run
+                                                        else return ()
+                       else run
   where do_program :: IO() -> Handle -> IO()
         do_program gogo _ = gogo
 
