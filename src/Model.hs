@@ -45,7 +45,7 @@ data SyncOpts = SyncOpts
     , syncUnsafe :: Bool
     , syncQuick :: Bool
     , syncInteractive :: Bool
-    , syncFilter :: [String]
+    , syncFilter :: Maybe String
     , syncGroups :: [String]
     } deriving Show
 

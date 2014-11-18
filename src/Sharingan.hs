@@ -95,8 +95,8 @@ syncOpts = runA $ proc () -> do
     unsafe  <- asA (switch (short 'u' <> long "unsafe"))        -< ()
     quick   <- asA (switch (short 'q' <> long "quick"))         -< ()
     intera  <- asA (switch (short 'i' <> long "interactive"))   -< ()
-    filter  <- asA (many (argument str (metavar "TARGET...")))  -< ()
-    groups  <- asA (many (argument str (metavar "GROUP...")))   -< ()
+    filter  <- asA (optional (argument str (metavar "FILTER")))  -< ()
+    groups  <- asA (many (option str (short 'g'  <> long "group" <> metavar "GROUPS"))) -< ()
     returnA -< SyncOpts { syncForce  = force
                         , syncUnsafe = unsafe
                         , syncQuick  = quick
@@ -193,12 +193,12 @@ synchronize o so =
             let loc = location repo
                 isenabled = fromMaybe True (enabled repo)
             in when (case syncFilter so of
-                            []  -> case syncGroups so of
+                            Nothing  -> case syncGroups so of
                                             [] -> isenabled
                                             gx  -> case syncGroup repo of 
                                                         Just gg -> isenabled && (gg `elem` gx)
                                                         Nothing -> False
-                            snc -> isInfixOf (snc !! 0) loc)
+                            Just snc -> isInfixOf snc loc)
                 $ let ups = splitOn " " $ upstream repo
                       cln = fromMaybe False (clean repo)
                       noq = case (quick dfdata) of
