@@ -166,10 +166,8 @@ rebasefork path branch up unsafe processClean rhash sync =
 gentooSync :: String -> Maybe String -> IO()
 gentooSync path jobs = do
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-    j <-  case jobs of
-            Just jj -> return jj
-            Nothing -> if | os `elem` ["win32", "mingw32"] -> return "2"
-                          | otherwise -> readProcess "nproc" [] []
+    j <- if jobs == 0 then readProcess "nproc" [] []
+                      else return $ show jobs
     putStrLn "updating..."
     asyncReactive (exc path $ " cvs update "
                     ++ " & egencache --update --repo=gentoo --portdir=" ++ path

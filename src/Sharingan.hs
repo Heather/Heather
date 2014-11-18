@@ -48,6 +48,9 @@ data CommonOpts = CommonOpts
     
 data SyncOpts = SyncOpts
     { syncForce :: Bool
+    , syncUnsafe :: Bool
+    , syncQuick :: Bool
+    , syncInteractive :: Bool
     , syncFilter :: [String]
     , syncGroups :: [String]
     }
@@ -99,7 +102,7 @@ commonOpts = runA $ proc () -> do
     j <- asA ( option auto ( short 'j'  <> long "jobs"
                                         <> metavar "JOBS"
                                         <> help "Maximum parallel jobs"
-                                        <> value 2 )) -< ()
+                                        <> value 0 )) -< ()
     returnA -< CommonOpts v j
 
 listParser :: Parser Command
@@ -118,12 +121,18 @@ syncParser = runA $ proc () -> do
 
 syncOpts :: Parser SyncOpts
 syncOpts = runA $ proc () -> do
-    force   <- asA (switch (short 'f' <> long "force")) -< ()
-    filter  <- asA (many (argument str (metavar "TARGET..."))) -< ()
-    groups  <- asA (many (argument str (metavar "GROUP..."))) -< ()
-    returnA -< SyncOpts { syncForce = force
+    force   <- asA (switch (short 'f' <> long "force"))         -< ()
+    unsafe  <- asA (switch (short 'u' <> long "unsafe"))        -< ()
+    quick   <- asA (switch (short 'q' <> long "quick"))         -< ()
+    intera  <- asA (switch (short 'i' <> long "interactive"))   -< ()
+    filter  <- asA (many (argument str (metavar "TARGET...")))  -< ()
+    groups  <- asA (many (argument str (metavar "GROUP...")))   -< ()
+    returnA -< SyncOpts { syncForce  = force
+                        , syncUnsafe = unsafe
+                        , syncQuick  = quick
                         , syncFilter = filter
                         , syncGroups = groups
+                        , syncInteractive = intera
                         }
 
 run :: Args -> IO ()
@@ -139,7 +148,7 @@ run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ getDepot)       = depot_tools
 #else
-run (Args opts Gentoo)      = genSync Nothing -- TODO: args
+run (Args opts Gentoo)      = genSync opts
 #endif
 
 main :: IO ()
@@ -152,9 +161,12 @@ sync :: CommonOpts -> SyncOpts -> IO ()
 sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
                lock <- doesFileExist user
                let force    = syncForce so
+                   quick    = syncQuick so
+                   unsafe   = syncUnsafe so
                    filter   = syncFilter so
                    groups   = syncGroups so
-                   gogo     = go False False False force filter groups
+                   intera   = syncInteractive so
+                   gogo     = go quick unsafe intera force filter groups
                    run      = withFile user WriteMode (do_program gogo)
                                 `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
@@ -167,20 +179,11 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
   where do_program :: IO() -> Handle -> IO()
         do_program gogo _ = gogo
 
-{- TODO: add options
-gOptions :: [OptDescr (Options -> IO Options)]
-gOptions = [
-    Option ['g'] ["group"]   (ReqArg getg "STRING") "sync some repository group",
-    Option ['u'] ["unsafe"]  (NoArg runUnsafe) "do not process reset before sync",
-    Option ['q'] ["quick"]   (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
-    Option ['f'] ["force"]   (NoArg forceReinstall) "force process .sharingan.yml files",
-    Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
-  ]
--}
-
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-genSync    ::   Maybe String -> IO()
-genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
+genSync :: CommonOpts -> IO()
+genSync o = let jobs = CommonOpts optJobs
+            in gentooSync "/home/gentoo-x86" jobs
+                    >> exitWith ExitSuccess
 #endif
 
 list :: [String] -> IO()
