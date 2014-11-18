@@ -4,41 +4,47 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
 ```haskell
-go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
-go fast nonops unsafe intera force syn _ =
-  withConfig $ \ymlx ->                           
+synchronize :: CommonOpts -> SyncOpts -> IO()
+synchronize o so =
+  withDefaultsConfig $ \defx ->
+   withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
+        dfdata <- yDecode defx :: IO Defaults
         forM_ rsdata $ \repo ->
             let loc = location repo
-                sync = case syn of
-                            Nothing -> if (length nonops) > 0 then Just $ nonops !! 0
-                                                              else Nothing
-                            Just _  -> syn
-            in when (case sync of
-                            Just snc -> isInfixOf snc loc
-                            Nothing  -> case (enabled repo) of
-                                                Just er -> er
-                                                Nothing -> True)
-                $ let up  = splitOn " " $ upstream repo
-                      br  = branches repo
-                      ps  = post_rebuild repo
+                isenabled = fromMaybe True (enabled repo)
+            in when (case syncFilter so of
+                            Nothing  -> case syncGroups so of
+                                            [] -> isenabled
+                                            gx  -> case syncGroup repo of 
+                                                        Just gg -> isenabled && (gg `elem` gx)
+                                                        Nothing -> False
+                            Just snc -> isInfixOf snc loc)
+                $ let ups = splitOn " " $ upstream repo
+                      cln = fromMaybe False (clean repo)
+                      noq = case (quick dfdata) of
+                                Just qc -> not qc
+                                Nothing -> True
                       u b = do printf " - %s : %s\n" loc b
-                               rebasefork loc b up unsafe $ if (length up) > 1
-                                                                then up !! 1 `elem` br
-                                                                else False
-                      eye r = when ((r || force) && (not fast))
-                                $ do let shx = loc </> ".sharingan.yml"
-                                     doesFileExist shx >>= sharingan intera shx loc
-                                     when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
-                                                            let pshx = psc </> ".sharingan.yml"
-                                                            in doesFileExist pshx
-                                                                >>= sharingan intera pshx psc
-                  in do forM_ (tails br)
-                         $ \case x:[] -> u x >>= eye
+                               amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
+                                                $ if (length ups) > 1 then ups !! 1 `elem` (branches repo)
+                                                                      else False
+                      eye (_, r) = when ((r || syncForce so) && (not $ syncQuick so) && noq)
+                                    $ do let shx = loc </> ".sharingan.yml"
+                                             ps  = postRebuild repo
+                                         doesFileExist shx >>= sharingan (syncInteractive so) shx loc
+                                         when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                                let pshx = psc </> ".sharingan.yml"
+                                                                in doesFileExist pshx
+                                                                    >>= sharingan (syncInteractive so) pshx psc
+                  in do forM_ (tails (branches repo))
+                         $ \case x:[] -> u x >>= eye -- Tail
                                  x:xs -> u x >>= (\_ -> return ())
                                  []   -> return ()
                         putStrLn <| replicate 89 '_'
+
+    in doesFileExist ymlx >>= ymlprocess
 ```
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
@@ -53,29 +59,33 @@ script:
 config example (`sharingan.yml`):
 
 ```yaml
-- post_rebuild: null
+- task: rebase
+  group: null
+  branches:
+  - master
+  hash: null
+  location: D:\Heather\Contrib\P\optparse-applicative
+  enabled: null
+  clean: null
+  upstream: upstream master
+  postRebuild: null
+- task: rebase
+  group: null
   branches:
   - master
   - heather
-  location: D:\Heather\Contrib\P\rust
+  hash: 996acbdcf923f98b5623a79464ec80c2491cca53
+  location: D:\TFS\winforms-modernui
+  enabled: null
+  clean: null
   upstream: upstream master
-- post_rebuild: null
-  branches:
-  - master
-  location: D:\Heather\clay
-  upstream: upstream master
-- post_rebuild: null
-  branches:
-  - master
-  - heather
-  location: D:\Heather\FSharpPlus
-  upstream: upstream master
+  postRebuild: null
 ```
 
 usage example :
 
 ``` shell
-D:\Heather\Contrib\P\H>sharingan -s coreu
+D:\Heather\Contrib\P\H>sharingan sync coreu
  __________________________________________________________________________________________
 D:\Heather\Contrib\P\coreutils <> master
 Already on 'master'
@@ -108,23 +118,26 @@ sh -c 'D:\\Heather\\Contrib\\P\\rust\\i686-pc-mingw32\\stage2\\bin\\rustc.exe --
 ```
 
 ```shell
->sharingan --help
-Sharingan 0.0.8 "mingw32"
-Usage: sharingan [optional things]
-  -v          --version         Display Version
-  -h          --help            Display Help
-              --make            Create .sharingan.yml template
-              --config          Edit .sharingan.yml config file
-  -l[STRING]  --list[=STRING]   List repositories
-  -a STRING   --add=STRING      Add repository
-  -d STRING   --delete=STRING   Delete repository / repositories
-              --enable=STRING   Enable repository / repositories
-              --disable=STRING  Disable repository / repositories
-  -j STRING   --jobs=STRING     Maximum parallel jobs
-  -s STRING   --sync=STRING     sync single repository
-  -u          --unsafe          do not process reset before sync
-  -q          --quick           quick sync, don't process .sharingan.yml files
-  -f          --force           force process .sharingan.yml files
-  -i          --interactive     trying guess what to do for each repository
-  -D          --depot           Get Google depot tools with git and python
+D:\Heather\Contrib\P\H>sharingan --help
+Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]
+
+Usage: sharingan [-v|--verbose] [-j|--jobs JOBS] COMMAND [--version]
+
+Available options:
+  -v,--verbose             Set verbosity to LEVEL
+  -j,--jobs JOBS           Maximum parallel jobs
+  --version                Print version information
+  -h,--help                Show this help text
+
+Available commands:
+  sync                     Process synchronization
+  make                     Create .sharingan.yml template
+  config                   Edit .sharingan.yml config file
+  defaults                 Edit .sharinganDefaults.yml config file
+  list                     List repositories
+  add                      Add repository (current path w/o args)
+  delete                   Delete repository (current path w/o args)
+  enable                   Enable repository / repositories
+  disable                  Disable repository / repositories
+  depot                    Get Google depot tools with git and python
 ```

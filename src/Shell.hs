@@ -163,7 +163,7 @@ rebasefork path branch up unsafe processClean rhash sync =
         in (return (False, False)) >>= (chk gitX)
                                    >>= (chk hgX)
 
-gentooSync :: String -> Maybe String -> IO()
+gentooSync :: String -> Int -> IO()
 gentooSync path jobs = do
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
     j <- if jobs == 0 then readProcess "nproc" [] []
