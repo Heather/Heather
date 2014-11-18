@@ -49,6 +49,7 @@ data CommonOpts = CommonOpts
 data SyncOpts = SyncOpts
     { syncForce :: Bool
     , syncFilter :: [String]
+    , syncGroups :: [String]
     }
     deriving Show
 
@@ -112,16 +113,18 @@ deleteParser = Delete <$> many (argument str (metavar "TARGET..."))
 
 syncParser :: Parser Command
 syncParser = runA $ proc () -> do
-    syncO   <- asA syncOpts -< ()
+    syncO <- asA syncOpts -< ()
     returnA -< Sync syncO
 
 syncOpts :: Parser SyncOpts
 syncOpts = runA $ proc () -> do
-  force   <- asA (switch (short 'f' <> long "force")) -< ()
-  filter  <- asA (many (argument str (metavar "TARGET..."))) -< ()
-  returnA -< SyncOpts { syncForce = force
-                      , syncFilter = filter
-                      }
+    force   <- asA (switch (short 'f' <> long "force")) -< ()
+    filter  <- asA (many (argument str (metavar "TARGET..."))) -< ()
+    groups  <- asA (many (argument str (metavar "GROUP..."))) -< ()
+    returnA -< SyncOpts { syncForce = force
+                        , syncFilter = filter
+                        , syncGroups = groups
+                        }
 
 run :: Args -> IO ()
 run (Args _ MakeSharingan)  = mkSharingan
@@ -150,7 +153,8 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
                lock <- doesFileExist user
                let force    = syncForce so
                    filter   = syncFilter so
-                   gogo     = go False False False force filter Nothing
+                   groups   = syncGroups so
+                   gogo     = go False False False force filter groups
                    run      = withFile user WriteMode (do_program gogo)
                                 `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
@@ -166,15 +170,10 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
 {- TODO: add options
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
-
-    Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
-    Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     Option ['g'] ["group"]   (ReqArg getg "STRING") "sync some repository group",
-    
     Option ['u'] ["unsafe"]  (NoArg runUnsafe) "do not process reset before sync",
     Option ['q'] ["quick"]   (NoArg fastReinstall) "quick sync, don't process .sharingan.yml files",
     Option ['f'] ["force"]   (NoArg forceReinstall) "force process .sharingan.yml files",
-    
     Option ['i'] ["interactive"] (NoArg interactive) "trying guess what to do for each repository"
   ]
 -}
@@ -217,8 +216,8 @@ mkSharingan = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
-go :: Bool -> Bool -> Bool -> Bool -> [String] -> Maybe String -> IO()
-go fast unsafe intera force syn synGroup =
+go :: Bool -> Bool -> Bool -> Bool -> [String] -> [String] -> IO()
+go fast unsafe intera force syn synGroups =
   withDefaultsConfig $ \defx ->
    withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
@@ -235,11 +234,10 @@ go fast unsafe intera force syn synGroup =
                                 Nothing -> True
             in when (case sync of
                             Just snc -> isInfixOf snc loc
-                            Nothing  -> case synGroup of
-                                            Just sg -> case gr of
-                                                        Just gg -> isenabled && gg == sg
-                                                        Nothing -> False
-                                            Nothing -> isenabled
+                            Nothing  -> case synGroups of
+                                            [] -> isenabled
+                                            _  -> case gr of Just gg -> isenabled && (gg `elem` synGroups)
+                                                             Nothing -> False
                                         )
                 $ let up  = splitOn " " $ upstream repo
                       tsk = task repo
