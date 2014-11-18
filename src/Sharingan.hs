@@ -56,7 +56,7 @@ data Command
     | MakeSharingan
     | Config
     | DefaultsConf
-    | List
+    | List [String]
     | Add [String]
     | Delete [String]
     | Depot
@@ -75,7 +75,7 @@ parser = runA $ proc () -> do
            <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
            <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
            <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
-           <> command "list"        (info (pure List)           (progDesc "List repositories"))
+           <> command "list"        (info (listParser)          (progDesc "List repositories"))
            <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
            <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
@@ -92,6 +92,9 @@ commonOpts = CommonOpts
                               <> metavar "LEVEL"
                               <> help "Set verbosity to LEVEL"
                               <> value 0 )
+
+listParser :: Parser Command
+listParser = List <$> many (argument str (metavar "TARGET..."))
 
 addParser :: Parser Command
 addParser = Add <$> many (argument str (metavar "TARGET..."))
@@ -116,14 +119,14 @@ run :: Args -> IO ()
 run (Args _ MakeSharingan)  = mkSharingan
 run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
-run (Args _ List)           = list Nothing      -- TODO: args
-run (Args opts (Sync so))   = sync opts so      -- TODO: args
-run (Args _ (Add    xs))     = getAC xs
-run (Args _ (Delete xs))     = getDC xs
+run (Args _ (List   xs))    = list xs
+run (Args _ (Add    xs))    = getAC xs
+run (Args _ (Delete xs))    = getDC xs
+run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ getDepot)       = depot_tools
 #else
-run (Args opts Gentoo)      = genSync Nothing   -- TODO: args
+run (Args opts Gentoo)      = genSync Nothing -- TODO: args
 #endif
 
 main :: IO ()
@@ -137,7 +140,7 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
                lock <- doesFileExist user
                let force    = syncForce so
                    filter   = syncFilter so
-                   gogo     = go False [] False False force filter Nothing
+                   gogo     = go False False False force filter Nothing
                    run      = withFile user WriteMode (do_program gogo)
                                 `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
@@ -153,9 +156,6 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
 {- TODO: add options
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
-    Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
-    Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository / repositories",
-    
     Option []    ["enable"]  (ReqArg (enable True) "STRING") "Enable repository / repositories",
     Option []    ["disable"] (ReqArg (enable False) "STRING") "Disable repository / repositories",
     
@@ -176,14 +176,13 @@ genSync    ::   Maybe String -> IO()
 genSync j  =    gentooSync "/home/gentoo-x86" j >> exitWith ExitSuccess
 #endif
 
-list :: Maybe String -> IO()
-list arg =
+list :: [String] -> IO()
+list xs =
   withConfig $ \ymlx ->
     let ymlprocess = ifSo $ do
          rsdata <- yDecode ymlx :: IO [Repository]
-         let rdd = case arg of
-                    Just s  -> filter (\r -> isInfixOf s (location r)) rsdata
-                    Nothing -> rsdata
+         let rdd = case xs of [] -> rsdata
+                              _  -> filter (\r -> isInfixOf (xs !! 0) (location r)) rsdata
              maxl = maximum $ map (\x -> length $ last $ splitOn "\\" $ location x) rdd
          forM_ rdd $ \repo ->
             let loc  = location repo
@@ -210,8 +209,8 @@ mkSharingan = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
-go :: Bool -> [String] -> Bool -> Bool -> Bool -> [String] -> Maybe String -> IO()
-go fast nonops unsafe intera force syn synGroup =
+go :: Bool -> Bool -> Bool -> Bool -> [String] -> Maybe String -> IO()
+go fast unsafe intera force syn synGroup =
   withDefaultsConfig $ \defx ->
    withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
@@ -221,8 +220,7 @@ go fast nonops unsafe intera force syn synGroup =
             let loc  = location repo
                 gr   = syncGroup repo
                 sync = case syn of -- TODO
-                            [] -> if (length nonops) > 0 then Just $ nonops !! 0
-                                                         else Nothing
+                            [] -> Nothing
                             _ -> Just $ syn !! 0
                 isenabled = case (enabled repo) of
                                 Just en -> en
