@@ -190,44 +190,33 @@ synchronize o so =
         rsdata <- yDecode ymlx :: IO [Repository]
         dfdata <- yDecode defx :: IO Defaults
         forM_ rsdata $ \repo ->
-            let loc  = location repo
-                gr   = syncGroup repo
-                sync = case syncFilter so of -- TODO
-                            [] -> Nothing
-                            fx -> Just $ fx !! 0
-                isenabled = case (enabled repo) of
-                                Just en -> en
-                                Nothing -> True
-            in when (case sync of
-                            Just snc -> isInfixOf snc loc
-                            Nothing  -> case syncGroups so of
+            let loc = location repo
+                isenabled = fromMaybe True (enabled repo)
+            in when (case syncFilter so of
+                            []  -> case syncGroups so of
                                             [] -> isenabled
-                                            gx  -> case gr of Just gg -> isenabled && (gg `elem` gx)
-                                                              Nothing -> False
-                                        )
-                $ let up  = splitOn " " $ upstream repo
-                      tsk = task repo
-                      br  = branches repo
-                      ps  = postRebuild repo
-                      hs  = hash repo
-                      cln = case (clean repo) of
-                               Just cl -> cl
-                               Nothing -> False
+                                            gx  -> case syncGroup repo of 
+                                                        Just gg -> isenabled && (gg `elem` gx)
+                                                        Nothing -> False
+                            snc -> isInfixOf (snc !! 0) loc)
+                $ let ups = splitOn " " $ upstream repo
+                      cln = fromMaybe False (clean repo)
                       noq = case (quick dfdata) of
                                 Just qc -> not qc
                                 Nothing -> True
                       u b = do printf " - %s : %s\n" loc b
-                               amaterasu tsk loc b up (syncUnsafe so) cln hs 
-                                                $ if (length up) > 1 then up !! 1 `elem` br
-                                                                     else False
+                               amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
+                                                $ if (length ups) > 1 then ups !! 1 `elem` (branches repo)
+                                                                      else False
                       eye (_, r) = when ((r || syncForce so) && (not $ syncQuick so) && noq)
                                     $ do let shx = loc </> ".sharingan.yml"
+                                             ps  = postRebuild repo
                                          doesFileExist shx >>= sharingan (syncInteractive so) shx loc
                                          when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
                                                                 let pshx = psc </> ".sharingan.yml"
                                                                 in doesFileExist pshx
                                                                     >>= sharingan (syncInteractive so) pshx psc
-                  in do forM_ (tails br)
+                  in do forM_ (tails (branches repo))
                          $ \case x:[] -> u x >>= eye -- Tail
                                  x:xs -> u x >>= (\_ -> return ())
                                  []   -> return ()
