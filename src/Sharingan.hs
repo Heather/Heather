@@ -41,7 +41,8 @@ import Data.Monoid
 data Args = Args CommonOpts Command deriving Show
   
 data CommonOpts = CommonOpts
-    { optVerbosity :: Int 
+    { optVerbosity :: Bool
+    , optJobs :: Int
     }
     deriving Show
     
@@ -57,8 +58,8 @@ data Command
     | Config
     | DefaultsConf
     | List [String]
-    | Add [String]
-    | Delete [String]
+    | Add [String] | Delete [String]
+    | Enable String | Disable String
     | Depot
     | Gentoo
     deriving Show
@@ -78,6 +79,10 @@ parser = runA $ proc () -> do
            <> command "list"        (info (listParser)          (progDesc "List repositories"))
            <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
            <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
+           <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
+                                                                (progDesc "Enable repository / repositories"))
+           <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
+                                                                (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
            <> command "depot"       (info (pure Depot)          (progDesc "Get Google depot tools with git and python"))
 #else
@@ -87,11 +92,14 @@ parser = runA $ proc () -> do
   A _version >>> A helper -< Args opts cmds
 
 commonOpts :: Parser CommonOpts
-commonOpts = CommonOpts
-  <$> option auto ( short 'v' <> long "verbose"
-                              <> metavar "LEVEL"
-                              <> help "Set verbosity to LEVEL"
-                              <> value 0 )
+commonOpts = runA $ proc () -> do
+    v <- asA (switch ( short 'v'    <> long "verbose"
+                                    <> help "Set verbosity to LEVEL")) -< ()
+    j <- asA ( option auto ( short 'j'  <> long "jobs"
+                                        <> metavar "JOBS"
+                                        <> help "Maximum parallel jobs"
+                                        <> value 2 )) -< ()
+    returnA -< CommonOpts v j
 
 listParser :: Parser Command
 listParser = List <$> many (argument str (metavar "TARGET..."))
@@ -122,6 +130,8 @@ run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ (List   xs))    = list xs
 run (Args _ (Add    xs))    = getAC xs
 run (Args _ (Delete xs))    = getDC xs
+run (Args _ (Enable  xs))    = (enable True) xs
+run (Args _ (Disable xs))    = (enable False) xs
 run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ getDepot)       = depot_tools
@@ -156,9 +166,7 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
 {- TODO: add options
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
-    Option []    ["enable"]  (ReqArg (enable True) "STRING") "Enable repository / repositories",
-    Option []    ["disable"] (ReqArg (enable False) "STRING") "Disable repository / repositories",
-    
+
     Option ['j'] ["jobs"]    (ReqArg getJ "STRING") "Maximum parallel jobs",
     Option ['s'] ["sync"]    (ReqArg gets "STRING") "sync single repository",
     Option ['g'] ["group"]   (ReqArg getg "STRING") "sync some repository group",
