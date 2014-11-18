@@ -51,6 +51,8 @@ data Command
     | Config
     | DefaultsConf
     | List
+    | Add
+    | Delete
     | Depot
     | Gentoo
     deriving Show
@@ -68,6 +70,8 @@ parser = runA $ proc () -> do
            <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
            <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
            <> command "list"        (info (pure List)           (progDesc "List repositories"))
+           <> command "add"         (info (pure Add)            (progDesc "Add repository (current path w/o args)"))
+           <> command "delete"      (info (pure Delete)         (progDesc "Delete repository (current path w/o args)"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
            <> command "depot"       (info (pure Depot)          (progDesc "Get Google depot tools with git and python"))
 #else
@@ -94,6 +98,8 @@ run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ List)           = list Nothing      -- TODO: args
 run (Args opts Sync)        = sync opts         -- TODO: args
+run (Args _ Add)            = getAC
+run (Args _ Delete)         = getDC
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ getDepot)       = depot_tools
 #else
@@ -125,10 +131,8 @@ sync o = do user <- getAppUserDataDirectory "sharingan.lock"
 {- TODO: add options
 gOptions :: [OptDescr (Options -> IO Options)]
 gOptions = [
-    Option ['c'] ["add-curr"](NoArg getAC) "Add current repository",
     Option ['a'] ["add"]     (ReqArg getA "STRING") "Add repository",
     Option ['d'] ["delete"]  (ReqArg getD "STRING") "Delete repository / repositories",
-    Option [] ["delete-curr"](NoArg getDC) "Delete current repository",
     
     Option []    ["enable"]  (ReqArg (enable True) "STRING") "Enable repository / repositories",
     Option []    ["disable"] (ReqArg (enable False) "STRING") "Disable repository / repositories",
