@@ -160,15 +160,8 @@ main = execParser opts >>= run
 sync :: CommonOpts -> SyncOpts -> IO ()
 sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
                lock <- doesFileExist user
-               let force    = syncForce so
-                   quick    = syncQuick so
-                   unsafe   = syncUnsafe so
-                   filter   = syncFilter so
-                   groups   = syncGroups so
-                   intera   = syncInteractive so
-                   gogo     = go quick unsafe intera force filter groups
-                   run      = withFile user WriteMode (do_program gogo)
-                                `finally` removeFile user
+               let run = withFile user WriteMode (do_program (go o so))
+                           `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
                                putStrLn "Remove lock and start application? (Y/N)"
                                hFlush stdout
@@ -219,9 +212,14 @@ mkSharingan = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
-go :: Bool -> Bool -> Bool -> Bool -> [String] -> [String] -> IO()
-go fast unsafe intera force syn synGroups =
-  withDefaultsConfig $ \defx ->
+go :: CommonOpts -> SyncOpts -> IO()
+go o so = let force    = syncForce so
+              fast     = syncQuick so
+              unsafe   = syncUnsafe so
+              filter   = syncFilter so
+              groups   = syncGroups so
+              intera   = syncInteractive so
+  in withDefaultsConfig $ \defx ->
    withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
@@ -229,17 +227,17 @@ go fast unsafe intera force syn synGroups =
         forM_ rsdata $ \repo ->
             let loc  = location repo
                 gr   = syncGroup repo
-                sync = case syn of -- TODO
+                sync = case filter of -- TODO
                             [] -> Nothing
-                            _ -> Just $ syn !! 0
+                            _ -> Just $ filter !! 0
                 isenabled = case (enabled repo) of
                                 Just en -> en
                                 Nothing -> True
             in when (case sync of
                             Just snc -> isInfixOf snc loc
-                            Nothing  -> case synGroups of
+                            Nothing  -> case groups of
                                             [] -> isenabled
-                                            _  -> case gr of Just gg -> isenabled && (gg `elem` synGroups)
+                                            _  -> case gr of Just gg -> isenabled && (gg `elem` groups)
                                                              Nothing -> False
                                         )
                 $ let up  = splitOn " " $ upstream repo
