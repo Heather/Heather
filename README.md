@@ -3,50 +3,6 @@ Sharingan
 
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
-```haskell
-synchronize :: CommonOpts -> SyncOpts -> IO()
-synchronize o so =
-  withDefaultsConfig $ \defx ->
-   withConfig $ \ymlx ->                           
-    let ymlprocess = ifSo $ despair $ do
-        rsdata <- yDecode ymlx :: IO [Repository]
-        dfdata <- yDecode defx :: IO Defaults
-        forM_ rsdata $ \repo ->
-            let loc = location repo
-                isenabled = fromMaybe True (enabled repo)
-            in when (case syncFilter so of
-                            Nothing  -> case syncGroups so of
-                                            [] -> isenabled
-                                            gx  -> case syncGroup repo of 
-                                                        Just gg -> isenabled && (gg `elem` gx)
-                                                        Nothing -> False
-                            Just snc -> isInfixOf snc loc)
-                $ let ups = splitOn " " $ upstream repo
-                      cln = fromMaybe False (clean repo)
-                      noq = case (quick dfdata) of
-                                Just qc -> not qc
-                                Nothing -> True
-                      u b = do printf " - %s : %s\n" loc b
-                               amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
-                                                $ if (length ups) > 1 then ups !! 1 `elem` (branches repo)
-                                                                      else False
-                      eye (_, r) = when ((r || syncForce so) && (not $ syncQuick so) && noq)
-                                    $ do let shx = loc </> ".sharingan.yml"
-                                             ps  = postRebuild repo
-                                         doesFileExist shx >>= sharingan (syncInteractive so) shx loc
-                                         when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
-                                                                let pshx = psc </> ".sharingan.yml"
-                                                                in doesFileExist pshx
-                                                                    >>= sharingan (syncInteractive so) pshx psc
-                  in do forM_ (tails (branches repo))
-                         $ \case x:[] -> u x >>= eye -- Tail
-                                 x:xs -> u x >>= (\_ -> return ())
-                                 []   -> return ()
-                        putStrLn <| replicate 89 '_'
-
-    in doesFileExist ymlx >>= ymlprocess
-```
-
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
 
 per-repository config example (`.sharingan.yml`):
