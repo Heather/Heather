@@ -38,36 +38,6 @@ import Data.Monoid
 (<>) = mappend
 #endif
 
-data Args = Args CommonOpts Command deriving Show
-  
-data CommonOpts = CommonOpts
-    { optVerbosity :: Bool
-    , optJobs :: Int
-    }
-    deriving Show
-    
-data SyncOpts = SyncOpts
-    { syncForce :: Bool
-    , syncUnsafe :: Bool
-    , syncQuick :: Bool
-    , syncInteractive :: Bool
-    , syncFilter :: [String]
-    , syncGroups :: [String]
-    }
-    deriving Show
-
-data Command
-    = Sync SyncOpts
-    | MakeSharingan
-    | Config
-    | DefaultsConf
-    | List [String]
-    | Add [String] | Delete [String]
-    | Enable String | Disable String
-    | Depot
-    | Gentoo
-    deriving Show
-
 _version :: Parser (a -> a)
 _version = infoOption ("Sharingan " ++ (showVersion version) ++ " " ++ os)
   (  long "version" <> help "Print version information" )
@@ -142,8 +112,8 @@ run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ (List   xs))    = list xs
 run (Args _ (Add    xs))    = getAC xs
 run (Args _ (Delete xs))    = getDC xs
-run (Args _ (Enable  xs))    = (enable True) xs
-run (Args _ (Disable xs))    = (enable False) xs
+run (Args _ (Enable  xs))   = (enable True) xs
+run (Args _ (Disable xs))   = (enable False) xs
 run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ getDepot)       = depot_tools
@@ -160,7 +130,7 @@ main = execParser opts >>= run
 sync :: CommonOpts -> SyncOpts -> IO ()
 sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
                lock <- doesFileExist user
-               let run = withFile user WriteMode (do_program (go o so))
+               let run = withFile user WriteMode (do_program (synchronize o so))
                            `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
                                putStrLn "Remove lock and start application? (Y/N)"
@@ -212,14 +182,9 @@ mkSharingan = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
-go :: CommonOpts -> SyncOpts -> IO()
-go o so = let force    = syncForce so
-              fast     = syncQuick so
-              unsafe   = syncUnsafe so
-              filter   = syncFilter so
-              groups   = syncGroups so
-              intera   = syncInteractive so
-  in withDefaultsConfig $ \defx ->
+synchronize :: CommonOpts -> SyncOpts -> IO()
+synchronize o so =
+  withDefaultsConfig $ \defx ->
    withConfig $ \ymlx ->                           
     let ymlprocess = ifSo $ despair $ do
         rsdata <- yDecode ymlx :: IO [Repository]
@@ -227,18 +192,18 @@ go o so = let force    = syncForce so
         forM_ rsdata $ \repo ->
             let loc  = location repo
                 gr   = syncGroup repo
-                sync = case filter of -- TODO
+                sync = case syncFilter so of -- TODO
                             [] -> Nothing
-                            _ -> Just $ filter !! 0
+                            fx -> Just $ fx !! 0
                 isenabled = case (enabled repo) of
                                 Just en -> en
                                 Nothing -> True
             in when (case sync of
                             Just snc -> isInfixOf snc loc
-                            Nothing  -> case groups of
+                            Nothing  -> case syncGroups so of
                                             [] -> isenabled
-                                            _  -> case gr of Just gg -> isenabled && (gg `elem` groups)
-                                                             Nothing -> False
+                                            gx  -> case gr of Just gg -> isenabled && (gg `elem` gx)
+                                                              Nothing -> False
                                         )
                 $ let up  = splitOn " " $ upstream repo
                       tsk = task repo
@@ -252,16 +217,16 @@ go o so = let force    = syncForce so
                                 Just qc -> not qc
                                 Nothing -> True
                       u b = do printf " - %s : %s\n" loc b
-                               amaterasu tsk loc b up unsafe cln hs $ if (length up) > 1
-                                                                       then up !! 1 `elem` br
-                                                                       else False
-                      eye (_, r) = when ((r || force) && (not fast) && noq)
+                               amaterasu tsk loc b up (syncUnsafe so) cln hs 
+                                                $ if (length up) > 1 then up !! 1 `elem` br
+                                                                     else False
+                      eye (_, r) = when ((r || syncForce so) && (not $ syncQuick so) && noq)
                                     $ do let shx = loc </> ".sharingan.yml"
-                                         doesFileExist shx >>= sharingan intera shx loc
+                                         doesFileExist shx >>= sharingan (syncInteractive so) shx loc
                                          when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
                                                                 let pshx = psc </> ".sharingan.yml"
                                                                 in doesFileExist pshx
-                                                                    >>= sharingan intera pshx psc
+                                                                    >>= sharingan (syncInteractive so) pshx psc
                   in do forM_ (tails br)
                          $ \case x:[] -> u x >>= eye -- Tail
                                  x:xs -> u x >>= (\_ -> return ())
