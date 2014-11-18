@@ -98,8 +98,11 @@ getA arg = -- Add new stuff to sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-getAC :: IO ()
-getAC = getCurrentDirectory >>= getA
+getAC :: [String] -> IO ()
+getAC []     = getCurrentDirectory >>= getA
+getAC (x:[]) = getA x
+getAC (x:xs) = do getA x
+                  getAC xs
 
 getD :: String -> IO ()
 getD arg = -- Remove stuff from sync
@@ -115,8 +118,11 @@ getD arg = -- Remove stuff from sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-getDC :: IO ()
-getDC = getCurrentDirectory >>= getD
+getDC :: [String] -> IO ()
+getDC []     = getCurrentDirectory >>= getD
+getDC (x:[]) = getD x
+getDC (x:xs) = do getD x
+                  getDC xs
 
 enable :: Bool -> String -> IO ()
 enable en arg =

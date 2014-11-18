@@ -47,7 +47,7 @@ data CommonOpts = CommonOpts
     
 data SyncOpts = SyncOpts
     { syncForce :: Bool
-    , syncFilter :: Maybe String
+    , syncFilter :: [String]
     }
     deriving Show
 
@@ -57,8 +57,8 @@ data Command
     | Config
     | DefaultsConf
     | List
-    | Add
-    | Delete
+    | Add [String]
+    | Delete [String]
     | Depot
     | Gentoo
     deriving Show
@@ -76,8 +76,8 @@ parser = runA $ proc () -> do
            <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
            <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
            <> command "list"        (info (pure List)           (progDesc "List repositories"))
-           <> command "add"         (info (pure Add)            (progDesc "Add repository (current path w/o args)"))
-           <> command "delete"      (info (pure Delete)         (progDesc "Delete repository (current path w/o args)"))
+           <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
+           <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
            <> command "depot"       (info (pure Depot)          (progDesc "Get Google depot tools with git and python"))
 #else
@@ -93,6 +93,12 @@ commonOpts = CommonOpts
                               <> help "Set verbosity to LEVEL"
                               <> value 0 )
 
+addParser :: Parser Command
+addParser = Add <$> many (argument str (metavar "TARGET..."))
+
+deleteParser :: Parser Command
+deleteParser = Delete <$> many (argument str (metavar "TARGET..."))
+
 syncParser :: Parser Command
 syncParser = runA $ proc () -> do
     syncO   <- asA syncOpts -< ()
@@ -101,10 +107,9 @@ syncParser = runA $ proc () -> do
 syncOpts :: Parser SyncOpts
 syncOpts = runA $ proc () -> do
   force   <- asA (switch (short 'f' <> long "force")) -< ()
-  -- filter  <- asA (argument str (metavar "TARGET...")) -< ()
-  -- filter  <- (asA . strOption) ( long "filter" ) -< ()
+  filter  <- asA (many (argument str (metavar "TARGET..."))) -< ()
   returnA -< SyncOpts { syncForce = force
-                      , syncFilter = Nothing
+                      , syncFilter = filter
                       }
 
 run :: Args -> IO ()
@@ -113,8 +118,8 @@ run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ List)           = list Nothing      -- TODO: args
 run (Args opts (Sync so))   = sync opts so      -- TODO: args
-run (Args _ Add)            = getAC
-run (Args _ Delete)         = getDC
+run (Args _ (Add    xs))     = getAC xs
+run (Args _ (Delete xs))     = getDC xs
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ getDepot)       = depot_tools
 #else
@@ -205,7 +210,7 @@ mkSharingan = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new >> exitWith ExitSuccess
 
-go :: Bool -> [String] -> Bool -> Bool -> Bool -> Maybe String -> Maybe String -> IO()
+go :: Bool -> [String] -> Bool -> Bool -> Bool -> [String] -> Maybe String -> IO()
 go fast nonops unsafe intera force syn synGroup =
   withDefaultsConfig $ \defx ->
    withConfig $ \ymlx ->                           
@@ -215,10 +220,10 @@ go fast nonops unsafe intera force syn synGroup =
         forM_ rsdata $ \repo ->
             let loc  = location repo
                 gr   = syncGroup repo
-                sync = case syn of
-                            Nothing -> if (length nonops) > 0 then Just $ nonops !! 0
-                                                              else Nothing
-                            Just _  -> syn
+                sync = case syn of -- TODO
+                            [] -> if (length nonops) > 0 then Just $ nonops !! 0
+                                                         else Nothing
+                            _ -> Just $ syn !! 0
                 isenabled = case (enabled repo) of
                                 Just en -> en
                                 Nothing -> True
