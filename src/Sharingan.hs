@@ -144,9 +144,8 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
 
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 genSync :: CommonOpts -> IO()
-genSync o = let jobs = CommonOpts optJobs
-            in gentooSync "/home/gentoo-x86" jobs
-                    >> exitWith ExitSuccess
+genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
+                 >> exitWith ExitSuccess
 #endif
 
 list :: [String] -> IO()
