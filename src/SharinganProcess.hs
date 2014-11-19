@@ -4,7 +4,6 @@ module SharinganProcess
   , amaterasu
   ) where
 
-import Model
 import Yaml
 import Shell
 
@@ -12,10 +11,6 @@ import System.Directory
 import System.FilePath(takeDirectory, (</>))
 
 import Data.Char
-import Data.List
-
-import Control.Monad
-import Control.Eternal
 
 sharingan :: Bool -> String -> String -> Bool -> IO()
 sharingan interactive shx loc shxi = if shxi then

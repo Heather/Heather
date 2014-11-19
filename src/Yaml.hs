@@ -5,14 +5,12 @@ module Yaml
   , ToJSON
   , yDecode
   , yEncode
+  
+  , module Model
   ) where
 
 import Model
-
 import Data.Yaml
-import Data.Maybe (fromJust)
-
-import Control.Applicative
 
 import qualified Data.ByteString.Char8 as BS
 

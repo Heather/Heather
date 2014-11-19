@@ -18,9 +18,10 @@ module Config
   
   , enable
   , hashupdate
+
+  , module Yaml
   ) where
 
-import Model
 import Yaml
 
 import System.Directory
@@ -30,12 +31,6 @@ import System.Environment.Executable ( getExecutablePath )
 import System.Exit
 import System.FilePath(takeDirectory, (</>))
 import System.Environment( getEnv )
-
-import Control.Monad
-import Control.Applicative
-import Control.Eternal
-
-import Data.List
 
 getConfig :: IO FilePath
 getConfig =

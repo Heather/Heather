@@ -1,35 +1,19 @@
 ﻿{-# LANGUAGE MultiWayIf, LambdaCase, OverloadedStrings, Arrows, CPP #-}
 
 import Despair
-
-import Model
-import Yaml
 import Tools
 import Config
 import SharinganProcess
+import Paths_Sharingan (version)
 
 import Text.Printf
-
 import System.Info (os)
 import System.Directory
 import System.Exit
 import System.IO
-
-import Control.Monad
-import Control.Applicative
-import Control.Exception
-import Control.Eternal
-import Control.Concurrent
-
 import System.FilePath(takeDirectory, (</>))
-
-import Data.Maybe
-import Data.List
 import Data.List.Split
-
-import Paths_Sharingan (version)
 import Data.Version (showVersion)
-
 import Options.Applicative
 import Options.Applicative.Arrows
 #if __GLASGOW_HASKELL__ <= 702

@@ -8,8 +8,6 @@ module Shell
   , setEnv
   ) where
 
-import Data.List
-import Data.Maybe
 import Data.List.Split
 
 import System.IO
@@ -18,9 +16,6 @@ import System.Directory
 import System.FilePath((</>))
 
 import System.Process
-
-import Control.Monad
-import Control.Eternal
 
 import Config
 import AsyncReactive
