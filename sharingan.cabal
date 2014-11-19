@@ -2,7 +2,7 @@ name:          Sharingan
 version:       0.3.3
 license:       BSD3
 author:        Heather Cynede
-maintainer:    Heather Cynede <Cynede@Gentoo.org>
+maintainer:    Heather Cynede <Heather@live.ru>
 
 build-type: Simple
 cabal-version: >= 1.6
