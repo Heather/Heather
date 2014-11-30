@@ -79,7 +79,7 @@ syncOpts = runA $ proc () -> do
     unsafe  <- asA (switch (short 'u' <> long "unsafe"))        -< ()
     quick   <- asA (switch (short 'q' <> long "quick"))         -< ()
     intera  <- asA (switch (short 'i' <> long "interactive"))   -< ()
-    filter  <- asA (optional (argument str (metavar "FILTER")))  -< ()
+    filter  <- asA (optional (argument str (metavar "FILTER"))) -< ()
     groups  <- asA (many (option str (short 'g'  <> long "group" <> metavar "GROUPS"))) -< ()
     returnA -< SyncOpts { syncForce  = force
                         , syncUnsafe = unsafe
@@ -184,9 +184,7 @@ synchronize o so =
                             Just snc -> isInfixOf snc loc)
                 $ let ups = splitOn " " $ upstream repo
                       cln = fromMaybe False (clean repo)
-                      noq = case (quick dfdata) of
-                                Just qc -> not qc
-                                Nothing -> True
+                      noq = not $ fromMaybe False (quick dfdata)
                       u b = do printf " - %s : %s\n" loc b
                                amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
                                                 $ if (length ups) > 1 then ups !! 1 `elem` (branches repo)
@@ -202,7 +200,7 @@ synchronize o so =
                   in do forM_ (tails (branches repo))
                          $ \case x:[] -> u x >>= eye -- Tail
                                  x:xs -> u x >>= (\_ -> return ())
-                                 []   -> return ()
+                                 []   -> putStrLn "No results found"
                         putStrLn <| replicate 89 '_'
 
     in doesFileExist ymlx >>= ymlprocess

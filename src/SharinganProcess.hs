@@ -1,7 +1,11 @@
+{-# LANGUAGE CPP #-}
+
 module SharinganProcess
   ( sharingan
-  , gentooSync
   , amaterasu
+#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+  , gentooSync
+#endif
   ) where
 
 import Yaml
@@ -15,15 +19,8 @@ import Data.Char
 sharingan :: Bool -> String -> String -> Bool -> IO()
 sharingan interactive shx loc shxi = if shxi then
      do syncDatax <- yDecode shx :: IO Sharingan
-        let en   = case env syncDatax of
-                    Just []   -> []
-                    Just envX -> envX
-                    _ -> []
-            be   = case before_install syncDatax of
-                    Just []   -> []
-                    Just envX -> envX
-                    _ -> []
-            il   = install syncDatax
+        let en   = fromMaybe [] (env syncDatax)
+            be   = fromMaybe [] (before_install syncDatax)
             sc   = script syncDatax
             lang = case language syncDatax of
                         Just [] -> []
@@ -31,7 +28,7 @@ sharingan interactive shx loc shxi = if shxi then
                         _ -> []
         forM_ en $ setEnv
         forM_ be $ exc loc
-        case il of
+        case install syncDatax of
           Just []  -> return () -- do nothing
           Just ilX -> forM_ ilX $ exc loc
           _ -> case lang of

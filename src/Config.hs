@@ -48,15 +48,15 @@ getDefaultsConfig =
 
 processChecks :: FilePath -> IO()
 processChecks cfg = 
-  let generate cfg = ifNot $ let nothing = [] :: [Repository]
-                             in yEncode cfg nothing
-  in doesFileExist cfg >>= generate cfg
+    let generate cfg = ifNot $ yEncode cfg nothing
+    in doesFileExist cfg >>= generate cfg
+  where nothing = [] :: [Repository]
 
 processDefaultsChecks :: FilePath -> IO()
 processDefaultsChecks cfg = 
-  let generate cfg = ifNot $ let nothing = (Defaults Nothing)
-                             in yEncode cfg nothing
-  in doesFileExist cfg >>= generate cfg
+    let generate cfg = ifNot $ yEncode cfg nothing
+    in doesFileExist cfg >>= generate cfg
+  where nothing = (Defaults Nothing)
 
 withConfig foo = liftM2 (>>) processChecks foo =<< getConfig
 withDefaultsConfig foo = liftM2 (>>) processDefaultsChecks foo =<< getDefaultsConfig
@@ -73,11 +73,6 @@ defaultsConfig = do editor <- getEnv "EDITOR"
                         exec $ editor ++ " " ++ ymlx
                     exitWith ExitSuccess
 
-{- TODO : Calc hash right here
-readProcess "git" ["log", "-n", "1"
-                  , "--pretty=format:%H"
-                  ] []
--}
 getA :: String -> IO ()
 getA arg = -- Add new stuff to sync
   withConfig $ \ymlx ->
@@ -93,12 +88,6 @@ getA arg = -- Add new stuff to sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
-getAC :: [String] -> IO ()
-getAC []     = getCurrentDirectory >>= getA
-getAC (x:[]) = getA x
-getAC (x:xs) = do getA x
-                  getAC xs
-
 getD :: String -> IO ()
 getD arg = -- Remove stuff from sync
   withConfig $ \ymlx ->
@@ -113,11 +102,15 @@ getD arg = -- Remove stuff from sync
     in doesFileExist ymlx >>= ymlprocess 
                           >> exitWith ExitSuccess
 
+getAC :: [String] -> IO ()
+getAC []     = getCurrentDirectory >>= getA
+getAC (x:[]) = getA x
+getAC (x:xs) = do { getA x; getAC xs }
+
 getDC :: [String] -> IO ()
 getDC []     = getCurrentDirectory >>= getD
 getDC (x:[]) = getD x
-getDC (x:xs) = do getD x
-                  getDC xs
+getDC (x:xs) = do { getD x; getDC xs }
 
 enable :: Bool -> String -> IO ()
 enable en arg =

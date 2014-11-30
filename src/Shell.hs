@@ -4,8 +4,10 @@ module Shell
   ( amaterasu
   , exec
   , exc
-  , gentooSync
   , setEnv
+#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+  , gentooSync
+#endif
   ) where
 
 import Data.List.Split
@@ -158,15 +160,13 @@ rebasefork path branch up unsafe processClean rhash sync =
         in (return (False, False)) >>= (chk gitX)
                                    >>= (chk hgX)
 
+#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 gentooSync :: String -> Int -> IO()
 gentooSync path jobs = do
-#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
     j <- if jobs == 0 then readProcess "nproc" [] []
                       else return $ show jobs
     putStrLn "updating..."
     asyncReactive (exc path $ " cvs update "
                     ++ " & egencache --update --repo=gentoo --portdir=" ++ path
                     ++ " --jobs=" ++ j)
-#else
-    return ()
 #endif
