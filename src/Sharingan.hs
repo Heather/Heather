@@ -148,7 +148,10 @@ addNew ao = getAC ( sFilter ao )
                   ( sType   ao )
                   ( sGroup  ao )
 
-sync ∷ CommonOpts → SyncOpts → IO ()
+sync           -- check locking file and process synchronization
+  ∷ CommonOpts -- common options
+  → SyncOpts   -- synchronization options
+  → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                lock ← doesFileExist user
                let runWithBlock = withFile user WriteMode (do_program (synchronize o so))
@@ -213,7 +216,10 @@ mkSharingan = -- Create .sharingan.yml template
       new   = SharinganWrapper (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new ≫ exitSuccess
 
-synchronize ∷ CommonOpts → SyncOpts → IO()
+synchronize     -- actual synchronization function
+  ∷ CommonOpts  -- common options
+  → SyncOpts    -- synchronization options
+  → IO()
 synchronize _o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
@@ -226,9 +232,9 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
     let dfdat = _getDefaults jfdat
         rsdat = map _getRepository jsdat
     forM_ rsdat $ sync myenv dfdat where
-  sync :: MyEnv
-        → Defaults
-        → Repository
+  sync :: MyEnv       -- environment
+        → Defaults    -- default options
+        → Repository  -- repository (iterating)
         → IO ()
   sync myEnv dfdata repo =
     let loc = location repo
