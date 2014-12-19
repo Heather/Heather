@@ -20,15 +20,19 @@ import qualified Codec.Binary.UTF8.String as S
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Resource (runResourceT)
 
-getHTTP :: String → IO String
+getHTTP :: String    -- url address
+         → IO String -- http content
 getHTTP url = withSocketsDo
   $ simpleHttp url
       >>= \bs → return $ S.decode $ L.unpack bs
 
-download :: String → String → IO()
+download   -- download from http to file
+ :: String -- url address
+  → String -- local file path
+  → IO()
 download url filename = withSocketsDo $ do
   irequest ← liftIO $ parseUrl url
-  manager ← newManager tlsManagerSettings
+  manager  ← newManager tlsManagerSettings
   let request = irequest
        { method = methodGet
        , responseTimeout = Just 10000000 }

@@ -17,7 +17,9 @@ import System.FilePath((</>))
 
 import Control.Eternal.Syntax
 
-copyDir :: FilePath → FilePath → IO ()
+copyDir :: FilePath -- source
+         → FilePath -- destination
+         → IO ()
 copyDir src dst = do
   createDirectory dst
   content ← getDirectoryContents src
