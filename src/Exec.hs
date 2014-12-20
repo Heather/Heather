@@ -5,7 +5,8 @@
   #-}
 
 module Exec
-  ( exec
+  ( execute
+  , exec
   , exc
   , sys
   , system
@@ -26,7 +27,10 @@ import Control.Exception
 -- |‿⊙)
 -- |⊙‿⊙)
 -- TODO: Handle all quotes, not just first command
-handleQuotes :: String → (String, [String])
+-- (most common usecase is "C:\Program Files\git")
+handleQuotes -- split command with quotes into command and arguments
+  :: String  -- command with quotes...
+   → (String, [String])
 handleQuotes qq =
   if '\"' ∈ qq
     then let spq = filter (not ∘ null) $ splitOn "\"" qq
@@ -37,8 +41,10 @@ handleQuotes qq =
              ssq = tail spq
          in (head spq, ssq)
 
--- ✌(◉_◉ )
-execute :: [String] → IO()
+-- Note don't use exec with & [Use execute]
+execute       -- ✌(◉_◉ )
+ :: [String] -- commands
+  → IO()
 execute [] = return ()
 execute [x] =
   let (fs, sn) = handleQuotes x
@@ -46,21 +52,30 @@ execute [x] =
 execute (x:xs) = do execute [x]
                     execute xs
 
--- (҂￣‿‿￣҂)
-exec :: String → IO()
+exec       -- (҂￣‿‿￣҂)
+ :: String -- command
+  → IO()
 exec cmd = execute commands
   where commands = splitOn "&" cmd
 
+-- just run custm command as system
 sys :: String → IO()
 sys cmd = system cmd ≫ return ()
 
+-- process exec in current directory
 exc :: String → String → IO()
 exc path args = setCurrentDirectory path ≫ exec args
 
-readCheck :: String → [String] → IO (Either SomeException String)
+readCheck    -- return whether command was success or not
+ :: String   -- command
+  → [String] -- arguments
+  → IO (Either SomeException String)
 readCheck cmd args = try $ readProcess cmd args []
 
-readIfSucc :: String → [String] → IO (Maybe String)
+readIfSucc   -- useless wrapper on readCheck to return Maybe
+ :: String   -- command
+  → [String] -- arguments
+  → IO (Maybe String)
 readIfSucc cmd args =
   readCheck cmd args
   ≫= \case Left _ → return Nothing
