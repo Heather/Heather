@@ -16,12 +16,14 @@ import Data.Maybe
 
 import Paths_Sharingan (version)
 
+-- TODO
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 #else
 -- needs posix in cabal
 -- import System.Posix.User
 #endif
 
+-- TODO
 isRoot :: IO Bool
 isRoot =
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
@@ -31,14 +33,20 @@ isRoot =
   -- fmap (== 0) getRealUserID
 #endif
 
-checkIfSucc :: String → [String] → IO (Maybe String)
+checkIfSucc           -- check if success
+ :: String            -- command to check
+  → [String]          -- arguments
+  → IO (Maybe String) -- Just cmd in case of success
 checkIfSucc cmd args =
   readCheck cmd args
   ≫= \case Left _ → return Nothing
            Right val → do putStr $ cmd ⧺ " : " ⧺ val
                           return (Just cmd)
 
-gitCheck :: String → [String] → IO (Maybe String)
+gitCheck              -- check for git --version
+ :: String            -- command to check
+  → [String]          -- arguments
+  → IO (Maybe String) -- Path to git in case of success
 gitCheck cmd args = checkIfSucc cmd (args ++ ["--version"])
 
 getGit :: IO String
@@ -55,4 +63,5 @@ getGit = return Nothing ≫= t "git" []
 getEnv :: IO MyEnv
 getEnv = do
   myGit ← getGit
+  --TODO: get hg
   return (MyEnv myGit "hg")
