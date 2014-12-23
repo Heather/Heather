@@ -50,13 +50,17 @@ getDefaultsConfig =
         ((</> "sharinganDefaults.yml") . takeDirectory <$> getExecutablePath)
      | otherwise → return "/etc/sharinganDefaults.yml"
 
-processChecks ∷ FilePath → IO()
+processChecks
+  ∷ FilePath --config path
+  → IO()
 processChecks cfg =
     let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
   where nothing = [] ∷ [RepositoryWrapper]
 
-processDefaultsChecks ∷ FilePath → IO()
+processDefaultsChecks
+  ∷ FilePath  --config path
+  → IO()
 processDefaultsChecks cfg =
     let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
@@ -78,7 +82,10 @@ defaultsConfig = do editor ← getEnv "EDITOR"
                     withDefaultsConfig $ \ymlx →
                         exec $ editor ⧺ " " ⧺ ymlx
 
-getA ∷ String → Maybe String → String → IO ()
+getA ∷ String         -- action for new repository
+     → Maybe String   -- new repository group
+     → String         -- new repository directory
+     → IO ()
 getA daction grp arg = -- Add new stuff to sync
   withConfig $ \ymlx →
    whenM <| doesFileExist ymlx <|
@@ -92,7 +99,8 @@ getA daction grp arg = -- Add new stuff to sync
             then putStrLn "this repository is already in sync"
             else yEncode ymlx $ map RepositoryWrapper (new : rsdata)
 
-getD ∷ String → IO ()
+getD ∷ String -- directory (or part) of repository to remove
+     → IO ()
 getD arg = -- Remove stuff from sync
   withConfig $ \ymlx →
     whenM <| doesFileExist ymlx <|
@@ -111,16 +119,20 @@ getAX ∷ Maybe String → Maybe String → String → IO ()
 getAX Nothing   = getA "rebase"
 getAX (Just t)  = getA t
 
+-- add current directory as repository
 getAC ∷ Maybe String → Maybe String → Maybe String → IO ()
 getAC Nothing  t g  = getCurrentDirectory ≫= getAX t g
 getAC (Just x) t g  = getAX t g x
 
+-- remove current directory from repositories
 getDC ∷ [String] → IO ()
 getDC []     = getCurrentDirectory ≫= getD
 getDC [x]    = getD x
 getDC (x:xs) = getD x >> getDC xs
 
-enable ∷ Bool → String → IO ()
+enable ∷ Bool   -- set enabled/disabled
+       → String -- repository path (or part)
+       → IO ()
 enable en arg =
   withConfig $ \ymlx →
     whenM <| doesFileExist ymlx <|
@@ -131,7 +143,9 @@ enable en arg =
                       else x
          yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
 
-hashupdate ∷ String → String → IO ()
+hashupdate ∷ String -- new hash
+           → String -- repository path (or part)
+           → IO ()
 hashupdate hsh rep =
   withConfig $ \ymlx →
     whenM <| doesFileExist ymlx <|
