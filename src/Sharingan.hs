@@ -150,13 +150,13 @@ list xs =
                 lnam = (maxl + 1) - (length name)
                 adds = if lnam > 0 then replicate lnam ' '
                                    else ""
-                sstr = " - " ++ name ++ adds ++ " : "
+                sstr = " - " ++ name ++ adds
                 empt = replicate (length sstr) ' '
                 brx  = (branches repo)
             in if (length brx) == 0
                 then printf " - %s\n" loc
-                else do printf "%s%s (%s)\n" sstr (head brx) loc
-                        forM_ (drop 1 brx) $ printf "%s%s\n" empt
+                else do printf "%s: %s (%s)\n" sstr (head brx) loc
+                        forM_ (drop 1 brx) $ printf "%s: %s\n" empt
     in doesFileExist ymlx >>= ymlprocess 
                           >>  exitWith ExitSuccess
 
