@@ -25,9 +25,17 @@ import Config
 
 import Shell.Helper
 
-pull :: String → String → [String]
-      → Bool → Bool → Bool → Bool → Maybe String
-      → MyEnv → IO (Bool, Bool)
+pull
+  :: String           -- location
+   → String           -- branch
+   → [String]         -- splitted upstream (splitOn " " $ upstream repo)
+   → Bool             -- unsafe
+   → Bool             -- force
+   → Bool             -- clean
+   → Bool             -- admin (sudo)
+   → Maybe String     -- Hash
+   → MyEnv            -- environment
+   → IO (Bool, Bool)  -- success & continue
 pull path branch _ unsafe frs processClean adm rhash myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull

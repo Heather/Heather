@@ -25,9 +25,17 @@ import Config
 
 import Shell.Helper
 
-rebasefork :: String → String → [String]
-            → Bool → Bool → Bool  → Bool → Maybe String
-            → MyEnv → IO (Bool, Bool)
+rebasefork
+  :: String           -- location
+   → String           -- branch
+   → [String]         -- splitted upstream (splitOn " " $ upstream repo)
+   → Bool             -- unsafe
+   → Bool             -- force
+   → Bool             -- clean
+   → Bool             -- admin (sudo)
+   → Maybe String     -- Hash
+   → MyEnv            -- environment
+   → IO (Bool, Bool)  -- success & continue
 rebasefork path branch up unsafe frs pC adm rhash myEnv =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
