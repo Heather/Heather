@@ -124,8 +124,7 @@ sync o so = do user <- getAppUserDataDirectory "sharingan.lock"
                                putStrLn "Remove lock and start application? (Y/N)"
                                hFlush stdout
                                str <- getLine
-                               if str `elem` ["Y", "y"] then runWithBlock
-                                                        else return ()
+                               when (str `elem` ["Y", "y"]) runWithBlock
                        else runWithBlock
   where do_program :: IO() -> Handle -> IO()
         do_program gogo _ = gogo

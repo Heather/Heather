@@ -19,15 +19,13 @@ import Data.Char
 sharingan :: Bool -> String -> String -> Bool -> IO()
 sharingan interactive shx loc shxi = if shxi then
      do syncDatax <- yDecode shx :: IO Sharingan
-        let en   = fromMaybe [] (env syncDatax)
-            be   = fromMaybe [] (before_install syncDatax)
-            sc   = script syncDatax
+        let sc   = script syncDatax
             lang = case language syncDatax of
                         Just [] -> []
                         Just ln -> map toLower ln
                         _ -> []
-        forM_ en $ setEnv
-        forM_ be $ exc loc
+        forM_ (fromMaybe [] (env syncDatax)) setEnv
+        forM_ (fromMaybe [] (before_install syncDatax)) $ exc loc
         case install syncDatax of
           Just []  -> return () -- do nothing
           Just ilX -> forM_ ilX $ exc loc
