@@ -34,7 +34,7 @@ parser :: Parser Args
 parser = runA $ proc () -> do
   opts <- asA commonOpts -< ()
   cmds <- (asA . hsubparser)
-		( command "sync"        (info syncParser            (progDesc "Process synchronization"))
+	    ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
 	   <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
 	   <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
 	   <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
