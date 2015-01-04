@@ -253,9 +253,9 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
             u b = do
               printf " - %s : %s\n" loc b
               if nps ∧ tsk /= "pull"
-                then amaterasu tsk loc b ups (syncUnsafe so)
+                then return (True, True)
+                else amaterasu tsk loc b ups (syncUnsafe so)
                         frs cln adm (hash repo) myEnv
-                else return (True, True)
             eye (_, r) = when ((r ∨ frs) ∧ not (syncQuick so) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
