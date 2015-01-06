@@ -27,8 +27,8 @@ import Shell.Helper
 
 pull :: String → String → [String]
       → Bool → Bool → Bool → Bool → Maybe String
-      → Bool → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe frs processClean adm rhash _ myEnv =
+      → MyEnv → IO (Bool, Bool)
+pull path branch _ unsafe frs processClean adm rhash myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)

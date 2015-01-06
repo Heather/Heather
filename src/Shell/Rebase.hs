@@ -27,8 +27,8 @@ import Shell.Helper
 
 rebasefork :: String → String → [String]
             → Bool → Bool → Bool  → Bool → Maybe String
-            → Bool → MyEnv → IO (Bool, Bool)
-rebasefork path branch up unsafe frs pC adm rhash pullonly myEnv =
+            → MyEnv → IO (Bool, Bool)
+rebasefork path branch up unsafe frs pC adm rhash myEnv =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)
@@ -80,19 +80,16 @@ rebasefork path branch up unsafe frs pC adm rhash pullonly myEnv =
                whe (remloc ≢ locloc ∨ frs) $ msGit ⧺ " pull origin " ⧺ branch
                when (remloc ≢ remote ∨ frs)
                  $ do exec $ msGit ⧺ " pull --rebase " ⧺ gU
-                      unless pullonly
-                        $ do exec $ msGit
-                                 ⧺ " push --force origin "
-                                 ⧺ branch
-                             hashupdate remote path
+                      exec $ msGit ⧺ " push --force origin "
+                                   ⧺ branch
+                      hashupdate remote path
                return (True, True)
              _ → return (False, False)
 
     hgX :: IO (Bool, Bool)
     hgX = vd ".hg" path $ do
       exec $ "hg pull --update --rebase" ⧺ gU
-      unless pullonly
-        $ exec $ "hg push " ⧺ branch ⧺ " --force"
+      exec $ "hg push " ⧺ branch ⧺ " --force"
       return (True, True)
 
     execRebaseFork :: IO (Bool, Bool)

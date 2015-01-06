@@ -226,9 +226,16 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
     let dfdat = _getDefaults jfdat
         rsdat = map _getRepository jsdat
     forM_ rsdat $ sync myenv dfdat where
+  sync :: MyEnv
+        → Defaults
+        → Repository
+        → IO ()
   sync myEnv dfdata repo =
     let loc = location repo
         isenabled = fromMaybe True (enabled repo)
+        frs = syncForce so
+        ntr = syncInteractive so
+        nps = syncNoPush so
     in when (case syncFilter so of
                     Nothing  → case syncGroups so of
                                     [] → isenabled
@@ -238,16 +245,17 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
                     Just snc → isInfixOf <| map toLower snc
                                          <| map toLower loc)
       $ let ups = splitOn " " $ upstream repo
+            snc = sharingan (syncInteractive so) adm
             cln = fromMaybe False (clean repo)
             adm = fromMaybe False (root repo)
             noq = not $ fromMaybe False (quick dfdata)
-            snc = sharingan (syncInteractive so) adm
-            frs = syncForce so
-            ntr = syncInteractive so
-            nps = syncNoPush so
-            u b = do printf " - %s : %s\n" loc b
-                     amaterasu (task repo) loc b ups (syncUnsafe so)
-                               frs cln adm (hash repo) nps myEnv
+            tsk = task repo
+            u b = do
+              printf " - %s : %s\n" loc b
+              if nps ∧ tsk /= "pull"
+                then amaterasu tsk loc b ups (syncUnsafe so)
+                        frs cln adm (hash repo) myEnv
+                else return (True, True)
             eye (_, r) = when ((r ∨ frs) ∧ not (syncQuick so) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo

@@ -39,12 +39,11 @@ amaterasu
    → Bool             -- clean
    → Bool             -- admin (sudo)
    → Maybe String     -- Hash
-   → Bool             -- syncNoPush (local pull...(deprecated))
    → MyEnv            -- environment
    → IO (Bool, Bool)  -- success & continue
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ adm _ _ _ →
+amaterasu custom    = \path _ _ _ _ _ adm _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
                         exec $ ifadmin adm ⧺ custom
