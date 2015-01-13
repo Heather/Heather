@@ -203,7 +203,7 @@ synchronize o so =
                   in do forM_ (tails (branches repo))
                          $ \case x:[] -> u x >>= eye -- Tail
                                  x:xs -> u x >>= (\_ -> return ())
-                                 []   -> putStrLn "No results found"
+                                 []   -> return ()
                         putStrLn <| replicate 89 '_'
 
     in doesFileExist ymlx >>= ymlprocess
