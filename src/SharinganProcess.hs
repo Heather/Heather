@@ -17,7 +17,7 @@ import System.FilePath(takeDirectory, (</>))
 import Data.Char
 
 sharingan :: Bool -> String -> String -> Bool -> IO()
-sharingan interactive shx loc shxi = if shxi then
+sharingan interactive shx loc shxi = if shxi then     
      do syncDatax <- yDecode shx :: IO Sharingan
         let sc   = script syncDatax
             lang = case language syncDatax of
@@ -25,20 +25,20 @@ sharingan interactive shx loc shxi = if shxi then
                         Just ln -> map toLower ln
                         _ -> []
         forM_ (fromMaybe [] (env syncDatax)) setEnv
-        forM_ (fromMaybe [] (before_install syncDatax)) $ exc loc
+        forM_ (fromMaybe [] (before_install syncDatax)) exth
         case install syncDatax of
           Just []  -> return () -- do nothing
-          Just ilX -> forM_ ilX $ exc loc
+          Just ilX -> forM_ ilX exth
           _ -> case lang of
-                  "haskell" -> exc loc "cabal update"
+                  "haskell" -> exth "cabal update"
                   _         -> return () -- do nothing
         case sc of
           [] -> case lang of
-                  "c"       -> exc loc "make"
-                  "haskell" -> exc loc "cabal install"
-                  "rust"    -> exc loc "make"
+                  "c"       -> exth "make"
+                  "haskell" -> exth "cabal install"
+                  "rust"    -> exth "make"
                   _         -> return () -- do nothing
-          _ -> forM_ sc $ exc loc
+          _ -> forM_ sc exth
      else when interactive
         $ let test fe procx previous = if previous
                 then return True
@@ -51,9 +51,9 @@ sharingan interactive shx loc shxi = if shxi then
                         let f = filter (\x -> any(`isSuffixOf` map toLower x)
                                         [".cabal"]) $ all
                         if (length f) > 0
-                          then do exc loc "cabal install --only-dependencies"
-                                  exc loc "cabal configure"
-                                  exc loc "cabal build"
+                          then do exth "cabal install --only-dependencies"
+                                  exth "cabal configure"
+                                  exth "cabal build"
                                   return True
                           else return False 
               ipkg previous = if previous
@@ -63,13 +63,14 @@ sharingan interactive shx loc shxi = if shxi then
                                         [".ipkg"]) $ all
                         if (length f) > 0
                           then do let f0 = f !! 0
-                                  exc loc $ "idris --clean " ++ f0
-                                  exc loc $ "idris --install " ++ f0
+                                  exth $ "idris --clean " ++ f0
+                                  exth $ "idris --install " ++ f0
                                   return True
                           else return False
-          in (return False) >>= test "install.bat" (exc loc "install.bat")
-                            >>= test "build.bat" (exc loc "build.bat")
-                            >>= test "Makefile" (exc loc "make")
+          in (return False) >>= test "install.bat" (exth "install.bat")
+                            >>= test "build.bat" (exth "build.bat")
+                            >>= test "Makefile" (exth "make")
                             >>= cabal
                             >>= ipkg
                             >> return ()
+  where exth = exc loc
