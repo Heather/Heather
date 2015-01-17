@@ -29,9 +29,19 @@ import Shell.Helper
 import Shell.Pull
 import Shell.Rebase
 
-amaterasu :: String → String → String → [String]
-           → Bool → Bool → Bool → Bool → Maybe String
-           → Bool → MyEnv → IO (Bool, Bool)
+amaterasu
+  :: String           --repo task
+   → String           -- location
+   → String           -- branch
+   → [String]         -- splitted upstream (splitOn " " $ upstream repo)
+   → Bool             -- unsafe
+   → Bool             -- force
+   → Bool             -- clean
+   → Bool             -- admin (sudo)
+   → Maybe String     -- Hash
+   → Bool             -- syncNoPush (local pull...(deprecated))
+   → MyEnv            -- environment
+   → IO (Bool, Bool)  -- success & continue
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
 amaterasu custom    = \path _ _ _ _ _ adm _ _ _ →
