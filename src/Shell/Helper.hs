@@ -27,18 +27,22 @@ import Trim
 import Exec
 import Config
 
-setEnv :: String → IO()
+setEnv :: String -- environment variable and value (x=5)
+        → IO()
 setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
                       | os ∈ ["darwin", "cygwin32"] → "export " ⧺ vvv
                       | otherwise → "export " ⧺ vvv
 
-ifadmin :: Bool → String
+ifadmin :: Bool   -- need sudo?
+         → String -- root checker prefix
 ifadmin adm =
-  if | os ∈ ["win32", "mingw32"] → ""
+  if | os ∈ ["win32", "mingw32"] → []
      | otherwise → if adm then "sudo "
-                          else ""
+                          else []
 
-getMyMsGit :: MyEnv → Bool → (String, String)
+getMyMsGit :: MyEnv -- environment
+            → Bool  -- if needs root
+            → (String, String)
 getMyMsGit myEnv adm = ( ifadm ⧺ myGit
                        , ifadm ⧺ "\"" ⧺ myGit ⧺ "\"" )
   where myGit :: String
@@ -55,7 +59,10 @@ chk foo (previous,doU) = if previous
         else foo
 
 -- Validate an folder exists and run action
-vd :: String → String → IO (Bool, Bool) → IO (Bool, Bool)
+vd :: String -- path to validate (for example .git)
+    → String -- actual path
+    → IO (Bool, Bool)
+    → IO (Bool, Bool)
 vd validator path action =
   doesDirectoryExist ⊲ path </> validator ≫= \vde →
           if vde then setCurrentDirectory path ≫ action
