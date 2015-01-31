@@ -39,12 +39,13 @@ ifadmin adm =
                           else ""
 
 getMyMsGit :: MyEnv → Bool → (String, String)
-getMyMsGit myEnv adm =
-  let ifadm = ifadmin adm
-  in ( ifadm ⧺ myGit
-     , ifadm ⧺ "\"" ⧺ myGit ⧺ "\""
-     )
- where myGit = git myEnv
+getMyMsGit myEnv adm = ( ifadm ⧺ myGit
+                       , ifadm ⧺ "\"" ⧺ myGit ⧺ "\"" )
+  where myGit :: String
+        myGit = git myEnv
+
+        ifadm :: String
+        ifadm = ifadmin adm
 
 -- Simple double Bool checker
 chk :: IO (Bool, Bool) → (Bool, Bool)
