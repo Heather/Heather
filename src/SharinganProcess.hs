@@ -69,6 +69,7 @@ sharingan interactive shx loc shxi = if shxi then
                           else return False
           in (return False) >>= test "install.bat" (exth "install.bat")
                             >>= test "build.bat" (exth "build.bat")
+                            >>= test "build.cmd" (exth "build.cmd")
                             >>= test "Makefile" (exth "make")
                             >>= cabal
                             >>= ipkg
