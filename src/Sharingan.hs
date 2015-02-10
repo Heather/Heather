@@ -136,28 +136,24 @@ genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
 #endif
 
 list :: [String] -> IO()
-list xs =
-  withConfig $ \ymlx ->
-    let ymlprocess = ifSo $ do
-         rsdata <- yDecode ymlx :: IO [Repository]
-         let rdd = case xs of [] -> rsdata
-                              _  -> filter (\r -> isInfixOf (xs !! 0) (location r)) rsdata
-             maxl = maximum $ map (\x -> length $ last $ splitOn "\\" $ location x) rdd
-         forM_ rdd $ \repo ->
-            let loc  = location repo
-                name = last $ splitOn "\\" loc
-                lnam = (maxl + 1) - (length name)
-                adds = if lnam > 0 then replicate lnam ' '
-                                   else ""
-                sstr = " - " ++ name ++ adds
-                empt = replicate (length sstr) ' '
-                brx  = (branches repo)
-            in if (length brx) == 0
-                then printf " - %s\n" loc
-                else do printf "%s: %s (%s)\n" sstr (head brx) loc
-                        forM_ (drop 1 brx) $ printf "%s: %s\n" empt
-    in doesFileExist ymlx >>= ymlprocess 
-                          >>  exitWith ExitSuccess
+list xs = withConfig $ \ymlx -> do
+    rsdata <- yDecode ymlx :: IO [Repository]
+    let rdd = case xs of [] -> rsdata
+                         _  -> filter (\r -> isInfixOf (xs !! 0) (location r)) rsdata
+        maxl = maximum $ map (\x -> length $ last $ splitOn "\\" $ location x) rdd
+    forM_ rdd $ \repo ->
+       let loc  = location repo
+           name = last $ splitOn "\\" loc
+           lnam = (maxl + 1) - (length name)
+           sstr = " - " ++ name ++ if lnam > 0 then replicate lnam ' '
+                                               else ""
+           empt = replicate (length sstr) ' '
+           brx  = branches repo
+       in if (length brx) == 0
+           then printf " - %s\n" loc
+           else do printf "%s: %s (%s)\n" sstr (head brx) loc
+                   forM_ (drop 1 brx) $ printf "%s: %s\n" empt
+    exitWith ExitSuccess
 
 mkSharingan :: IO ()
 mkSharingan = -- Create .sharingan.yml template
@@ -171,39 +167,36 @@ mkSharingan = -- Create .sharingan.yml template
 synchronize :: CommonOpts -> SyncOpts -> IO()
 synchronize o so =
   withDefaultsConfig $ \defx ->
-   withConfig $ \ymlx ->                           
-    let ymlprocess = ifSo $ despair $ do
-        rsdata <- yDecode ymlx :: IO [Repository]
-        dfdata <- yDecode defx :: IO Defaults
-        forM_ rsdata $ \repo ->
-            let loc = location repo
-                isenabled = fromMaybe True (enabled repo)
-            in when (case syncFilter so of
-                            Nothing  -> case syncGroups so of
-                                            [] -> isenabled
-                                            gx  -> case syncGroup repo of 
-                                                        Just gg -> isenabled && (gg `elem` gx)
-                                                        Nothing -> False
-                            Just snc -> isInfixOf snc loc)
-                $ let ups = splitOn " " $ upstream repo
-                      cln = fromMaybe False (clean repo)
-                      noq = not $ fromMaybe False (quick dfdata)
-                      u b = do printf " - %s : %s\n" loc b
-                               amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
-                                                $ if (length ups) > 1 then ups !! 1 `elem` (branches repo)
-                                                                      else False
-                      eye (_, r) = when ((r || syncForce so) && (not $ syncQuick so) && noq)
-                                    $ do let shx = loc </> ".sharingan.yml"
-                                             ps  = postRebuild repo
-                                         doesFileExist shx >>= sharingan (syncInteractive so) shx loc
-                                         when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
-                                                                let pshx = psc </> ".sharingan.yml"
-                                                                in doesFileExist pshx
-                                                                    >>= sharingan (syncInteractive so) pshx psc
-                  in do forM_ (tails (branches repo))
-                         $ \case x:[] -> u x >>= eye -- Tail
-                                 x:xs -> u x >>= (\_ -> return ())
-                                 []   -> return ()
-                        putStrLn <| replicate 89 '_'
-
-    in doesFileExist ymlx >>= ymlprocess
+   withConfig $ \ymlx -> despair $ do
+    rsdata <- yDecode ymlx :: IO [Repository]
+    dfdata <- yDecode defx :: IO Defaults
+    forM_ rsdata $ \repo ->
+        let loc = location repo
+            isenabled = fromMaybe True (enabled repo)
+        in when (case syncFilter so of
+                        Nothing  -> case syncGroups so of
+                                        [] -> isenabled
+                                        gx  -> case syncGroup repo of 
+                                                    Just gg -> isenabled && (gg `elem` gx)
+                                                    Nothing -> False
+                        Just snc -> isInfixOf snc loc)
+            $ let ups = splitOn " " $ upstream repo
+                  cln = fromMaybe False (clean repo)
+                  noq = not $ fromMaybe False (quick dfdata)
+                  u b = do printf " - %s : %s\n" loc b
+                           amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
+                                            $ if (length ups) > 1 then ups !! 1 `elem` (branches repo)
+                                                                  else False
+                  eye (_, r) = when ((r || syncForce so) && (not $ syncQuick so) && noq)
+                                $ do let shx = loc </> ".sharingan.yml"
+                                         ps  = postRebuild repo
+                                     doesFileExist shx >>= sharingan (syncInteractive so) shx loc
+                                     when (isJust ps) $ forM_ (fromJust ps) $ \psc ->
+                                                            let pshx = psc </> ".sharingan.yml"
+                                                            in doesFileExist pshx
+                                                                >>= sharingan (syncInteractive so) pshx psc
+              in do forM_ (tails (branches repo))
+                     $ \case x:[] -> u x >>= eye -- Tail
+                             x:xs -> u x >>= (\_ -> return ())
+                             []   -> return ()
+                    putStrLn <| replicate 89 '_'
