@@ -46,7 +46,7 @@ parser = runA $ proc () -> do
 	   <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
 															(progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-	   <> command "depot"       (info (pure Depot)          (progDesc "Get Google depot tools with git and python"))
+	   <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
 #else
 	   <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
 #endif
