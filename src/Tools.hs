@@ -16,10 +16,10 @@ depot_tools :: IO()
 depot_tools =
     let src = "depot_tools"
         dst = "C:/depot_tools"
-    in doesDirectoryExist dst >>= \dstExist1 -> if dstExist1
+    in doesDirectoryExist dst >>= \dstExist -> if dstExist
            then do exc dst "git pull"
                    exc dst "gclient"
-           else doesDirectoryExist src >>= \srcExist2 -> unless srcExist2 $ do
+           else doesDirectoryExist src >>= \srcExist -> unless srcExist $ do
                     let tarball = "depot_tools.zip"
                     doesFileExist tarball >>= \fileExist -> unless fileExist $ do
                         putStrLn " -> Getting Depot Tools" 
