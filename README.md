@@ -4,6 +4,7 @@ Sharingan
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 [![Build status](https://ci.appveyor.com/api/projects/status/2b84cqnvh46xxpnv?svg=true)](https://ci.appveyor.com/project/Heather/sharingan) <br/>
 ![Build Status](https://codeship.com/projects/6b402750-06c3-0133-231f-2aa9a23a545f/status?branch=master)
+[![Twitter][]](http://www.twitter.com/Cynede)
 
  - Sharingan is not CI
  - Sharingan doesn't need white IP address to handle github or another hooks
@@ -106,3 +107,5 @@ Available commands:
   depot                    Get / Update Google depot tools with git and python
   cabal                    Cabal upgrade
 ```
+
+[Twitter]: http://mxtoolbox.com/Public/images/twitter-icon.png
