@@ -14,6 +14,7 @@ import System.Exit
 import System.IO
 import System.FilePath(takeDirectory, (</>))
 
+import Data.Char (toLower)
 import Data.List.Split
 import Data.Version (showVersion)
 
@@ -179,7 +180,8 @@ synchronize o so =
                                         gx  -> case syncGroup repo of 
                                                     Just gg -> isenabled && (gg `elem` gx)
                                                     Nothing -> False
-                        Just snc -> isInfixOf snc loc)
+                        Just snc -> isInfixOf (map toLower snc)
+                                              (map toLower loc))
             $ let ups = splitOn " " $ upstream repo
                   cln = fromMaybe False (clean repo)
                   noq = not $ fromMaybe False (quick dfdata)
