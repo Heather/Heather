@@ -36,23 +36,23 @@ parser :: Parser Args
 parser = runA $ proc () → do
   opts ← asA commonOpts ⤙ ()
   cmds ← (asA . hsubparser)
-	    ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
-	   <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
-	   <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
-	   <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
-	   <> command "list"        (info (listParser)          (progDesc "List repositories"))
-	   <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
-	   <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
-	   <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
-															(progDesc "Enable repository / repositories"))
-	   <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
-															(progDesc "Disable repository / repositories"))
+        ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
+       <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
+       <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
+       <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
+       <> command "list"        (info (listParser)          (progDesc "List repositories"))
+       <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
+       <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
+       <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
+                                                            (progDesc "Enable repository / repositories"))
+       <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
+                                                            (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-	   <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
+       <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
 #else
-	   <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
+       <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
 #endif
-		) ⤙ ()
+        ) ⤙ ()
   A _version ⋙ A helper ⤙ Args opts cmds
 
 commonOpts :: Parser CommonOpts
@@ -121,7 +121,7 @@ sync :: CommonOpts → SyncOpts → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                lock ← doesFileExist user
                let runWithBlock = withFile user WriteMode (do_program (synchronize o so))
-									`finally` removeFile user
+                                    `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
                                putStrLn "Remove lock and start application? (Y/N)"
                                hFlush stdout
