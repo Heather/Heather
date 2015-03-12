@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax #-}
+
 module Model
     ( Repository(..)
     , Sharingan(..)

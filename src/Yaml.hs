@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, UnicodeSyntax #-}
 
 module Yaml
   ( FromJSON
@@ -13,17 +13,18 @@ import Model
 import Data.Yaml
 
 import qualified Data.ByteString.Char8 as BS
+import Control.Applicative.Unicode
 
 instance FromJSON Repository where
     parseJSON (Object v) = Repository <$>
-                           v .:  "location" <*>
-                           v .:  "task"     <*>
-                           v .:  "branches" <*>
-                           v .:  "upstream" <*>
-                           v .:? "enabled"  <*>
-                           v .:? "clean"    <*>
-                           v .:? "postRebuild" <*>
-                           v .:? "group" <*>
+                           v .:  "location" ⊛
+                           v .:  "task"     ⊛
+                           v .:  "branches" ⊛
+                           v .:  "upstream" ⊛
+                           v .:? "enabled"  ⊛
+                           v .:? "clean"    ⊛
+                           v .:? "postRebuild" ⊛
+                           v .:? "group" ⊛
                            v .:? "hash"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML"
@@ -42,10 +43,10 @@ instance ToJSON Repository where
 
 instance FromJSON Sharingan where
     parseJSON (Object v) = Sharingan <$>
-                           v .:? "language" <*>
-                           v .:? "env" <*>
-                           v .:? "before_install" <*>
-                           v .:? "install" <*>
+                           v .:? "language" ⊛
+                           v .:? "env" ⊛
+                           v .:? "before_install" ⊛
+                           v .:? "install" ⊛
                            v .: "script"
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML"
@@ -67,12 +68,12 @@ instance FromJSON Defaults where
 instance ToJSON Defaults where
    toJSON (Defaults q) = object [ "quick" .= q ]
 
-yDecode :: FromJSON iFromJSONable => FilePath -> IO iFromJSONable
+yDecode :: FromJSON iFromJSONable ⇒ FilePath → IO iFromJSONable
 yDecode fnm = do
-    ymlData <- BS.readFile fnm
+    ymlData ← BS.readFile fnm
     return $ case Data.Yaml.decode ymlData of
-                Just decoded -> decoded
-                Nothing      -> error "Can't parse from YAML"
+                Just decoded → decoded
+                Nothing      → error "Can't parse from YAML"
 
-yEncode :: ToJSON iToJSONable => FilePath -> iToJSONable -> IO()
+yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
 yEncode fnm dat = BS.writeFile fnm $ Data.Yaml.encode dat
