@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.4.4
+version:       0.4.5
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Heather@live.ru>
@@ -16,12 +16,19 @@ Executable    sharingan
     , executable-path
     , zip-archive
     , filepath
+    , network
+    , conduit
+    , http-conduit
+    , conduit-extra
+    , http-types
     , directory
     , bytestring
     , process
-    , eternal >= 0.1.0
+    , eternal >= 0.1.1
     , split
     , despair
     , async
     , optparse-applicative
     , base-unicode-symbols
+    , utf8-string
+    , transformers

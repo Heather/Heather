@@ -23,6 +23,7 @@ module Config
   ) where
 
 import Yaml
+import Exec
 
 import System.Directory
 import System.IO

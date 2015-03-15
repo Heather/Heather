@@ -15,6 +15,10 @@ import Control.Eternal
 
 import qualified Data.ByteString.Lazy as B
 
+import FileSystem
+import Exec
+import HTTP
+
 depot_tools :: IO()
 depot_tools =
     let src = "depot_tools"

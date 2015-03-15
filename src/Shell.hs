@@ -2,12 +2,11 @@
 
 module Shell
   ( amaterasu
-  , exec
-  , exc
   , setEnv
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
   , gentooSync
 #endif
+  , module Exec
   ) where
 
 import Data.List.Split
@@ -19,6 +18,8 @@ import System.FilePath((</>))
 
 import System.Process
 
+import Trim
+import Exec
 import Config
 import AsyncReactive
 
