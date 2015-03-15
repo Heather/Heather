@@ -75,6 +75,6 @@ data Command
     | List [String]
     | Add [String] | Delete [String]
     | Enable String | Disable String
-    | Depot
+    | Depot | Cabal
     | Gentoo
     deriving Show

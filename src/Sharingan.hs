@@ -49,6 +49,7 @@ parser = runA $ proc () → do
                                                             (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
        <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
+       <> command "cabal"       (info (pure Cabal)          (progDesc "Cabal upgrade"))
 #else
        <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
 #endif
@@ -106,7 +107,8 @@ run (Args _ (Enable  xs))   = (enable True) xs
 run (Args _ (Disable xs))   = (enable False) xs
 run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-run (Args _ getDepot)       = depot_tools
+run (Args _ Depot)          = depot_tools
+run (Args _ Cabal)          = cabal_upgrade
 #else
 run (Args opts Gentoo)      = genSync opts
 #endif

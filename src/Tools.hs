@@ -2,6 +2,7 @@
 
 module Tools
   ( depot_tools
+  , cabal_upgrade
   ) where
 
 import Codec.Archive.Zip
@@ -42,3 +43,7 @@ depot_tools =
                     getChar ≫ return ()
                     {- I know..................................................... -}
                     exc dst "gclient"
+
+cabal_upgrade :: IO()
+cabal_upgrade = do exec "cabal update"
+                   exec "cabal install cabal-install"
