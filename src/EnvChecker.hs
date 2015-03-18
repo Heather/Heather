@@ -14,9 +14,7 @@ import Control.Exception
 import Data.Maybe
 
 gitCheckTry :: String → [String] → IO (Either SomeException String)
-gitCheckTry cmd args =
-    try $ readProcess cmd (args ++ ["--version"]) []
-            :: IO (Either SomeException String)
+gitCheckTry cmd args = try $ readProcess cmd (args ++ ["--version"]) []
 
 gitCheck :: String → [String] → IO (Maybe String)
 gitCheck cmd args =
