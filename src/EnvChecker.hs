@@ -22,8 +22,7 @@ gitCheck :: String → [String] → IO (Maybe String)
 gitCheck cmd args =
     gitCheckTry cmd args
     ≫= \case Left _ → return Nothing
-             Right val → do putStr $ cmd ++ " : "
-                            putStrLn val
+             Right val → do putStr $ cmd ⧺ " : " ⧺ val
                             return (Just cmd)
 
 getGit :: IO String
