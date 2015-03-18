@@ -24,15 +24,14 @@ gitCheck cmd args =
                             return (Just cmd)
 
 getGit :: IO String
-getGit =
-    let t x a prev = if (isNothing  prev)
+getGit = (return Nothing) ≫= t "git" []
+                          ≫= t "C:/Program Files (x86)/Git/cmd/git.exe" []
+                          ≫= t "C:/Program Files/Git/cmd/git.exe" []
+                          ≫= t "git.cmd" []
+                          ≫= \res → return $ fromMaybe "git" res
+  where t x a prev = if (isNothing  prev)
                       then gitCheck x a
                       else return prev
-    in (return Nothing) ≫= t "git" []
-                        ≫= t "C:/Program Files (x86)/Git/cmd/git.exe" []
-                        ≫= t "C:/Program Files/Git/cmd/git.exe" []
-                        ≫= t "git.cmd" []
-                        ≫= \res → return $ fromMaybe "git" res
 
 getEnv :: IO MyEnv
 getEnv = do
