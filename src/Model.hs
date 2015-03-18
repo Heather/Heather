@@ -8,6 +8,7 @@ module Model
     , CommonOpts(..)
     , SyncOpts(..)
     , Command(..)
+    , MyEnv(..)
   
     , module Control.Monad
     , module Control.Applicative
@@ -78,3 +79,8 @@ data Command
     | Depot | Cabal
     | Gentoo
     deriving Show
+
+data MyEnv = MyEnv
+    { git :: String
+    , hg :: String
+    } deriving Show

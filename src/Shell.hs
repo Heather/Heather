@@ -28,44 +28,48 @@ setEnv env = exec $ if | os `elem` ["win32", "mingw32"] → "set " ⧺ env
                        | os `elem` ["darwin", "cygwin32"] → "export " ⧺ env
                        | otherwise → "export " ⧺ env
 
-amaterasu :: String → String → String → [String] → Bool → Bool → Maybe String → Bool → IO (Bool, Bool)
+amaterasu :: String → String → String → [String] → Bool → Bool → Maybe String → Bool → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ unsafe processClean _ _ → do
-    doesDirectoryExist ⊲ path </> ".git" ≫= \git →
-        when git $ do
-            when processClean $ exec "git clean -xdf"
-            when (not unsafe) $ exec "git reset --hard & git rebase --abort"
+amaterasu custom    = \path _ _ unsafe processClean _ _ myEnv → do
+    doesDirectoryExist ⊲ path </> ".git" ≫= \gitDirExists →
+        let myGit = git myEnv
+            msGit = "\"" ⧺ myGit ⧺ "\""
+        in when gitDirExists $ do
+            when processClean $ exec (msGit ⧺ " clean -xdf")
+            when (not unsafe) $ exec (msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort")
     doesDirectoryExist path ≫= \dirExist →
         if dirExist then setCurrentDirectory path ≫ do
                             exec custom
                             return (True, True)
                     else return (False, False)
 
-pull :: String → String → [String] → Bool → Bool → Maybe String → Bool → IO (Bool, Bool)
-pull path branch _ unsafe processClean rhash sync =
+pull :: String → String → [String] → Bool → Bool → Maybe String → Bool → MyEnv → IO (Bool, Bool)
+pull path branch _ unsafe processClean rhash sync myEnv =
     doesDirectoryExist path ≫= \dirExist →
         let chk foo (previous,doU) = if previous
                 then return (previous, doU)
                 else foo
 
-            gitX = doesDirectoryExist ⊲ path </> ".git" ≫= \git →
-                    if git then if dirExist
+            gitX = doesDirectoryExist ⊲ path </> ".git" ≫= \gde →
+                    if gde then if dirExist
                             then setCurrentDirectory path ≫ do
-                                currentbranch ← readProcess "git" ["rev-parse", "--abbrev-ref", "HEAD"] []
+                                let myGit = git myEnv
+                                    msGit = "\"" ⧺ myGit ⧺ "\""
+                                currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
                                 let cbr = trim currentbranch
                                     whe c s = when c $ exec s
-                                whe (cbr ≢ branch) $ "git checkout " ⧺ branch
-                                whe (not unsafe)    $ "git reset --hard & git rebase --abort"
-                                whe (processClean)  $ "git clean -xdf"
+                                whe (cbr ≢ branch)  $ msGit ⧺ " checkout " ⧺ branch
+                                whe (not unsafe)    $ msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort"
+                                whe (processClean)  $ msGit ⧺ " clean -xdf"
                                 loc ← case rhash of
                                         Just hsh → return hsh
-                                        _ → readProcess "git" ["log", "-n", "1"
+                                        _ → readProcess myGit ["log", "-n", "1"
                                                               , "--pretty=format:%H"
                                                               ] []
                                 let local  = trim loc
-                                rlc ← readProcess "git" ["ls-remote", "origin", branch] []
-                                lrc ← if isNothing rhash then readProcess "git" ["log", "-n", "1"
+                                rlc ← readProcess myGit ["ls-remote", "origin", branch] []
+                                lrc ← if isNothing rhash then readProcess myGit ["log", "-n", "1"
                                                                                 , "--pretty=format:%H"
                                                                                 ] []
                                                           else return loc
@@ -74,7 +78,7 @@ pull path branch _ unsafe processClean rhash sync =
                                 putStrLn $ "Origin: " ⧺ remloc
                                 putStrLn $ "Local: "  ⧺ locloc
                                 if (remloc ≢ locloc) 
-                                    then do exec $ "git pull origin " ⧺ branch
+                                    then do exec $ msGit ⧺ " pull origin " ⧺ branch
                                             hashupdate remloc path
                                             return (True, True)
                                     else return (True, False)
@@ -92,37 +96,39 @@ pull path branch _ unsafe processClean rhash sync =
         in (return (False, False)) ≫= (chk gitX)
                                    ≫= (chk hgX)
 
-rebasefork :: String → String → [String] → Bool → Bool → Maybe String → Bool → IO (Bool, Bool)
-rebasefork path branch up unsafe processClean rhash sync =
+rebasefork :: String → String → [String] → Bool → Bool → Maybe String → Bool → MyEnv → IO (Bool, Bool)
+rebasefork path branch up unsafe processClean rhash sync myEnv =
     let upstream = intercalate " " up
     in doesDirectoryExist path ≫= \dirExist →
         let chk foo (previous,doU) = if previous
                 then return (previous, doU)
                 else foo
 
-            gitX = doesDirectoryExist ⊲ path </> ".git" ≫= \git →
-                    if git then if dirExist
+            gitX = doesDirectoryExist ⊲ path </> ".git" ≫= \gde →
+                    if gde then if dirExist
                             then setCurrentDirectory path ≫ do
-                                currentbranch ← readProcess "git" ["rev-parse", "--abbrev-ref", "HEAD"] []
+                                let myGit = git myEnv
+                                    msGit = "\"" ⧺ myGit ⧺ "\""
+                                currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
                                 let cbr = trim currentbranch
                                     whe c s = when c $ exec s
-                                whe (cbr ≢ branch) $ "git checkout " ⧺ branch
-                                whe (not unsafe)    $ "git reset --hard & git rebase --abort"
-                                whe (processClean)  $ "git clean -xdf"
+                                whe (cbr ≢ branch)  $ msGit ⧺ " checkout " ⧺ branch
+                                whe (not unsafe)    $ msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort"
+                                whe (processClean)  $ msGit ⧺ " clean -xdf"
                                 loc ← case rhash of
                                         Just hsh → return hsh
                                         _ → if (length up) > 1
-                                                then if sync then readProcess "git" [ "merge-base"
+                                                then if sync then readProcess myGit [ "merge-base"
                                                                                     , up !! 1
                                                                                     , "origin/" ⧺ branch
                                                                                     ] []
-                                                             else readProcess "git" [ "rev-parse"
+                                                             else readProcess myGit [ "rev-parse"
                                                                                     , intercalate "/" up
                                                                                     ] []
-                                                else readProcess "git" ["log", "-n", "1"
+                                                else readProcess myGit ["log", "-n", "1"
                                                                        , "--pretty=format:%H"
                                                                        ] []
-                                rem ← readProcess "git" (["ls-remote"] ⧺ up) []
+                                rem ← readProcess myGit (["ls-remote"] ⧺ up) []
                                 let remote = (splitOn "\t" rem) !! 0
                                     local  = trim loc
                                 putStrLn $ "Last Merge: " ⧺ local
@@ -130,8 +136,8 @@ rebasefork path branch up unsafe processClean rhash sync =
                                 if remote ≡ local
                                     then do putStrLn $ path ⧺ " is up to date"
                                             return (True, False)
-                                    else do rlc ← readProcess "git" ["ls-remote", "origin", branch] []
-                                            lrc ← if isNothing rhash then readProcess "git" ["log", "-n", "1"
+                                    else do rlc ← readProcess myGit ["ls-remote", "origin", branch] []
+                                            lrc ← if isNothing rhash then readProcess myGit ["log", "-n", "1"
                                                                                             , "--pretty=format:%H"
                                                                                             ] []
                                                                       else return loc
@@ -139,10 +145,11 @@ rebasefork path branch up unsafe processClean rhash sync =
                                                 locloc = trim lrc
                                             putStrLn $ "Origin: " ⧺ remloc
                                             putStrLn $ "Local: "  ⧺ locloc
-                                            whe (remloc ≢ locloc) $ "git pull origin " ⧺ branch
+                                            whe (remloc ≢ locloc) $ msGit ⧺ " pull origin " ⧺ branch
                                             whe (remloc ≢ remote) 
-                                                  $ "git pull --rebase "         ⧺ upstream
-                                                 ⧺ " & git push --force origin " ⧺ branch
+                                                  $ msGit ⧺ " pull --rebase " ⧺ upstream
+                                                    ⧺ " & " ⧺ msGit
+                                                    ⧺ " push --force origin " ⧺ branch
                                             hashupdate remote path
                                             return (True, True)
                             else return (True, True)

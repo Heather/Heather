@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiWayIf, LambdaCase, OverloadedStrings, Arrows, CPP, UnicodeSyntax #-}
 
 import Despair
+import EnvChecker
 import Tools
 import Config
 import SharinganProcess
@@ -174,6 +175,7 @@ synchronize o so =
    withConfig $ \ymlx → despair $ do
     rsdata ← yDecode ymlx :: IO [Repository]
     dfdata ← yDecode defx :: IO Defaults
+    myEnv  ← getEnv
     forM_ rsdata $ \repo →
         let loc = location repo
             isenabled = fromMaybe True (enabled repo)
@@ -188,10 +190,10 @@ synchronize o so =
             $ let ups = splitOn " " $ upstream repo
                   cln = fromMaybe False (clean repo)
                   noq = not $ fromMaybe False (quick dfdata)
+                  syn = if (length ups) > 1 then ups !! 1 ∈ (branches repo)
+                                            else False
                   u b = do printf " - %s : %s\n" loc b
-                           amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) 
-                                            $ if (length ups) > 1 then ups !! 1 ∈ (branches repo)
-                                                                  else False
+                           amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) syn myEnv
                   eye (_, r) = when ((r ∨ syncForce so) ∧ (not $ syncQuick so) ∧ noq)
                                 $ do let shx = loc </> ".sharingan.yml"
                                          ps  = postRebuild repo
