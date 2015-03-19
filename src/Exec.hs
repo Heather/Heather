@@ -7,22 +7,38 @@ module Exec
 import System.Directory (setCurrentDirectory)
 import System.Process (waitForProcess, rawSystem)
 
+import Trim
 import Data.List.Split
 
 import Control.Eternal.Syntax
 
---TODO: quotes support
+-- |⊙)
+-- |‿⊙)
+-- |⊙‿⊙)
+-- TODO: Handle all quotes, not just first command
+handleQuotes :: String → (String, [String])
+handleQuotes qq =
+    if '\"' `elem` qq
+        then let spq = filter (not . null) $ splitOn "\"" qq
+                 nos = filter (not . null . trim) spq
+                 fsq = nos !! 0
+                 ssq = filter (not . null) $ splitOn " " (concat (tail nos))
+             in (fsq, ssq)
+        else let spq = filter (not . null) $ splitOn " " qq
+                 fsq = spq !! 0
+                 ssq = tail spq
+             in (fsq, ssq)
+
+-- ✌(◉_◉ )
 execute :: [String] → IO()
 execute [] = return ()
 execute [x] = 
-    let qqq = filter (/= '\"') x -- temporary just filter it out
-        spl = filter (not . null) $ splitOn " " qqq
-        fs = spl !! 0
-        sn = tail spl
+    let (fs, sn) = handleQuotes x
     in rawSystem fs sn ≫ return ()
 execute (x:xs) = do execute [x]
                     execute xs
 
+-- (҂￣‿‿￣҂)
 exec :: String → IO()
 exec args = 
     let commands = splitOn "&" args

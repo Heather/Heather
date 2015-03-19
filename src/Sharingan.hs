@@ -29,11 +29,11 @@ import Data.Monoid
 (<>) = mappend
 #endif
 
-_version :: Parser (a → a)
+_version :: Parser (a → a) -- ( づ ◔‿◔ )づ
 _version = infoOption ("Sharingan " ⧺ (showVersion version) ⧺ " " ⧺ os)
   (  long "version" <> help "Print version information" )
 
-parser :: Parser Args
+parser :: Parser Args -- ✌(★◇★ )
 parser = runA $ proc () → do
   opts ← asA commonOpts ⤙ ()
   cmds ← (asA . hsubparser)
@@ -54,7 +54,7 @@ parser = runA $ proc () → do
 #else
        <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
 #endif
-        ) ⤙ ()
+        ) ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
   A _version ⋙ A helper ⤙ Args opts cmds
 
 commonOpts :: Parser CommonOpts
@@ -82,7 +82,7 @@ syncParser = runA $ proc () → do
     returnA ⤙ Sync syncO
 
 syncOpts :: Parser SyncOpts
-syncOpts = runA $ proc () → do
+syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
     force  ← asA (switch (short 'f' <> long "force"))         ⤙ ()
     unsafe ← asA (switch (short 'u' <> long "unsafe"))        ⤙ ()
     quick  ← asA (switch (short 'q' <> long "quick"))         ⤙ ()
@@ -97,7 +97,7 @@ syncOpts = runA $ proc () → do
                         , syncInteractive = intera
                         }
 
-run :: Args → IO ()
+run :: Args → IO () -- (＠ ・‿‿・)
 run (Args _ MakeSharingan)  = mkSharingan
 run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
@@ -140,7 +140,7 @@ genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
                  ≫ exitWith ExitSuccess
 #endif
 
-list :: [String] → IO()
+list :: [String] → IO() -- (＾‿‿＾ *)
 list xs = withConfig $ \ymlx → do
     rsdata ← yDecode ymlx :: IO [Repository]
     let rdd = case xs of [] → rsdata
@@ -170,7 +170,7 @@ mkSharingan = -- Create .sharingan.yml template
   in yEncode ".sharingan.yml" new ≫ exitWith ExitSuccess
 
 synchronize :: CommonOpts → SyncOpts → IO()
-synchronize o so =
+synchronize o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
     rsdata ← yDecode ymlx :: IO [Repository]
