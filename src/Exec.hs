@@ -2,10 +2,11 @@
 module Exec
   ( exec
   , exc
+  , sys
   ) where
 
 import System.Directory (setCurrentDirectory)
-import System.Process (waitForProcess, rawSystem)
+import System.Process (waitForProcess, rawSystem, system)
 
 import Trim
 import Data.List.Split
@@ -40,9 +41,11 @@ execute (x:xs) = do execute [x]
 
 -- (҂￣‿‿￣҂)
 exec :: String → IO()
-exec args = 
-    let commands = splitOn "&" args
-    in execute commands
+exec cmd = execute commands
+  where commands = splitOn "&" cmd
+
+sys :: String → IO()
+sys cmd = system cmd ≫ return ()
 
 exc :: String → String → IO()
 exc path args = setCurrentDirectory path ≫ exec args

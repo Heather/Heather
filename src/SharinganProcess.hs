@@ -74,4 +74,4 @@ sharingan interactive shx loc shxi = if shxi then
                             ≫= cabal
                             ≫= ipkg
                             ≫ return ()
-  where exth = exc loc
+  where exth cmd = setCurrentDirectory loc ≫ sys cmd

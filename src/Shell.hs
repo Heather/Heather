@@ -24,9 +24,9 @@ import Config
 import AsyncReactive
 
 setEnv :: String → IO()
-setEnv env = exec $ if | os `elem` ["win32", "mingw32"] → "set " ⧺ env
-                       | os `elem` ["darwin", "cygwin32"] → "export " ⧺ env
-                       | otherwise → "export " ⧺ env
+setEnv env = sys $ if | os `elem` ["win32", "mingw32"] → "set " ⧺ env
+                      | os `elem` ["darwin", "cygwin32"] → "export " ⧺ env
+                      | otherwise → "export " ⧺ env
 
 amaterasu :: String → String → String → [String] → Bool → Bool → Maybe String → Bool → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
