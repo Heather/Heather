@@ -3,6 +3,7 @@ module Exec
   ( exec
   , exc
   , sys
+  , system
   ) where
 
 import System.Directory (setCurrentDirectory)

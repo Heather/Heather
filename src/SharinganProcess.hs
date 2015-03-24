@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, UnicodeSyntax #-}
+{-# LANGUAGE CPP, MultiWayIf, UnicodeSyntax #-}
 
 module SharinganProcess
   ( sharingan
@@ -13,11 +13,24 @@ import Shell
 
 import System.Directory
 import System.FilePath(takeDirectory, (</>))
+import System.Info (os)
+import System.Environment.Executable ( getExecutablePath )
 
 import Data.Char
 
+getIconPath :: String → IO FilePath
+getIconPath icon =
+    if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharingan.yml" ⧺ icon)
+                                                   <$> takeDirectory
+                                                   <$> getExecutablePath
+       | otherwise → return ("/etc/sharingan/" ⧺ icon)
+
+updateStatusIcon :: String → Bool → IO()
+updateStatusIcon loc True  = getIconPath "positive.png" ≫= \i → copyFile i (loc ⧺ ".sharingan.png")
+updateStatusIcon loc False = getIconPath "negative.png" ≫= \i → copyFile i (loc ⧺ ".sharingan.png")
+
 sharingan :: Bool → String → String → Bool → IO()
-sharingan interactive shx loc shxi = if shxi then     
+sharingan interactive shx loc shxi = if shxi then
      do syncDatax ← yDecode shx :: IO Sharingan
         let sc   = script syncDatax
             lang = case language syncDatax of
@@ -39,6 +52,7 @@ sharingan interactive shx loc shxi = if shxi then
                   "rust"    → exth "make"
                   _         → return () -- do nothing
           _ → forM_ sc exth
+        updateStatusIcon loc True
      else when interactive
         $ let test fe procx previous = if previous
                 then return True
@@ -67,11 +81,12 @@ sharingan interactive shx loc shxi = if shxi then
                                   exth $ "idris --install " ⧺ f0
                                   return True
                           else return False
-          in (return False) ≫= test "install.bat" (exth "install.bat")
-                            ≫= test "build.bat" (exth "build.bat")
-                            ≫= test "build.cmd" (exth "build.cmd")
-                            ≫= test "Makefile" (exth "make")
-                            ≫= cabal
-                            ≫= ipkg
-                            ≫ return ()
+          in do s <- (return False) ≫= test "install.bat" (exth "install.bat")
+                                    ≫= test "build.bat" (exth "build.bat")
+                                    ≫= test "build.cmd" (exth "build.cmd")
+                                    ≫= test "Makefile" (exth "make")
+                                    ≫= cabal
+                                    ≫= ipkg
+                updateStatusIcon loc s
   where exth cmd = setCurrentDirectory loc ≫ sys cmd
+        rxth cmd = setCurrentDirectory loc ≫ system cmd
