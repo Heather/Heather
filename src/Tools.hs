@@ -46,7 +46,7 @@ depot_tools =
                     putStrLn "======================================================"
                     getChar ≫ return ()
                     {- I know..................................................... -}
-                    exc dst "gclient"
+                    setCurrentDirectory dst ≫ sys "gclient"
 
 cabal_upgrade :: IO()
 cabal_upgrade = do exec "cabal update"
