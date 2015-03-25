@@ -3,6 +3,12 @@ Sharingan
 
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 
+ - Sharingan is not CI
+ - Sharingan doesn't need white IP address to handle github or another hooks
+ - Sharingan is not a polling service, you run it when you want to run it
+ - Sharingan is not just build, you also process rebasing and pushing, etc...
+ - Sharingan is command line tool with random features (I can't imagine if I can separate other stuff by plugins or something like that)
+
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
 
 per-repository config example (`.sharingan.yml`):
@@ -95,5 +101,6 @@ Available commands:
   delete                   Delete repository (current path w/o args)
   enable                   Enable repository / repositories
   disable                  Disable repository / repositories
-  depot                    Get Google depot tools with git and python
+  depot                    Get / Update Google depot tools with git and python
+  cabal                    Cabal upgrade
 ```
