@@ -20,9 +20,9 @@ import Data.Char
 
 getIconPath :: String → IO FilePath
 getIconPath icon =
-    if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharingan.yml" ⧺ icon)
-                                                   <$> takeDirectory
-                                                   <$> getExecutablePath
+    if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> icon)
+                                                  <$> takeDirectory
+                                                  <$> getExecutablePath
        | otherwise → return ("/etc/sharingan/" ⧺ icon)
 
 updateStatusIcon :: String → Bool → IO()
