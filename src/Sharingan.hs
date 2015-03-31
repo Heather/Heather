@@ -83,13 +83,15 @@ syncParser = runA $ proc () → do
 
 syncOpts :: Parser SyncOpts
 syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
+    full   ← asA (switch (long "full"))                       ⤙ ()
     force  ← asA (switch (short 'f' <> long "force"))         ⤙ ()
     unsafe ← asA (switch (short 'u' <> long "unsafe"))        ⤙ ()
     quick  ← asA (switch (short 'q' <> long "quick"))         ⤙ ()
     intera ← asA (switch (short 'i' <> long "interactive"))   ⤙ ()
     filter ← asA (optional (argument str (metavar "FILTER"))) ⤙ ()
     groups ← asA (many (option str (short 'g'  <> long "group" <> metavar "GROUPS"))) ⤙ ()
-    returnA ⤙ SyncOpts { syncForce  = force
+    returnA ⤙ SyncOpts { syncFull = full
+                        , syncForce  = force
                         , syncUnsafe = unsafe
                         , syncQuick  = quick
                         , syncFilter = filter
@@ -173,6 +175,12 @@ synchronize :: CommonOpts → SyncOpts → IO()
 synchronize o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
+    when (syncFull so) $ do 
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+        cabal_upgrade
+#else
+        genSync o
+#endif
     rsdata ← yDecode ymlx :: IO [Repository]
     dfdata ← yDecode defx :: IO Defaults
     myEnv  ← getEnv

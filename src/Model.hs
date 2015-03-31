@@ -28,44 +28,45 @@ import Data.Maybe
 import Data.List
 
 data Sharingan = Sharingan 
-    { language        :: Maybe String
-    , env             :: Maybe [String]
-    , before_install  :: Maybe [String]
-    , install         :: Maybe [String]
-    , script          :: [String]
+    { language        ∷ Maybe String
+    , env             ∷ Maybe [String]
+    , before_install  ∷ Maybe [String]
+    , install         ∷ Maybe [String]
+    , script          ∷ [String]
     } deriving (Show)
 
 data Repository = Repository 
-    { location      :: String
-    , task          :: String
-    , branches      :: [String]
-    , upstream      :: String
-    , enabled       :: Maybe Bool
-    , clean         :: Maybe Bool
-    , postRebuild   :: Maybe [String]
-    , syncGroup     :: Maybe String
-    , hash          :: Maybe String
+    { location      ∷ String
+    , task          ∷ String
+    , branches      ∷ [String]
+    , upstream      ∷ String
+    , enabled       ∷ Maybe Bool
+    , clean         ∷ Maybe Bool
+    , postRebuild   ∷ Maybe [String]
+    , syncGroup     ∷ Maybe String
+    , hash          ∷ Maybe String
     } deriving (Show, Eq)
 
 data Defaults = Defaults 
-    { quick :: Maybe Bool
+    { quick ∷ Maybe Bool
     }
 
 data Args = Args CommonOpts Command
       deriving Show
   
 data CommonOpts = CommonOpts
-    { optVerbosity :: Bool
-    , optJobs :: Int
+    { optVerbosity ∷ Bool
+    , optJobs ∷ Int
     } deriving Show
     
 data SyncOpts = SyncOpts
-    { syncForce :: Bool
-    , syncUnsafe :: Bool
-    , syncQuick :: Bool
-    , syncInteractive :: Bool
-    , syncFilter :: Maybe String
-    , syncGroups :: [String]
+    { syncFull ∷ Bool
+    , syncForce ∷ Bool
+    , syncUnsafe ∷ Bool
+    , syncQuick ∷ Bool
+    , syncInteractive ∷ Bool
+    , syncFilter ∷ Maybe String
+    , syncGroups ∷ [String]
     } deriving Show
 
 data Command
@@ -81,6 +82,6 @@ data Command
     deriving Show
 
 data MyEnv = MyEnv
-    { git :: String
-    , hg :: String
+    { git ∷ String
+    , hg ∷ String
     } deriving Show
