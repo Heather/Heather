@@ -26,8 +26,8 @@ getIconPath icon =
        | otherwise → return ("/etc/sharingan/" ⧺ icon)
 
 updateStatusIcon :: String → Bool → IO()
-updateStatusIcon loc True  = getIconPath "positive.png" ≫= \i → copyFile i (loc ⧺ ".sharingan.png")
-updateStatusIcon loc False = getIconPath "negative.png" ≫= \i → copyFile i (loc ⧺ ".sharingan.png")
+updateStatusIcon loc True  = getIconPath "positive.png" ≫= \i → copyFile i (loc </> ".sharingan.png")
+updateStatusIcon loc False = getIconPath "negative.png" ≫= \i → copyFile i (loc </> ".sharingan.png")
 
 sharingan :: Bool → String → String → Bool → IO()
 sharingan interactive shx loc shxi = if shxi then
