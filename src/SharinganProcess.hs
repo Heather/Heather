@@ -18,20 +18,27 @@ import System.Environment.Executable ( getExecutablePath )
 
 import Data.Char
 
-getIconPath :: String → IO FilePath
+getIconPath ∷ String → IO FilePath
 getIconPath icon =
     if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> icon)
                                                   <$> takeDirectory
                                                   <$> getExecutablePath
        | otherwise → return ("/etc/sharingan/" ⧺ icon)
 
-updateStatusIcon :: String → Bool → IO()
-updateStatusIcon loc True  = getIconPath "positive.png" ≫= \i → copyFile i (loc </> ".sharingan.png")
-updateStatusIcon loc False = getIconPath "negative.png" ≫= \i → copyFile i (loc </> ".sharingan.png")
+copyIcon ∷ FilePath → FilePath → IO ()
+copyIcon i path = do
+    iconExist ← doesFileExist i
+    if iconExist then copyFile i path
+                 else do putStrLn $ "WARNING: missing icon " ⧺ i
+                         putStrLn $ "get it somewhere and put into that folder"
 
-sharingan :: Bool → String → String → Bool → IO()
+updateStatusIcon ∷ String → Bool → IO()
+updateStatusIcon loc True  = getIconPath "positive.png" ≫= \i → copyIcon i (loc </> ".sharingan.png")
+updateStatusIcon loc False = getIconPath "negative.png" ≫= \i → copyIcon i (loc </> ".sharingan.png")
+
+sharingan ∷ Bool → String → String → Bool → IO()
 sharingan interactive shx loc shxi = if shxi then
-     do syncDatax ← yDecode shx :: IO Sharingan
+     do syncDatax ← yDecode shx ∷ IO Sharingan
         let sc   = script syncDatax
             lang = case language syncDatax of
                         Just [] → []
