@@ -22,6 +22,7 @@ instance FromJSON Repository where
                            v .:  "branches" ⊛
                            v .:  "upstream" ⊛
                            v .:? "enabled"  ⊛
+                           v .:? "positive" ⊛
                            v .:? "clean"    ⊛
                            v .:? "postRebuild" ⊛
                            v .:? "group" ⊛
@@ -30,12 +31,13 @@ instance FromJSON Repository where
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON Repository where
-   toJSON (Repository loca tsk br up enb cln pr gr
+   toJSON (Repository loca tsk br up enb pos cln pr gr
                       hs) = object [ "location"     .= loca
                                    , "task"         .= tsk
                                    , "branches"     .= br
                                    , "upstream"     .= up
                                    , "enabled"      .= enb
+                                   , "positive"     .= pos
                                    , "clean"        .= cln
                                    , "postRebuild"  .= pr
                                    , "group"        .= gr

@@ -33,27 +33,27 @@ import System.Exit
 import System.FilePath(takeDirectory, (</>))
 import System.Environment( getEnv )
 
-getConfig :: IO FilePath
+getConfig ∷ IO FilePath
 getConfig =
     if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharingan.yml") 
-                                                   <$> takeDirectory 
-                                                   <$> getExecutablePath
+                                                  <$> takeDirectory 
+                                                  <$> getExecutablePath
        | otherwise → return "/etc/sharingan.yml"
 
-getDefaultsConfig :: IO FilePath
+getDefaultsConfig ∷ IO FilePath
 getDefaultsConfig =
     if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharinganDefaults.yml") 
-                                                   <$> takeDirectory 
-                                                   <$> getExecutablePath
+                                                  <$> takeDirectory 
+                                                  <$> getExecutablePath
        | otherwise → return "/etc/sharinganDefaults.yml"
 
-processChecks :: FilePath → IO()
+processChecks ∷ FilePath → IO()
 processChecks cfg = 
     let generate cfg = ifNot $ yEncode cfg nothing
     in doesFileExist cfg ≫= generate cfg
-  where nothing = [] :: [Repository]
+  where nothing = [] ∷ [Repository]
 
-processDefaultsChecks :: FilePath → IO()
+processDefaultsChecks ∷ FilePath → IO()
 processDefaultsChecks cfg = 
     let generate cfg = ifNot $ yEncode cfg nothing
     in doesFileExist cfg ≫= generate cfg
@@ -62,26 +62,27 @@ processDefaultsChecks cfg =
 withConfig foo = liftM2 (≫) processChecks foo =≪ getConfig
 withDefaultsConfig foo = liftM2 (≫) processDefaultsChecks foo =≪ getDefaultsConfig
 
-config :: IO()
+config ∷ IO()
 config = do editor ← getEnv "EDITOR"
             withConfig $ \ymlx →
                 exec $ editor ⧺ " " ⧺ ymlx
             exitWith ExitSuccess
 
-defaultsConfig :: IO ()
+defaultsConfig ∷ IO ()
 defaultsConfig = do editor ← getEnv "EDITOR"
                     withDefaultsConfig $ \ymlx →
                         exec $ editor ⧺ " " ⧺ ymlx
                     exitWith ExitSuccess
 
-getA :: String → IO ()
+getA ∷ String → IO ()
 getA arg = -- Add new stuff to sync
   withConfig $ \ymlx →
     let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx :: IO [Repository]
+        rsdata ← yDecode ymlx ∷ IO [Repository]
         let new = (Repository arg "rebase" -- rebase as default task
                               ["master"] "upstream master"
-                              Nothing Nothing Nothing Nothing Nothing)
+                              Nothing Nothing Nothing
+                              Nothing Nothing Nothing)
         if (elem new rsdata)
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
@@ -89,11 +90,11 @@ getA arg = -- Add new stuff to sync
     in doesFileExist ymlx ≫= ymlprocess 
                           ≫ exitWith ExitSuccess
 
-getD :: String → IO ()
+getD ∷ String → IO ()
 getD arg = -- Remove stuff from sync
   withConfig $ \ymlx →
     let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx :: IO [Repository]
+        rsdata ← yDecode ymlx ∷ IO [Repository]
         let iio x = isInfixOf arg $ location x
             findx = find iio rsdata
         case findx of
@@ -103,21 +104,21 @@ getD arg = -- Remove stuff from sync
     in doesFileExist ymlx ≫= ymlprocess 
                           ≫ exitWith ExitSuccess
 
-getAC :: [String] → IO ()
+getAC ∷ [String] → IO ()
 getAC []     = getCurrentDirectory ≫= getA
 getAC (x:[]) = getA x
 getAC (x:xs) = do { getA x; getAC xs }
 
-getDC :: [String] → IO ()
+getDC ∷ [String] → IO ()
 getDC []     = getCurrentDirectory ≫= getD
 getDC (x:[]) = getD x
 getDC (x:xs) = do { getD x; getDC xs }
 
-enable :: Bool → String → IO ()
+enable ∷ Bool → String → IO ()
 enable en arg =
   withConfig $ \ymlx →
     let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx :: IO [Repository]
+        rsdata ← yDecode ymlx ∷ IO [Repository]
         let fr x = if isInfixOf arg $ location x
                     then x { enabled = Just en }
                     else x
@@ -125,11 +126,11 @@ enable en arg =
     in doesFileExist ymlx ≫= ymlprocess 
                           ≫ exitWith ExitSuccess
 
-hashupdate :: String → String → IO ()
+hashupdate ∷ String → String → IO ()
 hashupdate hsh rep =
   withConfig $ \ymlx →
     let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx :: IO [Repository]
+        rsdata ← yDecode ymlx ∷ IO [Repository]
         let fr x = if rep ≡ location x
                     then x { hash = Just hsh }
                     else x

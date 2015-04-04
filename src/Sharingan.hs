@@ -25,15 +25,15 @@ import Control.Arrow.Unicode
 
 #if __GLASGOW_HASKELL__ <= 702
 import Data.Monoid
-(<>) :: Monoid a ⇒ a → a → a
+(<>) ∷ Monoid a ⇒ a → a → a
 (<>) = mappend
 #endif
 
-_version :: Parser (a → a) -- ( づ ◔‿◔ )づ
+_version ∷ Parser (a → a) -- ( づ ◔‿◔ )づ
 _version = infoOption ("Sharingan " ⧺ (showVersion version) ⧺ " " ⧺ os)
   (  long "version" <> help "Print version information" )
 
-parser :: Parser Args -- ✌(★◇★ )
+parser ∷ Parser Args -- ✌(★◇★ )
 parser = runA $ proc () → do
   opts ← asA commonOpts ⤙ ()
   cmds ← (asA . hsubparser)
@@ -57,7 +57,7 @@ parser = runA $ proc () → do
         ) ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
   A _version ⋙ A helper ⤙ Args opts cmds
 
-commonOpts :: Parser CommonOpts
+commonOpts ∷ Parser CommonOpts
 commonOpts = runA $ proc () → do
     v ← asA (switch ( short 'v' <> long "verbose"
                                 <> help "Set verbosity to LEVEL")) ⤙ ()
@@ -67,21 +67,21 @@ commonOpts = runA $ proc () → do
                                        <> value 0 )) ⤙ ()
     returnA ⤙ CommonOpts v j
 
-listParser :: Parser Command
+listParser ∷ Parser Command
 listParser = List <$> many (argument str (metavar "TARGET..."))
 
-addParser :: Parser Command
+addParser ∷ Parser Command
 addParser = Add <$> many (argument str (metavar "TARGET..."))
 
-deleteParser :: Parser Command
+deleteParser ∷ Parser Command
 deleteParser = Delete <$> many (argument str (metavar "TARGET..."))
 
-syncParser :: Parser Command
+syncParser ∷ Parser Command
 syncParser = runA $ proc () → do
     syncO ← asA syncOpts ⤙ ()
     returnA ⤙ Sync syncO
 
-syncOpts :: Parser SyncOpts
+syncOpts ∷ Parser SyncOpts
 syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
     full   ← asA (switch (long "full"))                       ⤙ ()
     force  ← asA (switch (short 'f' <> long "force"))         ⤙ ()
@@ -99,7 +99,7 @@ syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
                         , syncInteractive = intera
                         }
 
-run :: Args → IO () -- (＠ ・‿‿・)
+run ∷ Args → IO () -- (＠ ・‿‿・)
 run (Args _ MakeSharingan)  = mkSharingan
 run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
@@ -116,13 +116,13 @@ run (Args _ Cabal)          = cabal_upgrade
 run (Args opts Gentoo)      = genSync opts
 #endif
 
-main :: IO ()
+main ∷ IO ()
 main = execParser opts ≫= run
   where opts = info parser
           ( fullDesc <> progDesc ""
                      <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
 
-sync :: CommonOpts → SyncOpts → IO ()
+sync ∷ CommonOpts → SyncOpts → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                lock ← doesFileExist user
                let runWithBlock = withFile user WriteMode (do_program (synchronize o so))
@@ -133,18 +133,18 @@ sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                                str ← getLine
                                when (str ∈ ["Y", "y"]) runWithBlock
                        else runWithBlock
-  where do_program :: IO() → Handle → IO()
+  where do_program ∷ IO() → Handle → IO()
         do_program gogo _ = gogo
 
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-genSync :: CommonOpts → IO()
+genSync ∷ CommonOpts → IO()
 genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
                  ≫ exitWith ExitSuccess
 #endif
 
-list :: [String] → IO() -- (＾‿‿＾ *)
+list ∷ [String] → IO() -- (＾‿‿＾ *)
 list xs = withConfig $ \ymlx → do
-    rsdata ← yDecode ymlx :: IO [Repository]
+    rsdata ← yDecode ymlx ∷ IO [Repository]
     let rdd = case xs of [] → rsdata
                          _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
         maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
@@ -162,7 +162,7 @@ list xs = withConfig $ \ymlx → do
                    forM_ (drop 1 brx) $ printf "%s: %s\n" empt
     exitWith ExitSuccess
 
-mkSharingan :: IO ()
+mkSharingan ∷ IO ()
 mkSharingan = -- Create .sharingan.yml template
   let langM = Just "haskell"
       envM  = Just []
@@ -171,7 +171,7 @@ mkSharingan = -- Create .sharingan.yml template
       new   = (Sharingan langM envM biM iM ["cabal install"])
   in yEncode ".sharingan.yml" new ≫ exitWith ExitSuccess
 
-synchronize :: CommonOpts → SyncOpts → IO()
+synchronize ∷ CommonOpts → SyncOpts → IO()
 synchronize o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
@@ -181,8 +181,8 @@ synchronize o so = -- ( ◜ ①‿‿① )◜
 #else
         genSync o
 #endif
-    rsdata ← yDecode ymlx :: IO [Repository]
-    dfdata ← yDecode defx :: IO Defaults
+    rsdata ← yDecode ymlx ∷ IO [Repository]
+    dfdata ← yDecode defx ∷ IO Defaults
     myEnv  ← getEnv
     forM_ rsdata $ \repo →
         let loc = location repo

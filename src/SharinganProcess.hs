@@ -9,15 +9,18 @@ module SharinganProcess
   ) where
 
 import Yaml
+import Config
 import Shell
 
 import System.Directory
 import System.FilePath(takeDirectory, (</>))
-import System.Info (os)
-import System.Environment.Executable ( getExecutablePath )
+import System.Exit
+-- import System.Info (os)
+-- import System.Environment.Executable ( getExecutablePath )
 
 import Data.Char
 
+{- Deprecated
 getIconPath ∷ String → IO FilePath
 getIconPath icon =
     if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> icon)
@@ -31,10 +34,19 @@ copyIcon i path = do
     if iconExist then copyFile i path
                  else do putStrLn $ "WARNING: missing icon " ⧺ i
                          putStrLn $ "get it somewhere and put into that folder"
+-}
 
 updateStatusIcon ∷ String → Bool → IO()
-updateStatusIcon loc True  = getIconPath "positive.png" ≫= \i → copyIcon i (loc </> ".sharingan.png")
-updateStatusIcon loc False = getIconPath "negative.png" ≫= \i → copyIcon i (loc </> ".sharingan.png")
+updateStatusIcon loc pos =
+  withConfig $ \ymlx →
+    let ymlprocess = ifSo $ do
+        rsdata ← yDecode ymlx ∷ IO [Repository]
+        let fr x = if isInfixOf loc $ location x
+                    then x { positive = Just pos }
+                    else x
+        yEncode ymlx $ map fr rsdata
+    in doesFileExist ymlx ≫= ymlprocess 
+                          ≫ exitWith ExitSuccess
 
 sharingan ∷ Bool → String → String → Bool → IO()
 sharingan interactive shx loc shxi = if shxi then
@@ -59,6 +71,7 @@ sharingan interactive shx loc shxi = if shxi then
                   "rust"    → exth "make"
                   _         → return () -- do nothing
           _ → forM_ sc exth
+        -- TODO: get build status
         updateStatusIcon loc True
      else when interactive
         $ let test fe procx previous = if previous
