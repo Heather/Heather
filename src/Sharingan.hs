@@ -42,6 +42,7 @@ parser = runA $ proc () → do
        <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
        <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
        <> command "list"        (info (listParser)          (progDesc "List repositories"))
+       <> command "status"      (info (statusParser)        (progDesc "Sharingan build statuses for repositories"))
        <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
        <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
        <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
@@ -69,6 +70,9 @@ commonOpts = runA $ proc () → do
 
 listParser ∷ Parser Command
 listParser = List <$> many (argument str (metavar "TARGET..."))
+
+statusParser ∷ Parser Command
+statusParser = Status <$> many (argument str (metavar "TARGET..."))
 
 addParser ∷ Parser Command
 addParser = Add <$> many (argument str (metavar "TARGET..."))
@@ -104,6 +108,7 @@ run (Args _ MakeSharingan)  = mkSharingan
 run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ (List   xs))    = list xs
+run (Args _ (Status xs))    = status xs
 run (Args _ (Add    xs))    = getAC xs
 run (Args _ (Delete xs))    = getDC xs
 run (Args _ (Enable  xs))   = (enable True) xs
@@ -160,6 +165,25 @@ list xs = withConfig $ \ymlx → do
            then printf " - %s\n" loc
            else do printf "%s: %s (%s)\n" sstr (head brx) loc
                    forM_ (drop 1 brx) $ printf "%s: %s\n" empt
+    exitWith ExitSuccess
+
+status ∷ [String] → IO() -- (＾‿‿＾ *)
+status xs = withConfig $ \ymlx → do
+    rsdata ← yDecode ymlx ∷ IO [Repository]
+    let rdd = case xs of [] → rsdata
+                         _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
+        maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
+    forM_ rdd $ \repo →
+       let loc  = location repo
+           name = last $ splitOn "\\" loc
+           lnam = (maxl + 1) - (length name)
+           sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
+                                             else ""
+           stat = case (positive repo) of
+                        Just True  → "OK" ∷ String
+                        Just False → "Errors..."
+                        Nothing    → "?"
+       in printf "%s- %s\n" sstr stat
     exitWith ExitSuccess
 
 mkSharingan ∷ IO ()
