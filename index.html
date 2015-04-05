@@ -8,10 +8,20 @@
     <script src="http://nodeca.github.io/js-yaml/js/js-yaml.js"></script>
     <style>
       body {background-color:lightgray}
-      h1   {color:blue}
-      h2   {color:red}
-      h3   {color:darkred}
+      h1   {color:red}
       .time { float:right }
+
+    table, th , td {
+      border: 1px solid grey;
+      border-collapse: collapse;
+      padding: 5px;
+    }
+    table tr:nth-child(odd) {
+      background-color: #f1f1f1;
+    }
+    table tr:nth-child(even) {
+      background-color: #ffffff;
+    }
     </style>
 <head/>
 <body ng-app="Sharingan">
@@ -19,12 +29,12 @@
         <h1>Sharingan</h1>
         <hr/>
         <div sharingan data="data">
-            <h2>Script:</h2>
-            <ul>
-               <li ng-repeat="sc in data.script">
-                <h3>{{sc}}</h3>
-               </li>
-            </ul>
+            <table>
+              <tr ng-repeat="x in data">
+                <td>{{ x.location }}</td>
+                <td>{{ x.positive }}</td>
+              </tr>
+            </table>
         </div>
         <hr/>
         <span class="time" my-current-time="format"></span>
@@ -35,9 +45,10 @@ angular.module('Sharingan', [])
 .controller('sharingan', ['$scope', function($scope) {
   $scope.format = 'M/d/yy h:mm:ss a';
   $(document).ready(function () {
-    $.get('.sharingan.yml')
+    $.get('./dist/build/sharingan/sharingan.yml')
      .done(function (data) {
         $scope.data = jsyaml.load(data);
+        //TODO: get locations map with .replace(/^.*[\\\/]/, '')
      });
   });
 }])
