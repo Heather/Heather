@@ -8,7 +8,9 @@
     <script src="http://nodeca.github.io/js-yaml/js/js-yaml.js"></script>
     <style>
       body {background-color:lightgray}
-      h1   {color:red}
+      h1   {color:blue}
+      h2   {color:red}
+      h3   {color:darkred}
       .time { float:right }
     </style>
 <head/>
@@ -16,7 +18,14 @@
     <div ng-controller="sharingan">
         <h1>Sharingan</h1>
         <hr/>
-        <pre sharingan></pre>
+        <div sharingan data="data">
+            <h2>Script:</h2>
+            <ul>
+               <li ng-repeat="sc in data.script">
+                <h3>{{sc}}</h3>
+               </li>
+            </ul>
+        </div>
         <hr/>
         <span class="time" my-current-time="format"></span>
     </div>
@@ -28,16 +37,15 @@ angular.module('Sharingan', [])
   $(document).ready(function () {
     $.get('.sharingan.yml')
      .done(function (data) {
-        var jsonString = JSON.stringify(data);
-        $scope.data = data;
-        $scope.script = data.script;
-        $scope.yaml = $.parseJSON(jsonString);
+        $scope.data = jsyaml.load(data);
      });
   });
 }])
 .directive('sharingan', function() {
   return {
-    template: '{{yaml}}'
+    scope: {
+        data: "="
+    } //template: '{{data}}'
   };
 })
 .directive('myCurrentTime', ['$interval', 'dateFilter', function($interval, dateFilter) {
