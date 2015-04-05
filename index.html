@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sharingan</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0-beta.6/angular.min.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.0.js"></script>
+    <script src="http://nodeca.github.io/js-yaml/js/js-yaml.js"></script>
+    <style>
+      body {background-color:lightgray}
+      h1   {color:red}
+      .time { float:right }
+    </style>
+<head/>
+<body ng-app="Sharingan">
+    <div ng-controller="sharingan">
+        <h1>Sharingan</h1>
+        <hr/>
+        <pre sharingan></pre>
+        <hr/>
+        <span class="time" my-current-time="format"></span>
+    </div>
+</body>
+    <script type="text/javascript">
+    angular.module('Sharingan', [])
+    .controller('sharingan', ['$scope', function($scope) {
+      $scope.format = 'M/d/yy h:mm:ss a';
+      $(document).ready(function () {
+        $.get('.sharingan.yml')
+         .done(function (data) {
+            var jsonString = JSON.stringify(data);
+            $scope.data = data;
+            $scope.script = data.script;
+            $scope.yaml = $.parseJSON(jsonString);
+         });
+      });
+    }])
+    .directive('sharingan', function() {
+      return {
+        template: '{{yaml}}'
+      };
+    })
+    .directive('myCurrentTime', ['$interval', 'dateFilter', function($interval, dateFilter) {
+      return {
+      link: function link(scope, element, attrs) {
+        var format,
+            timeoutId;
+        function updateTime() {
+          element.text(dateFilter(new Date(), format));
+        }
+        scope.$watch(attrs.myCurrentTime, function(value) {
+          format = value;
+          updateTime();
+        });
+        element.on('$destroy', function() {
+          $interval.cancel(timeoutId);
+        });
+        // start the UI update process; save the timeoutId for canceling
+        timeoutId = $interval(function() {
+          updateTime(); // update DOM
+        }, 1000);
+      }}
+    }]);
+    </script>
+</html>
