@@ -26,6 +26,7 @@ download url filename = withSocketsDo $ do
     irequest ← liftIO $ parseUrl url
     withManager $ \manager → do
         let request = irequest
-             { method = methodGet }
+             { method = methodGet
+             , responseTimeout = Just 10000000 }
         response ← http request manager
         responseBody response C.$$+- sinkFile filename
