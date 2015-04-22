@@ -15,26 +15,8 @@ import Shell
 import System.Directory
 import System.FilePath(takeDirectory, (</>))
 import System.Exit
--- import System.Info (os)
--- import System.Environment.Executable ( getExecutablePath )
 
 import Data.Char
-
-{- Deprecated
-getIconPath ∷ String → IO FilePath
-getIconPath icon =
-    if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> icon)
-                                                  <$> takeDirectory
-                                                  <$> getExecutablePath
-       | otherwise → return ("/etc/sharingan/" ⧺ icon)
-
-copyIcon ∷ FilePath → FilePath → IO ()
-copyIcon i path = do
-    iconExist ← doesFileExist i
-    if iconExist then copyFile i path
-                 else do putStrLn $ "WARNING: missing icon " ⧺ i
-                         putStrLn $ "get it somewhere and put into that folder"
--}
 
 updateStatusIcon ∷ String → Bool → IO()
 updateStatusIcon loc pos =
@@ -64,15 +46,20 @@ sharingan interactive shx loc shxi = if shxi then
           _ → case lang of
                   "haskell" → exth "cabal update"
                   _         → return () -- do nothing
-        case sc of
-          [] → case lang of
-                  "c"       → exth "make"
-                  "haskell" → exth "cabal install"
-                  "rust"    → exth "make"
-                  _         → return () -- do nothing
-          _ → forM_ sc exth
-        -- TODO: get build status
-        updateStatusIcon loc True
+        r <- case sc of
+              [] → case lang of
+                      "c"       → rxth "make"
+                      "haskell" → rxth "cabal install"
+                      "rust"    → rxth "make"
+                      _         → return ExitSuccess
+              _ → let scp []     = return ExitSuccess
+                      scp (x:[]) = rxth x
+                      scp (x:xs) = do exth x
+                                      scp xs
+                  in scp sc
+        updateStatusIcon loc $ case r of
+                                ExitSuccess → True
+                                _           → False
      else when interactive
         $ let test fe procx previous = if previous
                 then return True
@@ -107,6 +94,6 @@ sharingan interactive shx loc shxi = if shxi then
                                     ≫= test "Makefile" (exth "make")
                                     ≫= cabal
                                     ≫= ipkg
-                updateStatusIcon loc s
+                updateStatusIcon loc s --TODO: use rxth
   where exth cmd = setCurrentDirectory loc ≫ sys cmd
         rxth cmd = setCurrentDirectory loc ≫ system cmd
