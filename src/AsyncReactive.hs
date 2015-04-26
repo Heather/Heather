@@ -22,15 +22,15 @@ mkProgress h = reactiveObjectIO 0 $ \ _pid req act done →
   Progress { pr_inc = do hPutStr h "."
                          hFlush h
            , pr_done = do hPutStr h "\nDone\n"
-                          hFlush h 
+                          hFlush h
                           done }
 
 doProcess :: Progress → Async () → IO ()
-doProcess r prc = 
-    poll prc >>= \case Nothing → pr_inc r >> threadDelay 10000 >> doProcess r prc
-                       Just _e → case _e of
-                                   Left ex → putStrLn $ "Caught exception: " ⧺ show ex
-                                   Right _ → pr_done r
+doProcess r prc =
+  poll prc >>= \case Nothing → pr_inc r >> threadDelay 10000 >> doProcess r prc
+                     Just _e → case _e of
+                                 Left ex → putStrLn $ "Caught exception: " ⧺ show ex
+                                 Right _ → pr_done r
 
 asyncReactive :: IO () → IO ()
 asyncReactive foo = liftM2_ doProcess (mkProgress stdout)

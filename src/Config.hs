@@ -3,19 +3,19 @@
 module Config
   ( getConfig
   , getDefaultsConfig
-  
+
   , processChecks
   , processDefaultsChecks
-  
+
   , withConfig
   , withDefaultsConfig
-  
+
   , config
   , defaultsConfig
-  
+
   , getA, getAC
   , getD, getDC
-  
+
   , enable
   , hashupdate
 
@@ -35,26 +35,26 @@ import System.Environment( getEnv )
 
 getConfig ∷ IO FilePath
 getConfig =
-    if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharingan.yml") 
-                                                  <$> takeDirectory 
-                                                  <$> getExecutablePath
-       | otherwise → return "/etc/sharingan.yml"
+  if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharingan.yml")
+                                                <$> takeDirectory
+                                                <$> getExecutablePath
+     | otherwise → return "/etc/sharingan.yml"
 
 getDefaultsConfig ∷ IO FilePath
 getDefaultsConfig =
-    if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharinganDefaults.yml") 
-                                                  <$> takeDirectory 
-                                                  <$> getExecutablePath
-       | otherwise → return "/etc/sharinganDefaults.yml"
+  if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharinganDefaults.yml")
+                                                <$> takeDirectory
+                                                <$> getExecutablePath
+     | otherwise → return "/etc/sharinganDefaults.yml"
 
 processChecks ∷ FilePath → IO()
-processChecks cfg = 
+processChecks cfg =
     let generate cfg = ifNot $ yEncode cfg nothing
     in doesFileExist cfg ≫= generate cfg
   where nothing = [] ∷ [Repository]
 
 processDefaultsChecks ∷ FilePath → IO()
-processDefaultsChecks cfg = 
+processDefaultsChecks cfg =
     let generate cfg = ifNot $ yEncode cfg nothing
     in doesFileExist cfg ≫= generate cfg
   where nothing = (Defaults Nothing)
@@ -87,7 +87,7 @@ getA arg = -- Add new stuff to sync
             then putStrLn "this repository is already in sync"
             else let newdata = new : rsdata
                  in yEncode ymlx newdata
-    in doesFileExist ymlx ≫= ymlprocess 
+    in doesFileExist ymlx ≫= ymlprocess
                           ≫ exitWith ExitSuccess
 
 getD ∷ String → IO ()
@@ -101,7 +101,7 @@ getD arg = -- Remove stuff from sync
             Just fnd → do yEncode ymlx $ filter (≠ fnd) rsdata
                           putStrLn $ (location fnd) ⧺ " is removed"
             Nothing → putStrLn $ arg ⧺ " repo not found"
-    in doesFileExist ymlx ≫= ymlprocess 
+    in doesFileExist ymlx ≫= ymlprocess
                           ≫ exitWith ExitSuccess
 
 getAC ∷ [String] → IO ()
@@ -123,7 +123,7 @@ enable en arg =
                     then x { enabled = Just en }
                     else x
         yEncode ymlx $ map fr rsdata
-    in doesFileExist ymlx ≫= ymlprocess 
+    in doesFileExist ymlx ≫= ymlprocess
                           ≫ exitWith ExitSuccess
 
 hashupdate ∷ String → String → IO ()

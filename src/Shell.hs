@@ -32,17 +32,17 @@ amaterasu :: String → String → String → [String] → Bool → Bool → May
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
 amaterasu custom    = \path _ _ unsafe processClean _ _ myEnv → do
-    doesDirectoryExist ⊲ path </> ".git" ≫= \gitDirExists →
-        let myGit = git myEnv
-            msGit = "\"" ⧺ myGit ⧺ "\""
-        in when gitDirExists $ do
-            when processClean $ exec (msGit ⧺ " clean -xdf")
-            when (not unsafe) $ exec (msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort")
-    doesDirectoryExist path ≫= \dirExist →
-        if dirExist then setCurrentDirectory path ≫ do
-                            exec custom
-                            return (True, True)
-                    else return (False, False)
+  doesDirectoryExist ⊲ path </> ".git" ≫= \gitDirExists →
+    let myGit = git myEnv
+        msGit = "\"" ⧺ myGit ⧺ "\""
+    in when gitDirExists $ do
+        when processClean $ exec (msGit ⧺ " clean -xdf")
+        when (not unsafe) $ exec (msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort")
+  doesDirectoryExist path ≫= \dirExist →
+    if dirExist then setCurrentDirectory path ≫ do
+                        exec custom
+                        return (True, True)
+                else return (False, False)
 
 pull :: String → String → [String] → Bool → Bool → Maybe String → Bool → MyEnv → IO (Bool, Bool)
 pull path branch _ unsafe processClean rhash sync myEnv =
@@ -77,7 +77,7 @@ pull path branch _ unsafe processClean rhash sync myEnv =
                                     locloc = trim lrc
                                 putStrLn $ "Origin: " ⧺ remloc
                                 putStrLn $ "Local: "  ⧺ locloc
-                                if (remloc ≢ locloc) 
+                                if (remloc ≢ locloc)
                                     then do exec $ msGit ⧺ " pull origin " ⧺ branch
                                             hashupdate remloc path
                                             return (True, True)
@@ -146,7 +146,7 @@ rebasefork path branch up unsafe processClean rhash sync myEnv =
                                             putStrLn $ "Origin: " ⧺ remloc
                                             putStrLn $ "Local: "  ⧺ locloc
                                             whe (remloc ≢ locloc) $ msGit ⧺ " pull origin " ⧺ branch
-                                            whe (remloc ≢ remote) 
+                                            whe (remloc ≢ remote)
                                                   $ msGit ⧺ " pull --rebase " ⧺ upstream
                                                     ⧺ " & " ⧺ msGit
                                                     ⧺ " push --force origin " ⧺ branch

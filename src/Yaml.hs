@@ -5,7 +5,7 @@ module Yaml
   , ToJSON
   , yDecode
   , yEncode
-  
+
   , module Model
   ) where
 
@@ -62,20 +62,20 @@ instance ToJSON Sharingan where
                                   , "script"          .= sc]
 
 instance FromJSON Defaults where
-    parseJSON (Object v) = Defaults <$>
-                           v .:? "quick"
-    -- A non-Object value is of the wrong type, so fail.
-    parseJSON _ = error "Can't parse Defaults from YAML"
+  parseJSON (Object v) = Defaults <$>
+                         v .:? "quick"
+  -- A non-Object value is of the wrong type, so fail.
+  parseJSON _ = error "Can't parse Defaults from YAML"
 
 instance ToJSON Defaults where
-   toJSON (Defaults q) = object [ "quick" .= q ]
+  toJSON (Defaults q) = object [ "quick" .= q ]
 
 yDecode :: FromJSON iFromJSONable ⇒ FilePath → IO iFromJSONable
 yDecode fnm = do
-    ymlData ← BS.readFile fnm
-    return $ case Data.Yaml.decode ymlData of
-                Just decoded → decoded
-                Nothing      → error "Can't parse from YAML"
+  ymlData ← BS.readFile fnm
+  return $ case Data.Yaml.decode ymlData of
+              Just decoded → decoded
+              Nothing      → error "Can't parse from YAML"
 
 yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
 yEncode fnm dat = BS.writeFile fnm $ Data.Yaml.encode dat

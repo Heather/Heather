@@ -3,18 +3,18 @@
 module Model
     ( Repository(..)
     , Sharingan(..)
-    , Defaults(..)  
+    , Defaults(..)
     , Args(..)
     , CommonOpts(..)
     , SyncOpts(..)
     , Command(..)
     , MyEnv(..)
-  
+
     , module Control.Monad
     , module Control.Applicative
     , module Control.Exception
     , module Control.Eternal
-  
+
     , module Data.Maybe
     , module Data.List
     ) where
@@ -54,12 +54,12 @@ data Defaults = Defaults
 
 data Args = Args CommonOpts Command
       deriving Show
-  
+
 data CommonOpts = CommonOpts
     { optVerbosity ∷ Bool
     , optJobs ∷ Int
     } deriving Show
-    
+
 data SyncOpts = SyncOpts
     { syncFull ∷ Bool
     , syncForce ∷ Bool

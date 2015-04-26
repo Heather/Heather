@@ -18,10 +18,10 @@ gitCheckTry cmd args = try $ readProcess cmd (args ++ ["--version"]) []
 
 gitCheck :: String → [String] → IO (Maybe String)
 gitCheck cmd args =
-    gitCheckTry cmd args
-    ≫= \case Left _ → return Nothing
-             Right val → do putStr $ cmd ⧺ " : " ⧺ val
-                            return (Just cmd)
+  gitCheckTry cmd args
+  ≫= \case Left _ → return Nothing
+           Right val → do putStr $ cmd ⧺ " : " ⧺ val
+                          return (Just cmd)
 
 getGit :: IO String
 getGit = (return Nothing) ≫= t "git" []
@@ -35,5 +35,5 @@ getGit = (return Nothing) ≫= t "git" []
 
 getEnv :: IO MyEnv
 getEnv = do
-    myGit ← getGit
-    return (MyEnv myGit "hg")
+  myGit ← getGit
+  return (MyEnv myGit "hg")

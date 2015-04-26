@@ -37,25 +37,25 @@ parser ∷ Parser Args -- ✌(★◇★ )
 parser = runA $ proc () → do
   opts ← asA commonOpts ⤙ ()
   cmds ← (asA . hsubparser)
-        ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
-       <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
-       <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
-       <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
-       <> command "list"        (info (listParser)          (progDesc "List repositories"))
-       <> command "status"      (info (statusParser)        (progDesc "Sharingan build statuses for repositories"))
-       <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
-       <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
-       <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
-                                                            (progDesc "Enable repository / repositories"))
-       <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
-                                                            (progDesc "Disable repository / repositories"))
+      ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
+     <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
+     <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
+     <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
+     <> command "list"        (info (listParser)          (progDesc "List repositories"))
+     <> command "status"      (info (statusParser)        (progDesc "Sharingan build statuses for repositories"))
+     <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
+     <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
+     <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
+                                                          (progDesc "Enable repository / repositories"))
+     <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
+                                                          (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-       <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
-       <> command "cabal"       (info (pure Cabal)          (progDesc "Cabal upgrade"))
+     <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
+     <> command "cabal"       (info (pure Cabal)          (progDesc "Cabal upgrade"))
 #else
-       <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86")) 
+     <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86"))
 #endif
-        ) ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
+      ) ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
   A _version ⋙ A helper ⤙ Args opts cmds
 
 commonOpts ∷ Parser CommonOpts
@@ -87,21 +87,21 @@ syncParser = runA $ proc () → do
 
 syncOpts ∷ Parser SyncOpts
 syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
-    full   ← asA (switch (long "full"))                       ⤙ ()
-    force  ← asA (switch (short 'f' <> long "force"))         ⤙ ()
-    unsafe ← asA (switch (short 'u' <> long "unsafe"))        ⤙ ()
-    quick  ← asA (switch (short 'q' <> long "quick"))         ⤙ ()
-    intera ← asA (switch (short 'i' <> long "interactive"))   ⤙ ()
-    filter ← asA (optional (argument str (metavar "FILTER"))) ⤙ ()
-    groups ← asA (many (option str (short 'g'  <> long "group" <> metavar "GROUPS"))) ⤙ ()
-    returnA ⤙ SyncOpts { syncFull = full
-                        , syncForce  = force
-                        , syncUnsafe = unsafe
-                        , syncQuick  = quick
-                        , syncFilter = filter
-                        , syncGroups = groups
-                        , syncInteractive = intera
-                        }
+  full   ← asA (switch (long "full"))                       ⤙ ()
+  force  ← asA (switch (short 'f' <> long "force"))         ⤙ ()
+  unsafe ← asA (switch (short 'u' <> long "unsafe"))        ⤙ ()
+  quick  ← asA (switch (short 'q' <> long "quick"))         ⤙ ()
+  intera ← asA (switch (short 'i' <> long "interactive"))   ⤙ ()
+  filter ← asA (optional (argument str (metavar "FILTER"))) ⤙ ()
+  groups ← asA (many (option str (short 'g'  <> long "group" <> metavar "GROUPS"))) ⤙ ()
+  returnA ⤙ SyncOpts { syncFull = full
+                      , syncForce  = force
+                      , syncUnsafe = unsafe
+                      , syncQuick  = quick
+                      , syncFilter = filter
+                      , syncGroups = groups
+                      , syncInteractive = intera
+                      }
 
 run ∷ Args → IO () -- (＠ ・‿‿・)
 run (Args _ MakeSharingan)  = mkSharingan
@@ -149,42 +149,42 @@ genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
 
 list ∷ [String] → IO() -- (＾‿‿＾ *)
 list xs = withConfig $ \ymlx → do
-    rsdata ← yDecode ymlx ∷ IO [Repository]
-    let rdd = case xs of [] → rsdata
-                         _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
-        maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
-    forM_ rdd $ \repo →
-       let loc  = location repo
-           name = last $ splitOn "\\" loc
-           lnam = (maxl + 1) - (length name)
-           sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
-                                             else ""
-           empt = replicate (length sstr) ' '
-           brx  = branches repo
-       in if (length brx) ≡ 0
-           then printf " - %s\n" loc
-           else do printf "%s: %s (%s)\n" sstr (head brx) loc
-                   forM_ (drop 1 brx) $ printf "%s: %s\n" empt
-    exitWith ExitSuccess
+  rsdata ← yDecode ymlx ∷ IO [Repository]
+  let rdd = case xs of [] → rsdata
+                       _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
+      maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
+  forM_ rdd $ \repo →
+     let loc  = location repo
+         name = last $ splitOn "\\" loc
+         lnam = (maxl + 1) - (length name)
+         sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
+                                           else ""
+         empt = replicate (length sstr) ' '
+         brx  = branches repo
+     in if (length brx) ≡ 0
+         then printf " - %s\n" loc
+         else do printf "%s: %s (%s)\n" sstr (head brx) loc
+                 forM_ (drop 1 brx) $ printf "%s: %s\n" empt
+  exitWith ExitSuccess
 
 status ∷ [String] → IO() -- (＾‿‿＾ *)
 status xs = withConfig $ \ymlx → do
-    rsdata ← yDecode ymlx ∷ IO [Repository]
-    let rdd = case xs of [] → rsdata
-                         _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
-        maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
-    forM_ rdd $ \repo →
-       let loc  = location repo
-           name = last $ splitOn "\\" loc
-           lnam = (maxl + 1) - (length name)
-           sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
-                                             else ""
-           stat = case (positive repo) of
-                        Just True  → "OK" ∷ String
-                        Just False → "Errors..."
-                        Nothing    → "?"
-       in printf "%s- %s\n" sstr stat
-    exitWith ExitSuccess
+  rsdata ← yDecode ymlx ∷ IO [Repository]
+  let rdd = case xs of [] → rsdata
+                       _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
+      maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
+  forM_ rdd $ \repo →
+     let loc  = location repo
+         name = last $ splitOn "\\" loc
+         lnam = (maxl + 1) - (length name)
+         sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
+                                           else ""
+         stat = case (positive repo) of
+                      Just True  → "OK" ∷ String
+                      Just False → "Errors..."
+                      Nothing    → "?"
+     in printf "%s- %s\n" sstr stat
+  exitWith ExitSuccess
 
 mkSharingan ∷ IO ()
 mkSharingan = -- Create .sharingan.yml template
@@ -199,7 +199,7 @@ synchronize ∷ CommonOpts → SyncOpts → IO()
 synchronize o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
-    when (syncFull so) $ do 
+    when (syncFull so) $ do
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
         cabal_upgrade
 #else
@@ -214,7 +214,7 @@ synchronize o so = -- ( ◜ ①‿‿① )◜
         in when (case syncFilter so of
                         Nothing  → case syncGroups so of
                                         [] → isenabled
-                                        gx  → case syncGroup repo of 
+                                        gx  → case syncGroup repo of
                                                     Just gg → isenabled ∧ (gg ∈ gx)
                                                     Nothing → False
                         Just snc → isInfixOf (map toLower snc)
