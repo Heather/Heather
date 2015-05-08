@@ -28,7 +28,6 @@ updateStatusIcon loc pos =
                     else x
         yEncode ymlx $ map fr rsdata
     in doesFileExist ymlx ≫= ymlprocess
-                          ≫ exitWith ExitSuccess
 
 sharingan ∷ Bool → String → String → Bool → IO()
 sharingan interactive shx loc shxi = if shxi then
