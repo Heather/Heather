@@ -1,27 +1,20 @@
-{-# LANGUAGE LambdaCase, UnicodeSyntax #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module EnvChecker
   ( getEnv
+  , readIfSucc
   ) where
 
 import Yaml
+import Exec
 
-import System.Process
 import Control.Monad
 import Control.Eternal
-import Control.Exception
 
 import Data.Maybe
 
-gitCheckTry :: String → [String] → IO (Either SomeException String)
-gitCheckTry cmd args = try $ readProcess cmd (args ++ ["--version"]) []
-
 gitCheck :: String → [String] → IO (Maybe String)
-gitCheck cmd args =
-  gitCheckTry cmd args
-  ≫= \case Left _ → return Nothing
-           Right val → do putStr $ cmd ⧺ " : " ⧺ val
-                          return (Just cmd)
+gitCheck cmd args = readIfSucc cmd (args ++ ["--version"])
 
 getGit :: IO String
 getGit = (return Nothing) ≫= t "git" []

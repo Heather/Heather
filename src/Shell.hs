@@ -67,21 +67,24 @@ pull path branch _ unsafe processClean rhash sync myEnv =
                                         _ → readProcess myGit ["log", "-n", "1"
                                                               , "--pretty=format:%H"
                                                               ] []
-                                let local  = trim loc
-                                rlc ← readProcess myGit ["ls-remote", "origin", branch] []
-                                lrc ← if isNothing rhash then readProcess myGit ["log", "-n", "1"
-                                                                                , "--pretty=format:%H"
-                                                                                ] []
-                                                          else return loc
-                                let remloc = (splitOn "\t" rlc) !! 0
-                                    locloc = trim lrc
-                                putStrLn $ "Origin: " ⧺ remloc
-                                putStrLn $ "Local: "  ⧺ locloc
-                                if (remloc ≢ locloc)
-                                    then do exec $ msGit ⧺ " pull origin " ⧺ branch
-                                            hashupdate remloc path
-                                            return (True, True)
-                                    else return (True, False)
+                                rlm ← readIfSucc myGit ["ls-remote", "origin", branch]
+                                case rlm of
+                                 Just rlc → do
+                                   lrc ← if isNothing rhash
+                                     then readProcess myGit ["log", "-n", "1"
+                                                            , "--pretty=format:%H"
+                                                            ] []
+                                     else return (trim loc)
+                                   let remloc = (splitOn "\t" rlc) !! 0
+                                       locloc = trim lrc
+                                   putStrLn $ "Origin: " ⧺ remloc
+                                   putStrLn $ "Local: "  ⧺ locloc
+                                   if (remloc ≢ locloc)
+                                       then do exec $ msGit ⧺ " pull origin " ⧺ branch
+                                               hashupdate remloc path
+                                               return (True, True)
+                                       else return (True, False)
+                                 _ → return (False, False)
                             else return (True, True)
                            else  return (False, False)
 
@@ -136,22 +139,27 @@ rebasefork path branch up unsafe processClean rhash sync myEnv =
                                 if remote ≡ local
                                     then do putStrLn $ path ⧺ " is up to date"
                                             return (True, False)
-                                    else do rlc ← readProcess myGit ["ls-remote", "origin", branch] []
-                                            lrc ← if isNothing rhash then readProcess myGit ["log", "-n", "1"
-                                                                                            , "--pretty=format:%H"
-                                                                                            ] []
-                                                                      else return loc
-                                            let remloc = (splitOn "\t" rlc) !! 0
-                                                locloc = trim lrc
-                                            putStrLn $ "Origin: " ⧺ remloc
-                                            putStrLn $ "Local: "  ⧺ locloc
-                                            whe (remloc ≢ locloc) $ msGit ⧺ " pull origin " ⧺ branch
-                                            whe (remloc ≢ remote)
-                                                  $ msGit ⧺ " pull --rebase " ⧺ upstream
-                                                    ⧺ " & " ⧺ msGit
-                                                    ⧺ " push --force origin " ⧺ branch
-                                            hashupdate remote path
-                                            return (True, True)
+                                    else do
+                                      rlm ← readIfSucc myGit ["ls-remote", "origin", branch]
+                                      case rlm of
+                                       Just rlc → do
+                                         lrc ← if isNothing rhash
+                                           then readProcess myGit ["log", "-n", "1"
+                                                                  , "--pretty=format:%H"
+                                                                  ] []
+                                           else return local
+                                         let remloc = (splitOn "\t" rlc) !! 0
+                                             locloc = trim lrc
+                                         putStrLn $ "Origin: " ⧺ remloc
+                                         putStrLn $ "Local: "  ⧺ locloc
+                                         whe (remloc ≢ locloc) $ msGit ⧺ " pull origin " ⧺ branch
+                                         whe (remloc ≢ remote)
+                                               $ msGit ⧺ " pull --rebase " ⧺ upstream
+                                                 ⧺ " & " ⧺ msGit
+                                                 ⧺ " push --force origin " ⧺ branch
+                                         hashupdate remote path
+                                         return (True, True)
+                                       _ → return (False, False)
                             else return (True, True)
                            else  return (False, False)
 
