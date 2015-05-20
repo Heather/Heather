@@ -28,7 +28,7 @@ setEnv env = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ env
                       | os ∈ ["darwin", "cygwin32"] → "export " ⧺ env
                       | otherwise → "export " ⧺ env
 
---vd :: String → String → IO (Bool, Bool)
+vd :: String → String → IO (Bool, Bool) → IO (Bool, Bool)
 vd validator path action =
   doesDirectoryExist ⊲ path </> validator ≫= \vde →
           if vde then setCurrentDirectory path ≫ action
