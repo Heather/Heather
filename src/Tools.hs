@@ -41,7 +41,7 @@ depot_tools =
                                                ≫ removeFile tarball
                   {-          Here depot_tools must be added to PATH             -}
                   putStrLn "======================================================"
-                  putStrLn " -> NOW! Move your ass and add C:/depot_tools to PATH"
+                  putStrLn " -> Aadd C:/depot_tools to PATH"
                   putStrLn " -> Press any key when it will be done or already done"
                   putStrLn "======================================================"
                   getChar ≫ return ()

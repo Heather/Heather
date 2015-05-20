@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, LambdaCase, OverloadedStrings, Arrows, CPP, UnicodeSyntax #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings, Arrows, CPP, UnicodeSyntax #-}
 
 import Despair
 import EnvChecker
