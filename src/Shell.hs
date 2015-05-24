@@ -35,6 +35,7 @@ chk foo (previous,doU) = if previous
         then return (previous, doU)
         else foo
 
+-- Validate an folder exists and run action
 vd :: String → String → IO (Bool, Bool) → IO (Bool, Bool)
 vd validator path action =
   doesDirectoryExist ⊲ path </> validator ≫= \vde →
@@ -138,12 +139,17 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
                       else readProcess myGit ["log", "-n", "1"
                                              , "--pretty=format:%H"
                                              ] []
-      rem ← readProcess myGit (["ls-remote"] ⧺ up) []
-      let remote = (splitOn "\t" rem) !! 0
-          local  = trim loc
-      putStrLn $ "Last Merge: " ⧺ local
-      putStrLn $ "Remote: " ⧺ remote
-      if remote ≡ local
+      urlm ← readIfSucc myGit (["ls-remote"] ⧺ up)
+      case urlm of
+       Nothing → do
+         putStrLn "Can't find upstream repository or branch"
+         return (False, False)
+       Just rem → do
+        let remote = (splitOn "\t" rem) !! 0
+            local  = trim loc
+        putStrLn $ "Last Merge: " ⧺ local
+        putStrLn $ "Remote: " ⧺ remote
+        if remote ≡ local
           then do putStrLn $ path ⧺ " is up to date"
                   return (True, False)
           else do
