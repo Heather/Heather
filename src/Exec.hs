@@ -5,6 +5,7 @@ module Exec
   , exc
   , sys
   , system
+  , readCheck
   , readIfSucc
   ) where
 
@@ -63,4 +64,4 @@ readIfSucc cmd args =
   readCheck cmd args
   ≫= \case Left _ → return Nothing
            Right val → do putStr $ cmd ⧺ " : " ⧺ val
-                          return (Just cmd)
+                          return (Just val)

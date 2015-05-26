@@ -1,8 +1,7 @@
-{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
 
 module EnvChecker
   ( getEnv
-  , readIfSucc
   ) where
 
 import Yaml
@@ -13,8 +12,15 @@ import Control.Eternal
 
 import Data.Maybe
 
+checkIfSucc :: String → [String] → IO (Maybe String)
+checkIfSucc cmd args =
+  readCheck cmd args
+  ≫= \case Left _ → return Nothing
+           Right val → do putStr $ cmd ⧺ " : " ⧺ val
+                          return (Just cmd)
+
 gitCheck :: String → [String] → IO (Maybe String)
-gitCheck cmd args = readIfSucc cmd (args ++ ["--version"])
+gitCheck cmd args = checkIfSucc cmd (args ++ ["--version"])
 
 getGit :: IO String
 getGit = (return Nothing) ≫= t "git" []
