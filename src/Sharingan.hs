@@ -163,7 +163,10 @@ list xs = withConfig $ \ymlx → do
          brx  = branches repo
      in if (length brx) ≡ 0
          then printf " - %s\n" loc
-         else do printf "%s: %s (%s)\n" sstr (head brx) loc
+         else do printf "%s: %s (%s)" sstr (head brx) loc
+                 unless (fromMaybe True (enabled repo))
+                   $ putStr " [Disabled]"
+                 putStrLn ""
                  forM_ (drop 1 brx) $ printf "%s: %s\n" empt
   exitWith ExitSuccess
 
