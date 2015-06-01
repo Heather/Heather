@@ -2,15 +2,13 @@
 
 module EnvChecker
   ( getEnv
+  , version
   ) where
 
 import Yaml
 import Exec
 
-import Control.Monad
-import Control.Eternal
-
-import Data.Maybe
+import Paths_Sharingan (version)
 
 checkIfSucc :: String → [String] → IO (Maybe String)
 checkIfSucc cmd args =
@@ -28,7 +26,8 @@ getGit = (return Nothing) ≫= t "git" []
                           ≫= t "C:/Program Files/Git/cmd/git.exe" []
                           ≫= t "git.cmd" []
                           ≫= \res → return $ fromMaybe "git" res
-  where t x a prev = if (isNothing  prev)
+  where t :: String → [String] → Maybe String → IO (Maybe String)
+        t x a prev = if (isNothing  prev)
                       then gitCheck x a
                       else return prev
 

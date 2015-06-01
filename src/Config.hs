@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiWayIf, UnicodeSyntax #-}
+{-# LANGUAGE MultiWayIf, UnicodeSyntax, RankNTypes #-}
 
 module Config
   ( getConfig
@@ -26,7 +26,6 @@ import Yaml
 import Exec
 
 import System.Directory
-import System.IO
 import System.Info (os)
 import System.Environment.Executable ( getExecutablePath )
 import System.Exit
@@ -49,17 +48,20 @@ getDefaultsConfig =
 
 processChecks ∷ FilePath → IO()
 processChecks cfg =
-    let generate cfg = ifNot $ yEncode cfg nothing
+    let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
   where nothing = [] ∷ [Repository]
 
 processDefaultsChecks ∷ FilePath → IO()
 processDefaultsChecks cfg =
-    let generate cfg = ifNot $ yEncode cfg nothing
+    let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
   where nothing = (Defaults Nothing)
 
+withConfig :: ∀ β. (FilePath → IO β) → IO β
 withConfig foo = liftM2 (≫) processChecks foo =≪ getConfig
+
+withDefaultsConfig :: ∀ β. (FilePath → IO β) → IO β
 withDefaultsConfig foo = liftM2 (≫) processDefaultsChecks foo =≪ getDefaultsConfig
 
 config ∷ IO()

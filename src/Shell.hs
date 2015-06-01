@@ -11,7 +11,6 @@ module Shell
 
 import Data.List.Split
 
-import System.IO
 import System.Info (os)
 import System.Directory
 import System.FilePath((</>))
@@ -21,12 +20,11 @@ import System.Process
 import Trim
 import Exec
 import Config
-import AsyncReactive
 
 setEnv :: String → IO()
-setEnv env = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ env
-                      | os ∈ ["darwin", "cygwin32"] → "export " ⧺ env
-                      | otherwise → "export " ⧺ env
+setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
+                      | os ∈ ["darwin", "cygwin32"] → "export " ⧺ vvv
+                      | otherwise → "export " ⧺ vvv
 
 -- Simple double Bool checker
 chk :: IO (Bool, Bool) → (Bool, Bool)
@@ -47,7 +45,7 @@ amaterasu :: String → String → String → [String]
            → Bool → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ unsafe processClean _ _ myEnv →
+amaterasu custom    = \path _ _ _ _ _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
                         exec custom
@@ -57,7 +55,7 @@ amaterasu custom    = \path _ _ unsafe processClean _ _ myEnv →
 pull :: String → String → [String]
       → Bool → Bool → Maybe String
       → Bool → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe processClean rhash sync myEnv =
+pull path branch _ unsafe processClean rhash _ myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
@@ -144,8 +142,8 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
        Nothing → do
          putStrLn "Can't find upstream repository or branch"
          return (False, False)
-       Just rem → do
-        let remote = (splitOn "\t" rem) !! 0
+       Just remt → do
+        let remote = (splitOn "\t" remt) !! 0
             local  = trim loc
         putStrLn $ "Last Merge: " ⧺ local
         putStrLn $ "Remote: " ⧺ remote

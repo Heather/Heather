@@ -7,8 +7,6 @@ module AsyncReactive
 import System.IO
 import Prelude.Unicode
 
-import Control.Exception
-import Control.Monad
 import Control.Eternal
 import Control.Concurrent
 import Control.Concurrent.Async
@@ -18,7 +16,7 @@ data Progress
                , pr_done :: IO ()
                }
 mkProgress :: Handle → IO Progress
-mkProgress h = reactiveObjectIO 0 $ \ _pid req act done →
+mkProgress h = reactiveObjectIO 0 $ \ _pid _ _ done →
   Progress { pr_inc = do hPutStr h "."
                          hFlush h
            , pr_done = do hPutStr h "\nDone\n"

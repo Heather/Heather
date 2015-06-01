@@ -5,7 +5,6 @@ import EnvChecker
 import Tools
 import Config
 import SharinganProcess
-import Paths_Sharingan (version)
 
 import Text.Printf
 
@@ -13,7 +12,7 @@ import System.Info (os)
 import System.Directory
 import System.Exit
 import System.IO
-import System.FilePath(takeDirectory, (</>))
+import System.FilePath ((</>))
 
 import Data.Char (toLower)
 import Data.List.Split
@@ -135,8 +134,8 @@ sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                if lock then do putStrLn "There is already one instance of this program running."
                                putStrLn "Remove lock and start application? (Y/N)"
                                hFlush stdout
-                               str ← getLine
-                               when (str ∈ ["Y", "y"]) runWithBlock
+                               answer ← getLine
+                               when (answer ∈ ["Y", "y"]) runWithBlock
                        else runWithBlock
   where do_program ∷ IO() → Handle → IO()
         do_program gogo _ = gogo
@@ -199,7 +198,7 @@ mkSharingan = -- Create .sharingan.yml template
   in yEncode ".sharingan.yml" new ≫ exitWith ExitSuccess
 
 synchronize ∷ CommonOpts → SyncOpts → IO()
-synchronize o so = -- ( ◜ ①‿‿① )◜
+synchronize _ so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
     when (syncFull so) $ do
@@ -239,6 +238,6 @@ synchronize o so = -- ( ◜ ①‿‿① )◜
                                                                 ≫= sharingan (syncInteractive so) pshx psc
               in do forM_ (tails (branches repo))
                      $ \case x:[] → u x ≫= eye -- Tail
-                             x:xs → u x ≫= (\_ → return ())
+                             x:_  → u x ≫= (\_ → return ())
                              []   → return ()
                     putStrLn ⊲ replicate 89 '_'

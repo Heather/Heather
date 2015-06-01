@@ -10,13 +10,12 @@ module Exec
   ) where
 
 import System.Directory (setCurrentDirectory)
-import System.Process (waitForProcess, rawSystem, system, readProcess)
+import System.Process
 
 import Trim
 import Data.List.Split
 
 import Control.Eternal.Syntax
-import Control.Monad
 import Control.Exception
 
 -- |⊙)

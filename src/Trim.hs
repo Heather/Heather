@@ -1,4 +1,5 @@
 {-# LANGUAGE UnicodeSyntax #-}
+
 module Trim
   ( trim
   ) where
@@ -9,7 +10,7 @@ trim :: String → String
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
 
 dropSpaceTail :: String → String → String
-dropSpaceTail maybeStuff "" = ""
+dropSpaceTail _ "" = ""
 dropSpaceTail maybeStuff (x:xs)
         | isSpace x       = dropSpaceTail (x:maybeStuff) xs
         | null maybeStuff = x : dropSpaceTail "" xs

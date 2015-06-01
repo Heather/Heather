@@ -13,7 +13,7 @@ import Config
 import Shell
 
 import System.Directory
-import System.FilePath(takeDirectory, (</>))
+import System.FilePath ((</>))
 import System.Exit
 
 import Data.Char
@@ -67,9 +67,9 @@ sharingan interactive shx loc shxi = if shxi then
                       ≫ return fileExist
             cabal previous = if previous
               then return True
-              else do all ← getDirectoryContents "."
+              else do getAll ← getDirectoryContents "."
                       let f = filter (\x → any (`isSuffixOf` map toLower x)
-                                      [".cabal"]) $ all
+                                      [".cabal"]) $ getAll
                       if (length f) > 0
                         then do exth "cabal install --only-dependencies"
                                 exth "cabal configure"
@@ -78,9 +78,9 @@ sharingan interactive shx loc shxi = if shxi then
                         else return False
             ipkg previous = if previous
               then return True
-              else do all ← getDirectoryContents "."
+              else do getAll ← getDirectoryContents "."
                       let f = filter (\x → any (`isSuffixOf` map toLower x)
-                                      [".ipkg"]) $ all
+                                      [".ipkg"]) $ getAll
                       if (length f) > 0
                         then do let f0 = f !! 0
                                 exth $ "idris --clean " ⧺ f0
@@ -93,6 +93,6 @@ sharingan interactive shx loc shxi = if shxi then
                                   ≫= test "Makefile" (exth "make")
                                   ≫= cabal
                                   ≫= ipkg
-              updateStatusIcon loc s --TODO: use rxth
+              updateStatusIcon loc s
   where exth cmd = setCurrentDirectory loc ≫ sys cmd
         rxth cmd = setCurrentDirectory loc ≫ system cmd
