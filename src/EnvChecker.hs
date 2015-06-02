@@ -1,4 +1,5 @@
-{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
+{-# LANGUAGE UnicodeSyntax
+  , LambdaCase #-}
 
 module EnvChecker
   ( getEnv

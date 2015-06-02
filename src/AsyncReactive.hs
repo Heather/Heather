@@ -1,4 +1,6 @@
-{-# LANGUAGE LambdaCase, UnicodeSyntax #-}
+{-# LANGUAGE LambdaCase
+  , UnicodeSyntax
+  , Safe #-}
 
 module AsyncReactive
   ( asyncReactive

@@ -1,4 +1,6 @@
-{-# LANGUAGE UnicodeSyntax, LambdaCase #-}
+{-# LANGUAGE UnicodeSyntax
+  , LambdaCase
+  , Safe #-}
 
 module Exec
   ( exec

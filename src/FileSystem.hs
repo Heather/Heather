@@ -1,4 +1,5 @@
-{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE UnicodeSyntax
+  , Safe #-}
 
 module FileSystem
   ( copyDir

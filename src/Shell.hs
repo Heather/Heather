@@ -1,4 +1,7 @@
-{-# LANGUAGE MultiWayIf, LambdaCase, CPP, UnicodeSyntax #-}
+{-# LANGUAGE MultiWayIf
+  , LambdaCase
+  , CPP
+  , UnicodeSyntax #-}
 
 module Shell
   ( amaterasu

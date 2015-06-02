@@ -1,4 +1,6 @@
-{-# LANGUAGE CPP, MultiWayIf, UnicodeSyntax #-}
+{-# LANGUAGE CPP
+  , MultiWayIf
+  , UnicodeSyntax #-}
 
 module SharinganProcess
   ( sharingan
