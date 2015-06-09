@@ -1,7 +1,8 @@
 {-# LANGUAGE MultiWayIf
   , LambdaCase
   , CPP
-  , UnicodeSyntax #-}
+  , UnicodeSyntax
+  #-}
 
 module Shell
   ( amaterasu
@@ -13,6 +14,8 @@ module Shell
   ) where
 
 import Data.List.Split
+import Data.Maybe
+import Data.List
 
 import System.Info (os)
 import System.Directory
@@ -28,6 +31,10 @@ setEnv :: String → IO()
 setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
                       | os ∈ ["darwin", "cygwin32"] → "export " ⧺ vvv
                       | otherwise → "export " ⧺ vvv
+
+getMyMsGit :: MyEnv → (String, String)
+getMyMsGit myEnv = (myGit, "\"" ⧺ myGit ⧺ "\"")
+  where myGit = git myEnv
 
 -- Simple double Bool checker
 chk :: IO (Bool, Bool) → (Bool, Bool)
@@ -65,14 +72,13 @@ pull path branch _ unsafe processClean rhash _ myEnv =
   where
     gitX :: IO (Bool, Bool)
     gitX = vd ".git" path $ do
-      let myGit = git myEnv
-          msGit = "\"" ⧺ myGit ⧺ "\""
+      let (myGit, msGit) = getMyMsGit myEnv
+          whe c s = when c $ exec s
       currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
-          whe c s = when c $ exec s
-      whe (cbr ≢ branch)  $ msGit ⧺ " checkout " ⧺ branch
-      whe (not unsafe)    $ msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort"
-      whe (processClean)  $ msGit ⧺ " clean -xdf"
+      whe (cbr ≢ branch) $ msGit ⧺ " checkout " ⧺ branch
+      whe (not unsafe)   $ msGit ⧺ " reset --hard"
+      whe processClean   $ msGit ⧺ " clean -xdf"
       loc ← case rhash of
               Just hsh → return hsh
               _ → readProcess myGit ["log", "-n", "1"
@@ -86,25 +92,25 @@ pull path branch _ unsafe processClean rhash _ myEnv =
                                   , "--pretty=format:%H"
                                   ] []
            else return (trim loc)
-         let remloc = (splitOn "\t" rlc) !! 0
-             locloc = trim lrc
-         putStrLn $ "Origin: " ⧺ remloc
-         putStrLn $ "Local: "  ⧺ locloc
-         if (remloc ≢ locloc)
+         let remoteloc = head (splitOn "\t" rlc)
+             localloc = trim lrc
+         putStrLn $ "Origin: " ⧺ remoteloc
+         putStrLn $ "Local: "  ⧺ localloc
+         if remoteloc ≢ localloc
              then do exec $ msGit ⧺ " pull origin " ⧺ branch
-                     hashupdate remloc path
+                     hashupdate remoteloc path
                      return (True, True)
              else return (True, False)
        _ → return (False, False)
 
     hgX :: IO (Bool, Bool)
     hgX = vd ".hg" path $ do
-      exec $ "hg pull --update"
+      exec "hg pull --update"
       return (True, True)
 
     execPull :: IO (Bool, Bool)
-    execPull = (return (False, False)) ≫= (chk gitX)
-                                       ≫= (chk hgX)
+    execPull = return (False, False) ≫= chk gitX
+                                     ≫= chk hgX
 
 rebasefork :: String → String → [String]
             → Bool → Bool → Maybe String
@@ -115,21 +121,20 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
                  else return (False, False)
   where
     gU :: String -- upstream remote and branch as one string
-    gU = intercalate " " up
+    gU = unwords up
 
     gitX :: IO (Bool, Bool)
     gitX = vd ".git" path $ do
-      let myGit = git myEnv
-          msGit = "\"" ⧺ myGit ⧺ "\""
+      let (myGit, msGit) = getMyMsGit myEnv
       currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
           whe c s = when c $ exec s
-      whe (cbr ≢ branch)  $ msGit ⧺ " checkout " ⧺ branch
-      whe (not unsafe)    $ msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort"
-      whe (pC)            $ msGit ⧺ " clean -xdf"
+      whe (cbr ≢ branch) $ msGit ⧺ " checkout " ⧺ branch
+      whe (not unsafe)   $ msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort"
+      whe pC             $ msGit ⧺ " clean -xdf"
       loc ← case rhash of
               Just hsh → return hsh
-              _ → if (length up) > 1
+              _ → if length up > 1
                       then if sync then readProcess myGit [ "merge-base"
                                                           , up !! 1
                                                           , "origin/" ⧺ branch
@@ -146,7 +151,7 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
          putStrLn "Can't find upstream repository or branch"
          return (False, False)
        Just remt → do
-        let remote = (splitOn "\t" remt) !! 0
+        let remote = head (splitOn "\t" remt)
             local  = trim loc
         putStrLn $ "Last Merge: " ⧺ local
         putStrLn $ "Remote: " ⧺ remote
@@ -162,7 +167,7 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
                                         , "--pretty=format:%H"
                                         ] []
                  else return local
-               let remloc = (splitOn "\t" rlc) !! 0
+               let remloc = head (splitOn "\t" rlc)
                    locloc = trim lrc
                putStrLn $ "Origin: " ⧺ remloc
                putStrLn $ "Local: "  ⧺ locloc
@@ -183,8 +188,8 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
       return (True, True)
 
     execRebaseFork :: IO (Bool, Bool)
-    execRebaseFork = (return (False, False)) ≫= (chk gitX)
-                                             ≫= (chk hgX)
+    execRebaseFork = return (False, False) ≫= chk gitX
+                                           ≫= chk hgX
 
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 gentooSync :: String → Int → IO()

@@ -1,5 +1,6 @@
 {-# LANGUAGE UnicodeSyntax
-  , Safe #-}
+  , Safe
+  #-}
 
 module Model
     ( Repository(..)
@@ -11,29 +12,19 @@ module Model
     , Command(..)
     , MyEnv(..)
 
-    , module Control.Monad
-    , module Control.Applicative
-    , module Control.Exception
-    , module Control.Eternal
-
-    , module Data.Maybe
-    , module Data.List
+    , module MX
     ) where
 
-import Control.Monad
-import Control.Applicative
-import Control.Exception
-import Control.Eternal
-
-import Data.Maybe
-import Data.List
+import Control.Monad as MX
+import Control.Applicative as MX
+import Control.Eternal as MX
 
 data Sharingan = Sharingan
-    { language        ∷ Maybe String
-    , env             ∷ Maybe [String]
-    , before_install  ∷ Maybe [String]
-    , install         ∷ Maybe [String]
-    , script          ∷ [String]
+    { language       ∷ Maybe String
+    , env            ∷ Maybe [String]
+    , beforeInstall  ∷ Maybe [String]
+    , install        ∷ Maybe [String]
+    , script         ∷ [String]
     } deriving (Show)
 
 data Repository = Repository

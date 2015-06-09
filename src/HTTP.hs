@@ -17,7 +17,7 @@ import qualified Codec.Binary.UTF8.String as S
 
 import Control.Monad.IO.Class (liftIO)
 
-getHTTP :: [Char] → IO String
+getHTTP :: String → IO String
 getHTTP url = withSocketsDo
   $ simpleHttp url
       >>= \bs → return $ S.decode $ L.unpack bs

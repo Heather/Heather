@@ -30,9 +30,11 @@ import Exec
 import System.Directory
 import System.Info (os)
 import System.Environment.Executable ( getExecutablePath )
-import System.Exit
 import System.FilePath(takeDirectory, (</>))
 import System.Environment( getEnv )
+import Control.Monad.IfElse
+
+import Data.List
 
 getConfig ∷ IO FilePath
 getConfig =
@@ -52,13 +54,13 @@ processChecks ∷ FilePath → IO()
 processChecks cfg =
     let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
-  where nothing = [] ∷ [Repository]
+  where nothing = [] ∷ [RepositoryWrapper]
 
 processDefaultsChecks ∷ FilePath → IO()
 processDefaultsChecks cfg =
     let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
-  where nothing = (Defaults Nothing)
+  where nothing = DefaultsWrapper (Defaults Nothing)
 
 withConfig :: ∀ β. (FilePath → IO β) → IO β
 withConfig foo = liftM2 (≫) processChecks foo =≪ getConfig
@@ -69,74 +71,70 @@ withDefaultsConfig foo = liftM2 (≫) processDefaultsChecks foo =≪ getDefaults
 config ∷ IO()
 config = do editor ← getEnv "EDITOR"
             withConfig $ \ymlx →
-                exec $ editor ⧺ " " ⧺ ymlx
-            exitWith ExitSuccess
+                  exec $ editor ⧺ " " ⧺ ymlx
 
 defaultsConfig ∷ IO ()
 defaultsConfig = do editor ← getEnv "EDITOR"
                     withDefaultsConfig $ \ymlx →
                         exec $ editor ⧺ " " ⧺ ymlx
-                    exitWith ExitSuccess
 
 getA ∷ String → IO ()
 getA arg = -- Add new stuff to sync
   withConfig $ \ymlx →
-    let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx ∷ IO [Repository]
-        let new = (Repository arg "rebase" -- rebase as default task
-                              ["master"] "upstream master"
-                              Nothing Nothing Nothing
-                              Nothing Nothing Nothing)
-        if (elem new rsdata)
+   whenM <| doesFileExist ymlx <|
+     do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
+        let rsdata = map _getRepository jsdata
+            new = Repository arg "rebase" -- rebase as default task
+                      ["master"] "upstream master"
+                      Nothing Nothing Nothing
+                      Nothing Nothing Nothing
+        if new ∈ rsdata
             then putStrLn "this repository is already in sync"
-            else let newdata = new : rsdata
-                 in yEncode ymlx newdata
-    in doesFileExist ymlx ≫= ymlprocess
-                          ≫ exitWith ExitSuccess
+            else yEncode ymlx $ map RepositoryWrapper (new : rsdata)
 
 getD ∷ String → IO ()
 getD arg = -- Remove stuff from sync
   withConfig $ \ymlx →
-    let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx ∷ IO [Repository]
-        let iio x = isInfixOf arg $ location x
-            findx = find iio rsdata
-        case findx of
-            Just fnd → do yEncode ymlx $ filter (≠ fnd) rsdata
-                          putStrLn $ (location fnd) ⧺ " is removed"
+    whenM <| doesFileExist ymlx <|
+      do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
+         let rsdata = map _getRepository jsdata
+             iio x = isInfixOf arg $ location x
+             findx = find iio rsdata
+         case findx of
+            Just fnd → do yEncode ymlx
+                            $ map RepositoryWrapper
+                                (filter (≠ fnd) rsdata)
+                          putStrLn $ location fnd ⧺ " is removed"
             Nothing → putStrLn $ arg ⧺ " repo not found"
-    in doesFileExist ymlx ≫= ymlprocess
-                          ≫ exitWith ExitSuccess
 
 getAC ∷ [String] → IO ()
 getAC []     = getCurrentDirectory ≫= getA
-getAC (x:[]) = getA x
-getAC (x:xs) = do { getA x; getAC xs }
+getAC [x]    = getA x
+getAC (x:xs) = getA x >> getAC xs
 
 getDC ∷ [String] → IO ()
 getDC []     = getCurrentDirectory ≫= getD
-getDC (x:[]) = getD x
-getDC (x:xs) = do { getD x; getDC xs }
+getDC [x]    = getD x
+getDC (x:xs) = getD x >> getDC xs
 
 enable ∷ Bool → String → IO ()
 enable en arg =
   withConfig $ \ymlx →
-    let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx ∷ IO [Repository]
-        let fr x = if isInfixOf arg $ location x
-                    then x { enabled = Just en }
-                    else x
-        yEncode ymlx $ map fr rsdata
-    in doesFileExist ymlx ≫= ymlprocess
-                          ≫ exitWith ExitSuccess
+    whenM <| doesFileExist ymlx <|
+      do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
+         let rsdata = map _getRepository jsdata
+             fr x = if isInfixOf arg $ location x
+                      then x { enabled = Just en }
+                      else x
+         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
 
 hashupdate ∷ String → String → IO ()
 hashupdate hsh rep =
   withConfig $ \ymlx →
-    let ymlprocess = ifSo $ do
-        rsdata ← yDecode ymlx ∷ IO [Repository]
-        let fr x = if rep ≡ location x
-                    then x { hash = Just hsh }
-                    else x
-        yEncode ymlx $ map fr rsdata
-    in doesFileExist ymlx ≫= ymlprocess
+    whenM <| doesFileExist ymlx <|
+      do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
+         let rsdata = map _getRepository jsdata
+             fr x = if rep ≡ location x
+                      then x { hash = Just hsh }
+                      else x
+         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata

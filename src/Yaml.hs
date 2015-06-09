@@ -1,9 +1,15 @@
 {-# LANGUAGE OverloadedStrings
-  , UnicodeSyntax #-}
+  , UnicodeSyntax
+  #-}
 
 module Yaml
   ( FromJSON
   , ToJSON
+
+  , RepositoryWrapper(..)
+  , SharinganWrapper(..)
+  , DefaultsWrapper(..)
+
   , yDecode
   , yEncode
 
@@ -11,13 +17,18 @@ module Yaml
   ) where
 
 import Model
-import Data.Yaml
 
+import Data.Yaml
+import Data.Maybe (fromMaybe)
 import qualified Data.ByteString.Char8 as BS
+
 import Control.Applicative.Unicode
 
-instance FromJSON Repository where
-    parseJSON (Object v) = Repository <$>
+newtype RepositoryWrapper = RepositoryWrapper
+  { _getRepository :: Repository }
+
+instance FromJSON RepositoryWrapper where
+    parseJSON (Object v) = RepositoryWrapper <$> (Repository <$>
                            v .:  "location" ⊛
                            v .:  "task"     ⊛
                            v .:  "branches" ⊛
@@ -27,56 +38,61 @@ instance FromJSON Repository where
                            v .:? "clean"    ⊛
                            v .:? "postRebuild" ⊛
                            v .:? "group" ⊛
-                           v .:? "hash"
+                           v .:? "hash")
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML"
 
-instance ToJSON Repository where
-   toJSON (Repository loca tsk br up enb pos cln pr gr
-                      hs) = object [ "location"     .= loca
-                                   , "task"         .= tsk
-                                   , "branches"     .= br
-                                   , "upstream"     .= up
-                                   , "enabled"      .= enb
-                                   , "positive"     .= pos
-                                   , "clean"        .= cln
-                                   , "postRebuild"  .= pr
-                                   , "group"        .= gr
-                                   , "hash"         .= hs]
+instance ToJSON RepositoryWrapper where
+   toJSON (RepositoryWrapper (Repository loca tsk br up enb pos cln pr gr
+                      hs)) = object [ "location"     .= loca
+                                    , "task"         .= tsk
+                                    , "branches"     .= br
+                                    , "upstream"     .= up
+                                    , "enabled"      .= enb
+                                    , "positive"     .= pos
+                                    , "clean"        .= cln
+                                    , "postRebuild"  .= pr
+                                    , "group"        .= gr
+                                    , "hash"         .= hs]
 
-instance FromJSON Sharingan where
-    parseJSON (Object v) = Sharingan <$>
+newtype SharinganWrapper = SharinganWrapper
+  { _getSharingan :: Sharingan }
+
+instance FromJSON SharinganWrapper where
+    parseJSON (Object v) = SharinganWrapper <$> (Sharingan <$>
                            v .:? "language" ⊛
                            v .:? "env" ⊛
                            v .:? "before_install" ⊛
                            v .:? "install" ⊛
-                           v .: "script"
+                           v .: "script")
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML"
 
-instance ToJSON Sharingan where
-   toJSON (Sharingan lan en before inst
-                     sc) = object [ "language"        .= lan
-                                  , "env"             .= en
-                                  , "before_install"  .= before
-                                  , "install"         .= inst
-                                  , "script"          .= sc]
+instance ToJSON SharinganWrapper where
+   toJSON (SharinganWrapper (Sharingan lan en before inst
+                     sc)) = object [ "language"        .= lan
+                                   , "env"             .= en
+                                   , "before_install"  .= before
+                                   , "install"         .= inst
+                                   , "script"          .= sc]
 
-instance FromJSON Defaults where
-  parseJSON (Object v) = Defaults <$>
-                         v .:? "quick"
+newtype DefaultsWrapper = DefaultsWrapper
+  { _getDefaults :: Defaults }
+
+instance FromJSON DefaultsWrapper where
+  parseJSON (Object v) = DefaultsWrapper <$> (Defaults <$>
+                         v .:? "quick")
   -- A non-Object value is of the wrong type, so fail.
   parseJSON _ = error "Can't parse Defaults from YAML"
 
-instance ToJSON Defaults where
-  toJSON (Defaults q) = object [ "quick" .= q ]
+instance ToJSON DefaultsWrapper where
+  toJSON (DefaultsWrapper (Defaults q)) = object [ "quick" .= q ]
 
 yDecode :: FromJSON iFromJSONable ⇒ FilePath → IO iFromJSONable
 yDecode fnm = do
   ymlData ← BS.readFile fnm
-  return $ case Data.Yaml.decode ymlData of
-              Just decoded → decoded
-              Nothing      → error "Can't parse from YAML"
+  return $ fromMaybe <| error "Can't parse from YAML"
+                     <| decode ymlData
 
 yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
 yEncode fnm dat = BS.writeFile fnm $ Data.Yaml.encode dat

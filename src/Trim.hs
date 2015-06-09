@@ -1,5 +1,6 @@
 {-# LANGUAGE UnicodeSyntax
-  , Safe #-}
+  , Safe
+  #-}
 
 module Trim
   ( trim

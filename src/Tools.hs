@@ -1,8 +1,8 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Tools
-  ( depot_tools
-  , cabal_upgrade
+  ( depotTools
+  , cabalUpgrade
   ) where
 
 import Codec.Archive.Zip
@@ -18,8 +18,8 @@ import FileSystem
 import Exec
 import HTTP
 
-depot_tools :: IO()
-depot_tools = doesDirectoryExist dst ≫= \dstExist → if dstExist
+depotTools :: IO()
+depotTools = doesDirectoryExist dst ≫= \dstExist → if dstExist
    then do exc dst "git pull"
            exc dst "gclient"
    else doesDirectoryExist src ≫= \srcExist → unless srcExist $ do
@@ -31,7 +31,7 @@ depot_tools = doesDirectoryExist dst ≫= \dstExist → if dstExist
                 extractFilesFromArchive [OptVerbose] $ toArchive dictZipFile
                 srcExists ← doesDirectoryExist src
                 dstExists ← doesDirectoryExist dst
-                if or [not srcExists, dstExists]
+                if not srcExists || dstExists
                     then putStrLn " -> Can not copy to C:"
                     else copyDir src dst ≫ removeDirectoryRecursive src
                                          ≫ removeFile tarball
@@ -46,6 +46,6 @@ depot_tools = doesDirectoryExist dst ≫= \dstExist → if dstExist
   where src = "depot_tools"
         dst = "C:/depot_tools"
 
-cabal_upgrade :: IO()
-cabal_upgrade = do exec "cabal update"
-                   exec "cabal install cabal-install"
+cabalUpgrade :: IO()
+cabalUpgrade = do exec "cabal update"
+                  exec "cabal install cabal-install"

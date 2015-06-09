@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase
   , UnicodeSyntax
-  , Safe #-}
+  , Safe
+  #-}
 
 module AsyncReactive
   ( asyncReactive
@@ -14,23 +15,24 @@ import Control.Concurrent
 import Control.Concurrent.Async
 
 data Progress
-    = Progress { pr_inc  :: IO ()
-               , pr_done :: IO ()
+    = Progress { prInc  :: IO ()
+               , prDone :: IO ()
                }
+
 mkProgress :: Handle → IO Progress
 mkProgress h = reactiveObjectIO 0 $ \ _pid _ _ done →
-  Progress { pr_inc = do hPutStr h "."
+  Progress { prInc = do hPutStr h "."
+                        hFlush h
+           , prDone = do hPutStr h "\nDone\n"
                          hFlush h
-           , pr_done = do hPutStr h "\nDone\n"
-                          hFlush h
-                          done }
+                         done }
 
 doProcess :: Progress → Async () → IO ()
 doProcess r prc =
-  poll prc >>= \case Nothing → pr_inc r >> threadDelay 10000 >> doProcess r prc
+  poll prc >>= \case Nothing → prInc r >> threadDelay 10000 >> doProcess r prc
                      Just _e → case _e of
                                  Left ex → putStrLn $ "Caught exception: " ⧺ show ex
-                                 Right _ → pr_done r
+                                 Right _ → prDone r
 
 asyncReactive :: IO () → IO ()
 asyncReactive foo = liftM2_ doProcess (mkProgress stdout)

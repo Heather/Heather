@@ -2,7 +2,8 @@
   , OverloadedStrings
   , Arrows
   , CPP
-  , UnicodeSyntax #-}
+  , UnicodeSyntax
+  #-}
 
 import Despair
 import EnvChecker
@@ -19,12 +20,15 @@ import System.IO
 import System.FilePath ((</>))
 
 import Data.Char (toLower)
+import Data.List
+import Data.Maybe
 import Data.List.Split
 import Data.Version (showVersion)
 
 import Options.Applicative
 import Options.Applicative.Arrows
 import Control.Arrow.Unicode
+import Control.Exception
 
 #if __GLASGOW_HASKELL__ <= 702
 import Data.Monoid
@@ -33,8 +37,8 @@ import Data.Monoid
 #endif
 
 _version ∷ Parser (a → a) -- ( づ ◔‿◔ )づ
-_version = infoOption ("Sharingan " ⧺ (showVersion version) ⧺ " " ⧺ os)
-  (  long "version" <> help "Print version information" )
+_version = infoOption ("Sharingan " ⧺ showVersion version ⧺ " " ⧺ os)
+  ( long "version" <> help "Print version information" )
 
 parser ∷ Parser Args -- ✌(★◇★ )
 parser = runA $ proc () → do
@@ -44,13 +48,13 @@ parser = runA $ proc () → do
      <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
      <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
      <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
-     <> command "list"        (info (listParser)          (progDesc "List repositories"))
-     <> command "status"      (info (statusParser)        (progDesc "Sharingan build statuses for repositories"))
-     <> command "add"         (info (addParser)           (progDesc "Add repository (current path w/o args)"))
-     <> command "delete"      (info (deleteParser)        (progDesc "Delete repository (current path w/o args)"))
-     <> command "enable"      (info (Enable <$> (argument str (metavar "TARGET...")))
+     <> command "list"        (info listParser            (progDesc "List repositories"))
+     <> command "status"      (info statusParser          (progDesc "Sharingan build statuses for repositories"))
+     <> command "add"         (info addParser             (progDesc "Add repository (current path w/o args)"))
+     <> command "delete"      (info deleteParser          (progDesc "Delete repository (current path w/o args)"))
+     <> command "enable"      (info (Enable <$> argument str (metavar "TARGET..."))
                                                           (progDesc "Enable repository / repositories"))
-     <> command "disable"     (info (Disable <$> (argument str (metavar "TARGET...")))
+     <> command "disable"     (info (Disable <$> argument str (metavar "TARGET..."))
                                                           (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
      <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
@@ -114,12 +118,12 @@ run (Args _ (List   xs))    = list xs
 run (Args _ (Status xs))    = status xs
 run (Args _ (Add    xs))    = getAC xs
 run (Args _ (Delete xs))    = getDC xs
-run (Args _ (Enable  xs))   = (enable True) xs
-run (Args _ (Disable xs))   = (enable False) xs
+run (Args _ (Enable  xs))   = enable True xs
+run (Args _ (Disable xs))   = enable False xs
 run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-run (Args _ Depot)          = depot_tools
-run (Args _ Cabal)          = cabal_upgrade
+run (Args _ Depot)          = depotTools
+run (Args _ Cabal)          = cabalUpgrade
 #else
 run (Args opts Gentoo)      = genSync opts
 #endif
@@ -134,7 +138,7 @@ sync ∷ CommonOpts → SyncOpts → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                lock ← doesFileExist user
                let runWithBlock = withFile user WriteMode (do_program (synchronize o so))
-                                    `finally` removeFile user
+                                        `finally` removeFile user
                if lock then do putStrLn "There is already one instance of this program running."
                                putStrLn "Remove lock and start application? (Y/N)"
                                hFlush stdout
@@ -147,50 +151,49 @@ sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
 #if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 genSync ∷ CommonOpts → IO()
 genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
-                 ≫ exitWith ExitSuccess
 #endif
 
 list ∷ [String] → IO() -- (＾‿‿＾ *)
 list xs = withConfig $ \ymlx → do
-  rsdata ← yDecode ymlx ∷ IO [Repository]
-  let rdd = case xs of [] → rsdata
-                       _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
-      maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
+  jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
+  let rsdata = map _getRepository jsdat
+      rdd = case xs of [] → rsdata
+                       _  → filter (isInfixOf (head xs) . location) rsdata
+      maxl = maximum $ map (length . last . splitOn "\\" . location) rdd
   forM_ rdd $ \repo →
-     let loc  = location repo
-         name = last $ splitOn "\\" loc
-         lnam = (maxl + 1) - (length name)
+     let locs = location repo
+         name = last $ splitOn "\\" locs
+         lnam = maxl + 1 - length name
          sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
                                            else ""
          empt = replicate (length sstr) ' '
          brx  = branches repo
-     in if (length brx) ≡ 0
-         then printf " - %s\n" loc
-         else do printf "%s: %s (%s)" sstr (head brx) loc
+     in if length brx ≡ 0
+         then printf " - %s\n" locs
+         else do printf "%s: %s (%s)" sstr (head brx) locs
                  unless (fromMaybe True (enabled repo))
                    $ putStr " [Disabled]"
                  putStrLn ""
                  forM_ (drop 1 brx) $ printf "%s: %s\n" empt
-  exitWith ExitSuccess
 
 status ∷ [String] → IO() -- (＾‿‿＾ *)
 status xs = withConfig $ \ymlx → do
-  rsdata ← yDecode ymlx ∷ IO [Repository]
-  let rdd = case xs of [] → rsdata
-                       _  → filter (\r → isInfixOf (xs !! 0) (location r)) rsdata
-      maxl = maximum $ map (\x → length $ last $ splitOn "\\" $ location x) rdd
+  jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
+  let rsdata = map _getRepository jsdata
+      rdd = case xs of [] → rsdata
+                       _  → filter (isInfixOf (head xs) . location) rsdata
+      maxl = maximum $ map (length . last . splitOn "\\" . location) rdd
   forM_ rdd $ \repo →
      let loc  = location repo
          name = last $ splitOn "\\" loc
-         lnam = (maxl + 1) - (length name)
+         lnam = maxl + 1 - length name
          sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
                                            else ""
-         stat = case (positive repo) of
+         stat = case positive repo of
                       Just True  → "OK" ∷ String
                       Just False → "Errors..."
                       Nothing    → "?"
      in printf "%s- %s\n" sstr stat
-  exitWith ExitSuccess
 
 mkSharingan ∷ IO ()
 mkSharingan = -- Create .sharingan.yml template
@@ -198,22 +201,24 @@ mkSharingan = -- Create .sharingan.yml template
       envM  = Just []
       biM   = Just []
       iM    = Just []
-      new   = (Sharingan langM envM biM iM ["cabal install"])
-  in yEncode ".sharingan.yml" new ≫ exitWith ExitSuccess
+      new   = SharinganWrapper (Sharingan langM envM biM iM ["cabal install"])
+  in yEncode ".sharingan.yml" new ≫ exitSuccess
 
 synchronize ∷ CommonOpts → SyncOpts → IO()
 synchronize _ so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
-    when (syncFull so) $ do
+    when (syncFull so) $
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-        cabal_upgrade
+        cabalUpgrade
 #else
         genSync o
 #endif
-    rsdat ← yDecode ymlx ∷ IO [Repository]
-    dfdat ← yDecode defx ∷ IO Defaults
+    jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
+    jfdat ← yDecode defx ∷ IO DefaultsWrapper
     myenv ← getEnv
+    let dfdat = _getDefaults jfdat
+        rsdat = map _getRepository jsdat
     forM_ rsdat $ sync myenv dfdat where
   sync myEnv dfdata repo =
     let loc = location repo
@@ -224,16 +229,15 @@ synchronize _ so = -- ( ◜ ①‿‿① )◜
                                     gx  → case syncGroup repo of
                                                 Just gg → isenabled ∧ (gg ∈ gx)
                                                 Nothing → False
-                    Just snc → isInfixOf (map toLower snc)
-                                         (map toLower loc))
+                    Just snc → isInfixOf <| map toLower snc
+                                         <| map toLower loc)
         $ let ups = splitOn " " $ upstream repo
               cln = fromMaybe False (clean repo)
               noq = not $ fromMaybe False (quick dfdata)
-              syn = if (length ups) > 1 then ups !! 1 ∈ (branches repo)
-                                        else False
+              syn = ((length ups > 1) && (ups !! 1 ∈ branches repo))
               u b = do printf " - %s : %s\n" loc b
                        amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) syn myEnv
-              eye (_, r) = when ((r ∨ syncForce so) ∧ (not $ syncQuick so) ∧ noq)
+              eye (_, r) = when ((r ∨ syncForce so) ∧ not (syncQuick so) ∧ noq)
                             $ do let shx = loc </> ".sharingan.yml"
                                      ps  = postRebuild repo
                                  doesFileExist shx ≫= sharingan (syncInteractive so) shx loc
@@ -242,7 +246,7 @@ synchronize _ so = -- ( ◜ ①‿‿① )◜
                                                         in doesFileExist pshx
                                                             ≫= sharingan (syncInteractive so) pshx psc
           in do forM_ (tails (branches repo))
-                 $ \case x:[] → u x ≫= eye -- Tail
-                         x:_  → u x ≫= (\_ → return ())
-                         []   → return ()
+                 $ \case [x] → u x ≫= eye -- Tail
+                         x:_ → u x ≫= (\_ → return ())
+                         []  → return ()
                 putStrLn ⊲ replicate 89 '_'

@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.6.6
+version:       0.6.7
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Heather@live.ru>
@@ -32,3 +32,4 @@ Executable    sharingan
     , base-unicode-symbols
     , utf8-string
     , transformers
+    , IfElse

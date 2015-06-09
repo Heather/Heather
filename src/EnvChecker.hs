@@ -1,5 +1,6 @@
 {-# LANGUAGE UnicodeSyntax
-  , LambdaCase #-}
+  , LambdaCase
+  #-}
 
 module EnvChecker
   ( getEnv
@@ -8,6 +9,8 @@ module EnvChecker
 
 import Yaml
 import Exec
+
+import Data.Maybe
 
 import Paths_Sharingan (version)
 
@@ -22,13 +25,13 @@ gitCheck :: String → [String] → IO (Maybe String)
 gitCheck cmd args = checkIfSucc cmd (args ++ ["--version"])
 
 getGit :: IO String
-getGit = (return Nothing) ≫= t "git" []
-                          ≫= t "C:/Program Files (x86)/Git/cmd/git.exe" []
-                          ≫= t "C:/Program Files/Git/cmd/git.exe" []
-                          ≫= t "git.cmd" []
-                          ≫= \res → return $ fromMaybe "git" res
+getGit = return Nothing ≫= t "git" []
+                        ≫= t "C:/Program Files (x86)/Git/cmd/git.exe" []
+                        ≫= t "C:/Program Files/Git/cmd/git.exe" []
+                        ≫= t "git.cmd" []
+                        ≫= \res → return $ fromMaybe "git" res
   where t :: String → [String] → Maybe String → IO (Maybe String)
-        t x a prev = if (isNothing  prev)
+        t x a prev = if isNothing  prev
                       then gitCheck x a
                       else return prev
 
