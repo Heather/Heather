@@ -26,6 +26,9 @@ import System.Process
 import Trim
 import Exec
 import Config
+#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+import AsyncReactive
+#endif
 
 setEnv :: String → IO()
 setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
