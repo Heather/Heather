@@ -205,14 +205,14 @@ mkSharingan = -- Create .sharingan.yml template
   in yEncode ".sharingan.yml" new ≫ exitSuccess
 
 synchronize ∷ CommonOpts → SyncOpts → IO()
-synchronize _ so = -- ( ◜ ①‿‿① )◜
+synchronize _o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
     when (syncFull so) $
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
         cabalUpgrade
 #else
-        genSync o
+        genSync _o
 #endif
     jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
     jfdat ← yDecode defx ∷ IO DefaultsWrapper
