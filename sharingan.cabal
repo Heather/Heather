@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.8.3
+version:       0.8.4
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Heather@live.ru>
@@ -9,6 +9,22 @@ cabal-version: >= 1.6
 
 Executable    sharingan
   Main-Is:    Sharingan.hs
+  Other-Modules:
+    Amaterasu
+    Config
+    EnvChecker
+    Exec
+    FileSystem
+    HTTP
+    Model
+    Paths_Sharingan
+    SharinganProcess
+    Shell.Helper
+    Shell.Pull
+    Shell.Rebase
+    Tools
+    Trim
+    Yaml
   Hs-Source-Dirs: src
   Build-Depends:
     base >= 4.3 && < 666
