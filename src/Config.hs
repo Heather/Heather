@@ -1,6 +1,8 @@
-{-# LANGUAGE MultiWayIf
+{-# LANGUAGE
+    MultiWayIf
   , UnicodeSyntax
-  , RankNTypes #-}
+  , RankNTypes
+  #-}
 
 module Config
   ( getConfig

@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase
+{-# LANGUAGE
+    LambdaCase
   , UnicodeSyntax
   , Safe
   #-}

@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiWayIf
+{-# LANGUAGE
+    MultiWayIf
   , LambdaCase
   , CPP
   , UnicodeSyntax
@@ -55,10 +56,10 @@ vd validator path action =
 
 amaterasu :: String → String → String → [String]
            → Bool → Bool → Maybe String
-           → Bool → MyEnv → IO (Bool, Bool)
+           → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ _ _ →
+amaterasu custom    = \path _ _ _ _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
                         exec custom
@@ -67,8 +68,8 @@ amaterasu custom    = \path _ _ _ _ _ _ _ →
 
 pull :: String → String → [String]
       → Bool → Bool → Maybe String
-      → Bool → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe processClean rhash _ myEnv =
+      → MyEnv → IO (Bool, Bool)
+pull path branch _ unsafe processClean rhash myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
@@ -117,8 +118,8 @@ pull path branch _ unsafe processClean rhash _ myEnv =
 
 rebasefork :: String → String → [String]
             → Bool → Bool → Maybe String
-            → Bool → MyEnv → IO (Bool, Bool)
-rebasefork path branch up unsafe pC rhash sync myEnv =
+            → MyEnv → IO (Bool, Bool)
+rebasefork path branch up unsafe pC rhash myEnv =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)
@@ -135,19 +136,16 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
       whe (cbr ≢ branch) $ msGit ⧺ " checkout " ⧺ branch
       whe (not unsafe)   $ msGit ⧺ " reset --hard & " ⧺ msGit ⧺ " rebase --abort"
       whe pC             $ msGit ⧺ " clean -xdf"
-      loc ← case rhash of
-              Just hsh → return hsh
-              _ → if length up > 1
-                      then if sync then readProcess myGit [ "merge-base"
-                                                          , up !! 1
-                                                          , "origin/" ⧺ branch
-                                                          ] []
-                                   else readProcess myGit [ "rev-parse"
-                                                          , intercalate "/" up
-                                                          ] []
-                      else readProcess myGit ["log", "-n", "1"
-                                             , "--pretty=format:%H"
-                                             ] []
+      localCommit ←
+        case rhash of
+          Just hsh → return hsh
+          _ → if length up > 1
+                then readProcess myGit [ "rev-parse"
+                                       , intercalate "/" up
+                                       ] []
+                else readProcess myGit ["log", "-n", "1"
+                                       , "--pretty=format:%H"
+                                       ] []
       urlm ← readIfSucc myGit (["ls-remote"] ⧺ up)
       case urlm of
        Nothing → do
@@ -155,7 +153,7 @@ rebasefork path branch up unsafe pC rhash sync myEnv =
          return (False, False)
        Just remt → do
         let remote = head (splitOn "\t" remt)
-            local  = trim loc
+            local  = trim localCommit
         putStrLn $ "Last Merge: " ⧺ local
         putStrLn $ "Remote: " ⧺ remote
         if remote ≡ local

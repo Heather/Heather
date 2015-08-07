@@ -1,4 +1,5 @@
-{-# LANGUAGE UnicodeSyntax
+{-# LANGUAGE
+    UnicodeSyntax
   , Safe
   #-}
 
@@ -6,7 +7,10 @@ module FileSystem
   ( copyDir
   ) where
 
-import System.Directory(createDirectory, getDirectoryContents, doesDirectoryExist, copyFile)
+import System.Directory( createDirectory
+                       , getDirectoryContents
+                       , doesDirectoryExist
+                       , copyFile)
 import Control.Monad(forM_)
 
 import System.FilePath((</>))

@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase
+{-# LANGUAGE
+    LambdaCase
   , OverloadedStrings
   , Arrows
   , CPP
@@ -231,22 +232,24 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
                                                 Nothing → False
                     Just snc → isInfixOf <| map toLower snc
                                          <| map toLower loc)
-        $ let ups = splitOn " " $ upstream repo
-              cln = fromMaybe False (clean repo)
-              noq = not $ fromMaybe False (quick dfdata)
-              syn = ((length ups > 1) && (ups !! 1 ∈ branches repo))
-              u b = do printf " - %s : %s\n" loc b
-                       amaterasu (task repo) loc b ups (syncUnsafe so) cln (hash repo) syn myEnv
-              eye (_, r) = when ((r ∨ syncForce so) ∧ not (syncQuick so) ∧ noq)
-                            $ do let shx = loc </> ".sharingan.yml"
-                                     ps  = postRebuild repo
-                                 doesFileExist shx ≫= sharingan (syncInteractive so) shx loc
-                                 when (isJust ps) $ forM_ (fromJust ps) $ \psc →
-                                                        let pshx = psc </> ".sharingan.yml"
-                                                        in doesFileExist pshx
-                                                            ≫= sharingan (syncInteractive so) pshx psc
-          in do forM_ (tails (branches repo))
-                 $ \case [x] → u x ≫= eye -- Tail
-                         x:_ → u x ≫= (\_ → return ())
-                         []  → return ()
-                putStrLn ⊲ replicate 89 '_'
+      $ let ups = splitOn " " $ upstream repo
+            cln = fromMaybe False (clean repo)
+            noq = not $ fromMaybe False (quick dfdata)
+            tsk = task repo
+            uns = syncUnsafe so
+            hsh = hash repo
+            u b = do printf " - %s : %s\n" loc b
+                     amaterasu tsk loc b ups uns cln hsh myEnv
+            eye (_, r) = when ((r ∨ syncForce so) ∧ not (syncQuick so) ∧ noq)
+              $ do let shx = loc </> ".sharingan.yml"
+                       ps  = postRebuild repo
+                   doesFileExist shx ≫= sharingan (syncInteractive so) shx loc
+                   when (isJust ps) $ forM_ (fromJust ps) $ \psc →
+                      let pshx = psc </> ".sharingan.yml"
+                      in doesFileExist pshx
+                          ≫= sharingan (syncInteractive so) pshx psc
+        in do forM_ (tails (branches repo))
+               $ \case [x] → u x ≫= eye -- Tail
+                       x:_ → u x ≫= (\_ → return ())
+                       []  → return ()
+              putStrLn ⊲ replicate 89 '_'

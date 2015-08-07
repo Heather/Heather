@@ -1,4 +1,6 @@
-{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE
+  UnicodeSyntax
+  #-}
 
 module Tools
   ( depotTools
