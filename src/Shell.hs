@@ -8,9 +8,6 @@
 module Shell
   ( amaterasu
   , setEnv
-#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-  , gentooSync
-#endif
   , module Exec
   ) where
 
@@ -27,9 +24,6 @@ import System.Process
 import Trim
 import Exec
 import Config
-#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-import AsyncReactive
-#endif
 
 setEnv :: String → IO()
 setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
@@ -191,14 +185,3 @@ rebasefork path branch up unsafe pC rhash myEnv =
     execRebaseFork :: IO (Bool, Bool)
     execRebaseFork = return (False, False) ≫= chk gitX
                                            ≫= chk hgX
-
-#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-gentooSync :: String → Int → IO()
-gentooSync path jobs = do
-    j ← if jobs ≡ 0 then readProcess "nproc" [] []
-                      else return $ show jobs
-    putStrLn "updating..."
-    asyncReactive (exc path $ " cvs update "
-                    ⧺ " & egencache --update --repo=gentoo --portdir=" ⧺ path
-                    ⧺ " --jobs=" ⧺ j)
-#endif

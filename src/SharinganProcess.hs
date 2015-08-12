@@ -7,9 +7,6 @@
 module SharinganProcess
   ( sharingan
   , amaterasu
-#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-  , gentooSync
-#endif
   ) where
 
 import Yaml

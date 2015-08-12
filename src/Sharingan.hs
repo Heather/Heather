@@ -60,8 +60,6 @@ parser = runA $ proc () → do
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
      <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
      <> command "cabal"       (info (pure Cabal)          (progDesc "Cabal upgrade"))
-#else
-     <> command "update"      (info (pure Gentoo)         (progDesc "Synchronize cvs portagee tree Gentoo x86"))
 #endif
       ) ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
   A _version ⋙ A helper ⤙ Args opts cmds
@@ -125,8 +123,6 @@ run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ Depot)          = depotTools
 run (Args _ Cabal)          = cabalUpgrade
-#else
-run (Args opts Gentoo)      = genSync opts
 #endif
 
 main ∷ IO ()
@@ -148,11 +144,6 @@ sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
                        else runWithBlock
   where do_program ∷ IO() → Handle → IO()
         do_program gogo _ = gogo
-
-#if ! ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-genSync ∷ CommonOpts → IO()
-genSync o = gentooSync "/home/gentoo-x86" (optJobs o)
-#endif
 
 list ∷ [String] → IO() -- (＾‿‿＾ *)
 list xs = withConfig $ \ymlx → do
