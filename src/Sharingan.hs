@@ -203,8 +203,6 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
     when (syncFull so) $
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
         cabalUpgrade
-#else
-        genSync _o
 #endif
     jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
     jfdat ← yDecode defx ∷ IO DefaultsWrapper
