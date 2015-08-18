@@ -200,9 +200,8 @@ synchronize ∷ CommonOpts → SyncOpts → IO()
 synchronize _o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
-    when (syncFull so) $
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-        cabalUpgrade
+    when (syncFull so) cabalUpgrade
 #endif
     jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
     jfdat ← yDecode defx ∷ IO DefaultsWrapper
