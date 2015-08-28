@@ -226,9 +226,10 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
             tsk = task repo
             uns = syncUnsafe so
             hsh = hash repo
+            frs = syncForce so
             u b = do printf " - %s : %s\n" loc b
-                     amaterasu tsk loc b ups uns cln hsh myEnv
-            eye (_, r) = when ((r ∨ syncForce so) ∧ not (syncQuick so) ∧ noq)
+                     amaterasu tsk loc b ups uns frs cln hsh myEnv
+            eye (_, r) = when ((r ∨ frs) ∧ not (syncQuick so) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
                    doesFileExist shx ≫= sharingan (syncInteractive so) shx loc

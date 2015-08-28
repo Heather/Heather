@@ -49,11 +49,11 @@ vd validator path action =
                  else return (True, False)
 
 amaterasu :: String → String → String → [String]
-           → Bool → Bool → Maybe String
+           → Bool → Bool → Bool → Maybe String
            → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ _ →
+amaterasu custom    = \path _ _ _ _ _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
                         exec custom
@@ -61,9 +61,9 @@ amaterasu custom    = \path _ _ _ _ _ _ →
                 else return (False, False)
 
 pull :: String → String → [String]
-      → Bool → Bool → Maybe String
+      → Bool → Bool → Bool → Maybe String
       → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe processClean rhash myEnv =
+pull path branch _ unsafe frs processClean rhash myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
@@ -94,7 +94,7 @@ pull path branch _ unsafe processClean rhash myEnv =
              localloc = trim lrc
          putStrLn $ "Origin: " ⧺ remoteloc
          putStrLn $ "Local: "  ⧺ localloc
-         if remoteloc ≢ localloc
+         if remoteloc ≢ localloc ∨ frs
              then do exec $ msGit ⧺ " pull origin " ⧺ branch
                      hashupdate remoteloc path
                      return (True, True)
@@ -111,9 +111,9 @@ pull path branch _ unsafe processClean rhash myEnv =
                                      ≫= chk hgX
 
 rebasefork :: String → String → [String]
-            → Bool → Bool → Maybe String
+            → Bool → Bool → Bool → Maybe String
             → MyEnv → IO (Bool, Bool)
-rebasefork path branch up unsafe pC rhash myEnv =
+rebasefork path branch up unsafe frs pC rhash myEnv =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)
@@ -133,13 +133,9 @@ rebasefork path branch up unsafe pC rhash myEnv =
       localCommit ←
         case rhash of
           Just hsh → return hsh
-          _ → if length up > 1
-                then readProcess myGit [ "rev-parse"
-                                       , intercalate "/" up
-                                       ] []
-                else readProcess myGit ["log", "-n", "1"
-                                       , "--pretty=format:%H"
-                                       ] []
+          _ → readProcess myGit ["log", "-n", "1"
+                                , "--pretty=format:%H"
+                                ] []
       urlm ← readIfSucc myGit (["ls-remote"] ⧺ up)
       case urlm of
        Nothing → do
@@ -150,7 +146,7 @@ rebasefork path branch up unsafe pC rhash myEnv =
             local  = trim localCommit
         putStrLn $ "Last Merge: " ⧺ local
         putStrLn $ "Remote: " ⧺ remote
-        if remote ≡ local
+        if remote ≡ local ∧ not frs
           then do putStrLn $ path ⧺ " is up to date"
                   return (True, False)
           else do
@@ -166,8 +162,8 @@ rebasefork path branch up unsafe pC rhash myEnv =
                    locloc = trim lrc
                putStrLn $ "Origin: " ⧺ remloc
                putStrLn $ "Local: "  ⧺ locloc
-               whe (remloc ≢ locloc) $ msGit ⧺ " pull origin " ⧺ branch
-               whe (remloc ≢ remote)
+               whe (remloc ≢ locloc ∨ frs) $ msGit ⧺ " pull origin " ⧺ branch
+               whe (remloc ≢ remote ∨ frs)
                      $ msGit ⧺ " pull --rebase " ⧺ gU
                              ⧺ " & " ⧺ msGit
                              ⧺ " push --force origin " ⧺ branch
