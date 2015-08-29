@@ -40,16 +40,14 @@ import Data.List
 
 getConfig ∷ IO FilePath
 getConfig =
-  if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharingan.yml")
-                                                <$> takeDirectory
-                                                <$> getExecutablePath
+  if | os ∈ ["win32", "mingw32", "cygwin32"] →
+        ((</> "sharingan.yml") . takeDirectory <$> getExecutablePath)
      | otherwise → return "/etc/sharingan.yml"
 
 getDefaultsConfig ∷ IO FilePath
 getDefaultsConfig =
-  if | os ∈ ["win32", "mingw32", "cygwin32"] → (</> "sharinganDefaults.yml")
-                                                <$> takeDirectory
-                                                <$> getExecutablePath
+  if | os ∈ ["win32", "mingw32", "cygwin32"] →
+        ((</> "sharinganDefaults.yml") . takeDirectory <$> getExecutablePath)
      | otherwise → return "/etc/sharinganDefaults.yml"
 
 processChecks ∷ FilePath → IO()
