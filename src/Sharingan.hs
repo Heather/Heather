@@ -180,7 +180,7 @@ list xs = withConfig $ \ymlx → do
          empt = replicate (length sstr) ' '
          brx  = branches repo
      in if length brx ≡ 0
-         then printf " - %s\n" locs
+         then printf " - %s |%s\n" locs (task repo)
          else do printf "%s: %s (%s)" sstr (head brx) locs
                  unless (fromMaybe True (enabled repo))
                    $ putStr " [Disabled]"
