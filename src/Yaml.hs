@@ -35,6 +35,7 @@ instance FromJSON RepositoryWrapper where
                            v .:  "branches" ⊛
                            v .:  "upstream" ⊛
                            v .:? "enabled"  ⊛
+                           v .:? "root" ⊛
                            v .:? "positive" ⊛
                            v .:? "clean"    ⊛
                            v .:? "postRebuild" ⊛
@@ -44,12 +45,13 @@ instance FromJSON RepositoryWrapper where
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON RepositoryWrapper where
-   toJSON (RepositoryWrapper (Repository loca tsk br up enb pos cln pr gr
+   toJSON (RepositoryWrapper (Repository loca tsk br up enb root pos cln pr gr
                       hs)) = object [ "location"     .= loca
                                     , "task"         .= tsk
                                     , "branches"     .= br
                                     , "upstream"     .= up
                                     , "enabled"      .= enb
+                                    , "root"         .= root
                                     , "positive"     .= pos
                                     , "clean"        .= cln
                                     , "postRebuild"  .= pr

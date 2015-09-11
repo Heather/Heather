@@ -48,12 +48,13 @@ vd validator path action =
           if vde then setCurrentDirectory path ≫ action
                  else return (True, False)
 
+-- TODO: Process sudo calls for adm flag
 amaterasu :: String → String → String → [String]
-           → Bool → Bool → Bool → Maybe String
+           → Bool → Bool → Bool → Bool → Maybe String
            → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ _ _ →
+amaterasu custom    = \path _ _ _ _ _ _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
                         exec custom
@@ -61,9 +62,9 @@ amaterasu custom    = \path _ _ _ _ _ _ _ →
                 else return (False, False)
 
 pull :: String → String → [String]
-      → Bool → Bool → Bool → Maybe String
+      → Bool → Bool → Bool → Bool → Maybe String
       → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe frs processClean rhash myEnv =
+pull path branch _ unsafe frs processClean _ rhash myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
@@ -111,9 +112,9 @@ pull path branch _ unsafe frs processClean rhash myEnv =
                                      ≫= chk hgX
 
 rebasefork :: String → String → [String]
-            → Bool → Bool → Bool → Maybe String
+            → Bool → Bool → Bool  → Bool → Maybe String
             → MyEnv → IO (Bool, Bool)
-rebasefork path branch up unsafe frs pC rhash myEnv =
+rebasefork path branch up unsafe frs pC _ rhash myEnv =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)

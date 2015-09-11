@@ -33,8 +33,9 @@ updateStatusIcon loc pos =
         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
     in doesFileExist ymlx ≫= ymlprocess
 
-sharingan ∷ Bool → String → String → Bool → IO()
-sharingan interactive shx loc shxi = if shxi then
+-- TODO: Process sudo calls for adm flag
+sharingan ∷ Bool → Bool → String → String → Bool → IO()
+sharingan interactive _ shx loc shxi = if shxi then
    do jsyncDatax ← yDecode shx ∷ IO SharinganWrapper
       let syncDatax = _getSharingan jsyncDatax
           sc   = script syncDatax

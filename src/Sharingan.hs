@@ -222,21 +222,21 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
                                          <| map toLower loc)
       $ let ups = splitOn " " $ upstream repo
             cln = fromMaybe False (clean repo)
+            adm = fromMaybe False (root repo)
             noq = not $ fromMaybe False (quick dfdata)
-            tsk = task repo
-            uns = syncUnsafe so
-            hsh = hash repo
+            snc = sharingan (syncInteractive so) adm
             frs = syncForce so
             u b = do printf " - %s : %s\n" loc b
-                     amaterasu tsk loc b ups uns frs cln hsh myEnv
+                     amaterasu (task repo) loc b ups (syncUnsafe so)
+                               frs cln adm (hash repo) myEnv
             eye (_, r) = when ((r ∨ frs) ∧ not (syncQuick so) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
-                   doesFileExist shx ≫= sharingan (syncInteractive so) shx loc
+                   doesFileExist shx ≫= sharingan
+                                          (syncInteractive so) adm shx loc
                    when (isJust ps) $ forM_ (fromJust ps) $ \psc →
                       let pshx = psc </> ".sharingan.yml"
-                      in doesFileExist pshx
-                          ≫= sharingan (syncInteractive so) pshx psc
+                      in doesFileExist pshx≫= snc pshx psc
         in do forM_ (tails (branches repo))
                $ \case [x] → u x ≫= eye -- Tail
                        x:_ → u x ≫= (\_ → return ())

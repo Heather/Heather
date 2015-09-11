@@ -89,7 +89,7 @@ getA arg = -- Add new stuff to sync
             new = Repository arg "rebase" -- rebase as default task
                       ["master"] "upstream master"
                       Nothing Nothing Nothing
-                      Nothing Nothing Nothing
+                      Nothing Nothing Nothing Nothing
         if new ∈ rsdata
             then putStrLn "this repository is already in sync"
             else yEncode ymlx $ map RepositoryWrapper (new : rsdata)
