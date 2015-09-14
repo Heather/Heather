@@ -29,18 +29,18 @@ newtype RepositoryWrapper = RepositoryWrapper
   { _getRepository :: Repository }
 
 instance FromJSON RepositoryWrapper where
-    parseJSON (Object v) = RepositoryWrapper <$> (Repository <$>
-                           v .:  "location"     ⊛
-                           v .:  "task"         ⊛
-                           v .:  "branches"     ⊛
-                           v .:  "upstream"     ⊛
-                           v .:? "enabled"      ⊛
-                           v .:? "root"         ⊛
-                           v .:? "positive"     ⊛
-                           v .:? "clean"        ⊛
-                           v .:? "postRebuild"  ⊛
-                           v .:? "group"        ⊛
-                           v .:? "hash"         )
+    parseJSON (Object v) = RepositoryWrapper <$>
+      (Repository <$> v .:  "location"
+                    ⊛ v .:  "task"
+                    ⊛ v .:  "branches"
+                    ⊛ v .:  "upstream"
+                    ⊛ v .:? "enabled"     .!= Just True
+                    ⊛ v .:? "root"        .!= Just False
+                    ⊛ v .:? "positive"    .!= Nothing
+                    ⊛ v .:? "clean"       .!= Nothing
+                    ⊛ v .:? "postRebuild" .!= Nothing
+                    ⊛ v .:? "group"       .!= Nothing
+                    ⊛ v .:? "hash"        .!= Nothing)
     parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Repository from YAML"
 
@@ -62,12 +62,12 @@ newtype SharinganWrapper = SharinganWrapper
   { _getSharingan :: Sharingan }
 
 instance FromJSON SharinganWrapper where
-    parseJSON (Object v) = SharinganWrapper <$> (Sharingan <$>
-                           v .:? "language"       ⊛
-                           v .:? "env"            ⊛
-                           v .:? "before_install" ⊛
-                           v .:? "install"        ⊛
-                           v .: "script"          )
+    parseJSON (Object v) = SharinganWrapper <$>
+      (Sharingan <$> v .:? "language"       .!= Nothing
+                   ⊛ v .:? "env"            .!= Nothing
+                   ⊛ v .:? "before_install" .!= Nothing
+                   ⊛ v .:? "install"        .!= Nothing
+                   ⊛ v .: "script")
     parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Sharingan from YAML"
 
