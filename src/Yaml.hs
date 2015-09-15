@@ -21,7 +21,6 @@ import Model
 
 import Data.Yaml
 import Data.Vector
-import Data.Maybe (fromMaybe)
 import qualified Data.ByteString.Char8 as BS
 
 import Control.Applicative.Unicode
@@ -92,11 +91,15 @@ instance FromJSON DefaultsWrapper where
 instance ToJSON DefaultsWrapper where
   toJSON (DefaultsWrapper (Defaults q)) = object [ "quick" .= q ]
 
+eAttempt :: FromJSON ifj ⇒ BS.ByteString → IO ifj
+eAttempt yd = return $ case decodeEither yd of
+                        Left er → error er
+                        Right r → r
+
 yDecode :: FromJSON iFromJSONable ⇒ FilePath → IO iFromJSONable
 yDecode fnm = do
   ymlData ← BS.readFile fnm
-  return $ fromMaybe <| error "Can't parse from YAML"
-                     <| decode ymlData
+  eAttempt ymlData
 
 yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
 yEncode fnm dat = BS.writeFile fnm $ encode dat
