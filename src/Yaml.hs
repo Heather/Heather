@@ -91,15 +91,12 @@ instance FromJSON DefaultsWrapper where
 instance ToJSON DefaultsWrapper where
   toJSON (DefaultsWrapper (Defaults q)) = object [ "quick" .= q ]
 
-eAttempt :: FromJSON ifj ⇒ BS.ByteString → IO ifj
-eAttempt yd = return $ case decodeEither yd of
-                        Left er → error er
-                        Right r → r
-
 yDecode :: FromJSON iFromJSONable ⇒ FilePath → IO iFromJSONable
 yDecode fnm = do
   ymlData ← BS.readFile fnm
-  eAttempt ymlData
+  return $ case decodeEither ymlData of
+                  Left er → error er
+                  Right r → r
 
 yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
 yEncode fnm dat = BS.writeFile fnm $ encode dat
