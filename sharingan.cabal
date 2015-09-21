@@ -14,7 +14,6 @@ Executable    sharingan
     base >= 4.3 && < 666
     , yaml
     , vector
-    , text
     , executable-path
     , zip-archive
     , filepath

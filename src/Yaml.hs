@@ -19,14 +19,9 @@ module Yaml
 
 import Model
 
-import System.IO
-
 import Data.Yaml
 import Data.Vector
 import Data.Maybe (fromMaybe)
-
-import Data.Text.Encoding
-import qualified Data.Text.IO as DT
 import qualified Data.ByteString.Char8 as BS
 
 import Control.Applicative.Unicode
@@ -104,9 +99,4 @@ yDecode fnm = do
                      <| decode ymlData
 
 yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
-yEncode fnm dat =
-  withBinaryFile fnm WriteMode $ \hDest →
-    DT.hPutStr hDest (decodeUtf8 (encode dat))
-  --BS.writeFile fnm $ encode dat
-  --Note: BS.writeFile is buggy there
-  --because it's trying to manage line endings and fails there
+yEncode fnm dat = BS.writeFile fnm $ encode dat
