@@ -30,17 +30,17 @@ newtype RepositoryWrapper = RepositoryWrapper
 
 instance FromJSON RepositoryWrapper where
     parseJSON (Object v) = RepositoryWrapper <$> (Repository <$>
-                           v .:  "location" ⊛
-                           v .:  "task"     ⊛
-                           v .:  "branches" ⊛
-                           v .:  "upstream" ⊛
-                           v .:? "enabled"  ⊛
-                           v .:? "root" ⊛
-                           v .:? "positive" ⊛
-                           v .:? "clean"    ⊛
-                           v .:? "postRebuild" ⊛
-                           v .:? "group" ⊛
-                           v .:? "hash")
+                           v .:  "location"     ⊛
+                           v .:  "task"         ⊛
+                           v .:  "branches"     ⊛
+                           v .:  "upstream"     ⊛
+                           v .:? "enabled"      ⊛
+                           v .:? "root"         ⊛
+                           v .:? "positive"     ⊛
+                           v .:? "clean"        ⊛
+                           v .:? "postRebuild"  ⊛
+                           v .:? "group"        ⊛
+                           v .:? "hash"         )
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Repository from YAML"
 
@@ -63,11 +63,11 @@ newtype SharinganWrapper = SharinganWrapper
 
 instance FromJSON SharinganWrapper where
     parseJSON (Object v) = SharinganWrapper <$> (Sharingan <$>
-                           v .:? "language" ⊛
-                           v .:? "env" ⊛
+                           v .:? "language"       ⊛
+                           v .:? "env"            ⊛
                            v .:? "before_install" ⊛
-                           v .:? "install" ⊛
-                           v .: "script")
+                           v .:? "install"        ⊛
+                           v .: "script"          )
     -- A non-Object value is of the wrong type, so fail.
     parseJSON _ = error "Can't parse Sharingan from YAML"
 
