@@ -98,4 +98,4 @@ yDecode fnm = do
                      <| decode ymlData
 
 yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
-yEncode fnm dat = BS.writeFile fnm $ Data.Yaml.encode dat
+yEncode fnm dat = BS.writeFile fnm $ encode dat
