@@ -1,6 +1,7 @@
 {-# LANGUAGE
     UnicodeSyntax
   , LambdaCase
+  , CPP
   #-}
 
 module EnvChecker
@@ -14,6 +15,19 @@ import Exec
 import Data.Maybe
 
 import Paths_Sharingan (version)
+
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+#else
+import System.Posix.User
+#endif
+
+isRoot :: IO Bool
+isRoot =
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+  return False
+#else
+  fmap (== 0) getRealUserID
+#endif
 
 checkIfSucc :: String → [String] → IO (Maybe String)
 checkIfSucc cmd args =
