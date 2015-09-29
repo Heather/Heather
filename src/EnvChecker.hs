@@ -18,7 +18,8 @@ import Paths_Sharingan (version)
 
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 #else
-import System.Posix.User
+-- needs posix in cabal
+-- import System.Posix.User
 #endif
 
 isRoot :: IO Bool
@@ -26,7 +27,8 @@ isRoot =
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
   return False
 #else
-  fmap (== 0) getRealUserID
+  return True
+  -- fmap (== 0) getRealUserID
 #endif
 
 checkIfSucc :: String → [String] → IO (Maybe String)
