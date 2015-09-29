@@ -3,8 +3,7 @@ notifications:
   irc: "chat.freenode.net#Heather"
 
 env:
- - GHCVER=7.6.2
- - GHCVER=7.6.3
+ - GHCVER=7.10.1
 
 before_install:
  - sudo add-apt-repository -y ppa:hvr/ghc
