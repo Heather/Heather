@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy as L
 import qualified Codec.Binary.UTF8.String as S
 
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Resource (runResourceT)
 
 getHTTP :: String → IO String
 getHTTP url = withSocketsDo
@@ -27,9 +28,10 @@ getHTTP url = withSocketsDo
 download :: String → String → IO()
 download url filename = withSocketsDo $ do
   irequest ← liftIO $ parseUrl url
-  withManager $ \manager → do
-    let request = irequest
-         { method = methodGet
-         , responseTimeout = Just 10000000 }
-    response ← http request manager
-    responseBody response C.$$+- sinkFile filename
+  manager ← newManager tlsManagerSettings
+  let request = irequest
+       { method = methodGet
+       , responseTimeout = Just 10000000 }
+  runResourceT $ do
+      response ← http request manager
+      responseBody response C.$$+- sinkFile filename
