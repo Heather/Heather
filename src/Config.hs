@@ -80,13 +80,13 @@ defaultsConfig = do editor ← getEnv "EDITOR"
                     withDefaultsConfig $ \ymlx →
                         exec $ editor ⧺ " " ⧺ ymlx
 
-getA ∷ String → IO ()
-getA arg = -- Add new stuff to sync
+getA ∷ String → String → IO ()
+getA daction arg = -- Add new stuff to sync
   withConfig $ \ymlx →
    whenM <| doesFileExist ymlx <|
      do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
         let rsdata = map _getRepository jsdata
-            new = Repository arg "rebase" -- rebase as default task
+            new = Repository arg daction -- default task / action
                       ["master"] "upstream master"
                       Nothing Nothing Nothing
                       Nothing Nothing Nothing Nothing
@@ -109,10 +109,11 @@ getD arg = -- Remove stuff from sync
                           putStrLn $ location fnd ⧺ " is removed"
             Nothing → putStrLn $ arg ⧺ " repo not found"
 
-getAC ∷ [String] → IO ()
-getAC []     = getCurrentDirectory ≫= getA
-getAC [x]    = getA x
-getAC (x:xs) = getA x >> getAC xs
+getAC ∷ Maybe String → Maybe String → IO ()
+getAC Nothing  Nothing   = getCurrentDirectory ≫= getA "rebase"
+getAC (Just x) Nothing   = getA "rebase" x
+getAC Nothing  (Just t)  = getCurrentDirectory ≫= getA t
+getAC (Just x) (Just t)  = getA t x
 
 getDC ∷ [String] → IO ()
 getDC []     = getCurrentDirectory ≫= getD

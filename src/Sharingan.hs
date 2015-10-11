@@ -81,7 +81,17 @@ statusParser ∷ Parser Command
 statusParser = Status <$> many (argument str (metavar "TARGET..."))
 
 addParser ∷ Parser Command
-addParser = Add <$> many (argument str (metavar "TARGET..."))
+addParser = runA $ proc () → do
+    addO ← asA addOpts ⤙ ()
+    returnA ⤙ Add addO
+
+addOpts ∷ Parser AddOpts
+addOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
+  _stype   ← asA (optional (option str (short 't'  <> long "type" <> metavar "TYPE"))) ⤙ ()
+  _sfilter ← asA (optional (argument str (metavar "FILTER"))) ⤙ ()
+  returnA ⤙ AddOpts { sType   = _stype
+                    , sFilter = _sfilter
+                    }
 
 deleteParser ∷ Parser Command
 deleteParser = Delete <$> many (argument str (metavar "TARGET..."))
@@ -115,7 +125,7 @@ run (Args _ Config)         = config
 run (Args _ DefaultsConf)   = defaultsConfig
 run (Args _ (List   xs))    = list xs
 run (Args _ (Status xs))    = status xs
-run (Args _ (Add    xs))    = getAC xs
+run (Args _ (Add    as))    = addNew as
 run (Args _ (Delete xs))    = getDC xs
 run (Args _ (Enable  xs))   = enable True xs
 run (Args _ (Disable xs))   = enable False xs
@@ -130,6 +140,11 @@ main = execParser opts ≫= run
   where opts = info parser
           ( fullDesc <> progDesc ""
                      <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
+
+addNew ∷ AddOpts → IO ()
+addNew ao = let arg = sFilter ao
+                stp = sType ao
+            in getAC arg stp
 
 sync ∷ CommonOpts → SyncOpts → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"

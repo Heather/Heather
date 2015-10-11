@@ -9,6 +9,7 @@ module Model
     , Defaults(..)
     , Args(..)
     , CommonOpts(..)
+    , AddOpts(..)
     , SyncOpts(..)
     , Command(..)
     , MyEnv(..)
@@ -54,6 +55,11 @@ data CommonOpts = CommonOpts
     , optJobs ∷ Int
     } deriving Show
 
+data AddOpts = AddOpts
+    { sType   ∷ Maybe String
+    , sFilter ∷ Maybe String
+    } deriving Show
+
 data SyncOpts = SyncOpts
     { syncFull ∷ Bool
     , syncForce ∷ Bool
@@ -71,7 +77,7 @@ data Command
     | DefaultsConf
     | List [String]
     | Status [String]
-    | Add [String] | Delete [String]
+    | Add AddOpts | Delete [String]
     | Enable String | Disable String
     | Depot | Cabal
     | Gentoo
