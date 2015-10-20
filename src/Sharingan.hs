@@ -144,11 +144,9 @@ main = execParser opts ≫= run
                      <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
 
 addNew ∷ AddOpts → IO ()
-addNew ao = getAC arg stp sgp
-  where
-    arg = sFilter ao
-    stp = sType ao
-    sgp = sGroup ao
+addNew ao = getAC ( sFilter ao )
+                  ( sType   ao )
+                  ( sGroup  ao )
 
 sync ∷ CommonOpts → SyncOpts → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
