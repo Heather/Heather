@@ -109,11 +109,13 @@ getD arg = -- Remove stuff from sync
                           putStrLn $ location fnd ⧺ " is removed"
             Nothing → putStrLn $ arg ⧺ " repo not found"
 
+getAX ∷ Maybe String → String → IO ()
+getAX Nothing   = getA "rebase"
+getAX (Just t)  = getA t
+
 getAC ∷ Maybe String → Maybe String → IO ()
-getAC Nothing  Nothing   = getCurrentDirectory ≫= getA "rebase"
-getAC (Just x) Nothing   = getA "rebase" x
-getAC Nothing  (Just t)  = getCurrentDirectory ≫= getA t
-getAC (Just x) (Just t)  = getA t x
+getAC Nothing  t  = getCurrentDirectory ≫= (getAX t)
+getAC (Just x) t  = getAX t x
 
 getDC ∷ [String] → IO ()
 getDC []     = getCurrentDirectory ≫= getD
