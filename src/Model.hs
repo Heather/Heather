@@ -58,6 +58,7 @@ data CommonOpts = CommonOpts
 data AddOpts = AddOpts
     { sType   ∷ Maybe String
     , sFilter ∷ Maybe String
+    , sGroup  ∷ Maybe String
     } deriving Show
 
 data SyncOpts = SyncOpts

@@ -88,9 +88,11 @@ addParser = runA $ proc () → do
 addOpts ∷ Parser AddOpts
 addOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
   _stype   ← asA (optional (option str (short 't'  <> long "type" <> metavar "TYPE"))) ⤙ ()
+  _sgroup  ← asA (optional (option str (short 'g'  <> long "group" <> metavar "GROUP"))) ⤙ ()
   _sfilter ← asA (optional (argument str (metavar "FILTER"))) ⤙ ()
   returnA ⤙ AddOpts { sType   = _stype
                     , sFilter = _sfilter
+                    , sGroup  = _sgroup
                     }
 
 deleteParser ∷ Parser Command
@@ -142,9 +144,11 @@ main = execParser opts ≫= run
                      <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
 
 addNew ∷ AddOpts → IO ()
-addNew ao = let arg = sFilter ao
-                stp = sType ao
-            in getAC arg stp
+addNew ao = getAC arg stp sgp
+  where
+    arg = sFilter ao
+    stp = sType ao
+    sgp = sGroup ao
 
 sync ∷ CommonOpts → SyncOpts → IO ()
 sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
