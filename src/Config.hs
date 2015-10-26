@@ -114,7 +114,7 @@ getAX Nothing   = getA "rebase"
 getAX (Just t)  = getA t
 
 getAC ∷ Maybe String → Maybe String → Maybe String → IO ()
-getAC Nothing  t g  = getCurrentDirectory ≫= (getAX t g)
+getAC Nothing  t g  = getCurrentDirectory ≫= getAX t g
 getAC (Just x) t g  = getAX t g x
 
 getDC ∷ [String] → IO ()
