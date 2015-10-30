@@ -11,7 +11,7 @@ module SharinganProcess
 
 import Yaml
 import Config
-import Shell
+import Amaterasu
 
 import System.Directory
 import System.FilePath ((</>))

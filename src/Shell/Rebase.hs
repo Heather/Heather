@@ -6,9 +6,7 @@
   #-}
 
 module Shell.Rebase
-  ( amaterasu
-  , setEnv
-  , module Exec
+  ( rebasefork
   ) where
 
 import Data.List.Split
@@ -25,91 +23,7 @@ import Trim
 import Exec
 import Config
 
-setEnv :: String → IO()
-setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
-                      | os ∈ ["darwin", "cygwin32"] → "export " ⧺ vvv
-                      | otherwise → "export " ⧺ vvv
-
-getMyMsGit :: MyEnv → (String, String)
-getMyMsGit myEnv = (myGit, "\"" ⧺ myGit ⧺ "\"")
-  where myGit = git myEnv
-
--- Simple double Bool checker
-chk :: IO (Bool, Bool) → (Bool, Bool)
-     → IO (Bool, Bool)
-chk foo (previous,doU) = if previous
-        then return (previous, doU)
-        else foo
-
--- Validate an folder exists and run action
-vd :: String → String → IO (Bool, Bool) → IO (Bool, Bool)
-vd validator path action =
-  doesDirectoryExist ⊲ path </> validator ≫= \vde →
-          if vde then setCurrentDirectory path ≫ action
-                 else return (True, False)
-
--- TODO: Process sudo calls for adm flag
-amaterasu :: String → String → String → [String]
-           → Bool → Bool → Bool → Bool → Maybe String
-           → MyEnv → IO (Bool, Bool)
-amaterasu "rebase"  = rebasefork
-amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ _ _ _ →
-  doesDirectoryExist path ≫= \dirExist →
-    if dirExist then setCurrentDirectory path ≫ do
-                        exec custom
-                        return (True, True)
-                else return (False, False)
-
-pull :: String → String → [String]
-      → Bool → Bool → Bool → Bool → Maybe String
-      → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe frs processClean _ rhash myEnv =
-    doesDirectoryExist path ≫= \dirExists →
-      if dirExists then execPull
-                   else return (False, False)
-  where
-    gitX :: IO (Bool, Bool)
-    gitX = vd ".git" path $ do
-      let (myGit, msGit) = getMyMsGit myEnv
-          whe c s = when c $ exec s
-      currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
-      let cbr = trim currentbranch
-      whe (cbr ≢ branch) $ msGit ⧺ " checkout " ⧺ branch
-      whe (not unsafe)   $ msGit ⧺ " reset --hard"
-      whe processClean   $ msGit ⧺ " clean -xdf"
-      loc ← case rhash of
-              Just hsh → return hsh
-              _ → readProcess myGit ["log", "-n", "1"
-                                    , "--pretty=format:%H"
-                                    ] []
-      rlm ← readIfSucc myGit ["ls-remote", "origin", branch]
-      case rlm of
-       Just rlc → do
-         lrc ← if isNothing rhash
-           then readProcess myGit ["log", "-n", "1"
-                                  , "--pretty=format:%H"
-                                  ] []
-           else return (trim loc)
-         let remoteloc = head (splitOn "\t" rlc)
-             localloc = trim lrc
-         putStrLn $ "Origin: " ⧺ remoteloc
-         putStrLn $ "Local: "  ⧺ localloc
-         if remoteloc ≢ localloc ∨ frs
-             then do exec $ msGit ⧺ " pull origin " ⧺ branch
-                     hashupdate remoteloc path
-                     return (True, True)
-             else return (True, False)
-       _ → return (False, False)
-
-    hgX :: IO (Bool, Bool)
-    hgX = vd ".hg" path $ do
-      exec "hg pull --update"
-      return (True, True)
-
-    execPull :: IO (Bool, Bool)
-    execPull = return (False, False) ≫= chk gitX
-                                     ≫= chk hgX
+import Shell.Helper
 
 rebasefork :: String → String → [String]
             → Bool → Bool → Bool  → Bool → Maybe String
