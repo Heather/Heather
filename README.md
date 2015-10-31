@@ -1,7 +1,8 @@
 Sharingan
 =========
 
-[![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan) <br/>
+[![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
+[![Build status](https://ci.appveyor.com/api/projects/status/2b84cqnvh46xxpnv?svg=true)](https://ci.appveyor.com/project/Heather/sharingan) <br/>
 ![Build Status](https://codeship.com/projects/6b402750-06c3-0133-231f-2aa9a23a545f/status?branch=master)
 
  - Sharingan is not CI
