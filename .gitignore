@@ -4,6 +4,7 @@ dist
 *.chi
 *.chs.h
 .virthualenv
+.stack-work
 
 *.sublime-project
 *.sublime-workspace
