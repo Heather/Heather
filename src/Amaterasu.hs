@@ -32,10 +32,10 @@ import Shell.Rebase
 -- TODO: Process sudo calls for adm flag
 amaterasu :: String → String → String → [String]
            → Bool → Bool → Bool → Bool → Maybe String
-           → MyEnv → IO (Bool, Bool)
+           → Bool → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ _ _ _ →
+amaterasu custom    = \path _ _ _ _ _ _ _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
                         exec custom

@@ -69,6 +69,7 @@ data SyncOpts = SyncOpts
     , syncInteractive ∷ Bool
     , syncFilter ∷ Maybe String
     , syncGroups ∷ [String]
+    , syncNoPush ∷ Bool
     } deriving Show
 
 data Command

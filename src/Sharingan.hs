@@ -110,6 +110,7 @@ syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
   unsafe ← asA (switch (short 'u' <> long "unsafe"))        ⤙ ()
   quick  ← asA (switch (short 'q' <> long "quick"))         ⤙ ()
   intera ← asA (switch (short 'i' <> long "interactive"))   ⤙ ()
+  nopush ← asA (switch (long "no-push"))                    ⤙ ()
   filter ← asA (optional (argument str (metavar "FILTER"))) ⤙ ()
   groups ← asA (many (option str (short 'g'  <> long "group" <> metavar "GROUPS"))) ⤙ ()
   returnA ⤙ SyncOpts { syncFull = full
@@ -119,6 +120,7 @@ syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
                       , syncFilter = filter
                       , syncGroups = groups
                       , syncInteractive = intera
+                      , syncNoPush = nopush
                       }
 
 run ∷ Args → IO () -- (＠ ・‿‿・)
@@ -243,14 +245,16 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
             noq = not $ fromMaybe False (quick dfdata)
             snc = sharingan (syncInteractive so) adm
             frs = syncForce so
+            ntr = syncInteractive so
+            nps = syncNoPush so
             u b = do printf " - %s : %s\n" loc b
                      amaterasu (task repo) loc b ups (syncUnsafe so)
-                               frs cln adm (hash repo) myEnv
+                               frs cln adm (hash repo) nps myEnv
             eye (_, r) = when ((r ∨ frs) ∧ not (syncQuick so) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
                    doesFileExist shx ≫= sharingan
-                                          (syncInteractive so) adm shx loc
+                        ntr adm shx loc
                    when (isJust ps) $ forM_ (fromJust ps) $ \psc →
                       let pshx = psc </> ".sharingan.yml"
                       in doesFileExist pshx≫= snc pshx psc
