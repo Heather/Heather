@@ -20,6 +20,7 @@ module Yaml
 import Model
 
 import Data.Yaml
+import Data.Vector
 import Data.Maybe (fromMaybe)
 import qualified Data.ByteString.Char8 as BS
 
@@ -41,7 +42,7 @@ instance FromJSON RepositoryWrapper where
                            v .:? "postRebuild"  ⊛
                            v .:? "group"        ⊛
                            v .:? "hash"         )
-    -- A non-Object value is of the wrong type, so fail.
+    parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON RepositoryWrapper where
@@ -68,7 +69,7 @@ instance FromJSON SharinganWrapper where
                            v .:? "before_install" ⊛
                            v .:? "install"        ⊛
                            v .: "script"          )
-    -- A non-Object value is of the wrong type, so fail.
+    parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Sharingan from YAML"
 
 instance ToJSON SharinganWrapper where
@@ -85,7 +86,7 @@ newtype DefaultsWrapper = DefaultsWrapper
 instance FromJSON DefaultsWrapper where
   parseJSON (Object v) = DefaultsWrapper <$> (Defaults <$>
                          v .:? "quick")
-  -- A non-Object value is of the wrong type, so fail.
+  parseJSON (Array array) = parseJSON (array ! 0)
   parseJSON _ = error "Can't parse Defaults from YAML"
 
 instance ToJSON DefaultsWrapper where
