@@ -262,4 +262,4 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
                $ \case [x] → u x ≫= eye -- Tail
                        x:_ → u x ≫= (\_ → return ())
                        []  → return ()
-              putStrLn ⊲ replicate 89 '_'
+              putStrLn ⊲ replicate 80 '_'
