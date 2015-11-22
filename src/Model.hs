@@ -81,7 +81,7 @@ data Command
     | Status [String]
     | Add AddOpts | Delete [String]
     | Enable String | Disable String
-    | Depot | Cabal
+    | Depot
     | Gentoo
     deriving Show
 

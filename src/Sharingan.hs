@@ -59,7 +59,6 @@ parser = runA $ proc () → do
                                                           (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
      <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
-     <> command "cabal"       (info (pure Cabal)          (progDesc "Cabal upgrade"))
 #endif
       ) ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
   A _version ⋙ A helper ⤙ Args opts cmds
@@ -136,7 +135,6 @@ run (Args _ (Disable xs))   = enable False xs
 run (Args opts (Sync so))   = sync opts so
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
 run (Args _ Depot)          = depotTools
-run (Args _ Cabal)          = cabalUpgrade
 #endif
 
 main ∷ IO ()
@@ -220,7 +218,7 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-    when (syncFull so) cabalUpgrade
+    when (syncFull so) cabalUpdate >> stackUpdate
 #endif
     jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
     jfdat ← yDecode defx ∷ IO DefaultsWrapper

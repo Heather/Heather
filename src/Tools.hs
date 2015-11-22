@@ -4,7 +4,8 @@
 
 module Tools
   ( depotTools
-  , cabalUpgrade
+  , cabalUpdate
+  , stackUpdate
   ) where
 
 import Codec.Archive.Zip
@@ -48,6 +49,8 @@ depotTools = doesDirectoryExist dst ≫= \dstExist → if dstExist
   where src = "depot_tools"
         dst = "C:/depot_tools"
 
-cabalUpgrade :: IO()
-cabalUpgrade = do exec "cabal update"
-                  exec "cabal install cabal-install"
+cabalUpdate :: IO()
+cabalUpdate = exec "cabal update"
+
+stackUpdate :: IO ()
+stackUpdate = exec "stack update"
