@@ -10,6 +10,7 @@ module Shell.Helper
   , getMyMsGit
   , chk
   , vd
+  , ifadmin
   ) where
 
 import Data.List.Split
@@ -31,9 +32,19 @@ setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
                       | os ∈ ["darwin", "cygwin32"] → "export " ⧺ vvv
                       | otherwise → "export " ⧺ vvv
 
-getMyMsGit :: MyEnv → (String, String)
-getMyMsGit myEnv = (myGit, "\"" ⧺ myGit ⧺ "\"")
-  where myGit = git myEnv
+ifadmin :: Bool → String
+ifadmin adm =
+  if | os ∈ ["win32", "mingw32"] → ""
+     | otherwise → if adm then "sudo "
+                          else ""
+
+getMyMsGit :: MyEnv → Bool → (String, String)
+getMyMsGit myEnv adm =
+  let ifadm = ifadmin adm
+  in ( ifadm ⧺ myGit
+     , ifadm ⧺ "\"" ⧺ myGit ⧺ "\""
+     )
+ where myGit = git myEnv
 
 -- Simple double Bool checker
 chk :: IO (Bool, Bool) → (Bool, Bool)

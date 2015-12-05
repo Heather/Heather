@@ -28,14 +28,14 @@ import Shell.Helper
 pull :: String → String → [String]
       → Bool → Bool → Bool → Bool → Maybe String
       → Bool → MyEnv → IO (Bool, Bool)
-pull path branch _ unsafe frs processClean _ rhash _ myEnv =
+pull path branch _ unsafe frs processClean adm rhash _ myEnv =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
   where
     gitX :: IO (Bool, Bool)
     gitX = vd ".git" path $ do
-      let (myGit, msGit) = getMyMsGit myEnv
+      let (myGit, msGit) = getMyMsGit myEnv adm
           whe c s = when c $ exec s
       currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch

@@ -28,7 +28,7 @@ import Shell.Helper
 rebasefork :: String → String → [String]
             → Bool → Bool → Bool  → Bool → Maybe String
             → Bool → MyEnv → IO (Bool, Bool)
-rebasefork path branch up unsafe frs pC _ rhash pullonly myEnv =
+rebasefork path branch up unsafe frs pC adm rhash pullonly myEnv =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)
@@ -38,7 +38,7 @@ rebasefork path branch up unsafe frs pC _ rhash pullonly myEnv =
 
     gitX :: IO (Bool, Bool)
     gitX = vd ".git" path $ do
-      let (myGit, msGit) = getMyMsGit myEnv
+      let (myGit, msGit) = getMyMsGit myEnv adm
       currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
           whe c s = when c $ exec s

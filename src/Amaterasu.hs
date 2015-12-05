@@ -29,15 +29,14 @@ import Shell.Helper
 import Shell.Pull
 import Shell.Rebase
 
--- TODO: Process sudo calls for adm flag
 amaterasu :: String → String → String → [String]
            → Bool → Bool → Bool → Bool → Maybe String
            → Bool → MyEnv → IO (Bool, Bool)
 amaterasu "rebase"  = rebasefork
 amaterasu "pull"    = pull
-amaterasu custom    = \path _ _ _ _ _ _ _ _ _ →
+amaterasu custom    = \path _ _ _ _ _ adm _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
-                        exec custom
+                        exec $ ifadmin adm ⧺ custom
                         return (True, True)
                 else return (False, False)
