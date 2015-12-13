@@ -1,5 +1,6 @@
 {-# LANGUAGE
-  UnicodeSyntax
+    UnicodeSyntax
+  , LambdaCase
   #-}
 
 module Tools
@@ -13,6 +14,7 @@ import Codec.Archive.Zip
 import System.Directory
 
 import Control.Monad
+import Control.Exception
 import Control.Eternal
 
 import qualified Data.ByteString.Lazy as B
@@ -49,8 +51,18 @@ depotTools = doesDirectoryExist dst ≫= \dstExist → if dstExist
   where src = "depot_tools"
         dst = "C:/depot_tools"
 
-cabalUpdate :: IO()
-cabalUpdate = exec "cabal update"
+tryCabalUpdate :: IO (Either SomeException ())
+tryCabalUpdate = try $ exec "cabal update"
+
+tryStackUpdate :: IO (Either SomeException ())
+tryStackUpdate = try $ exec "stack update"
+
+cabalUpdate :: IO ()
+cabalUpdate = tryCabalUpdate
+              ≫= \case Left _ → putStrLn "failed to cabal update"
+                       Right _ → return()
 
 stackUpdate :: IO ()
-stackUpdate = exec "stack update"
+stackUpdate = tryStackUpdate
+              ≫= \case Left _ → putStrLn "failed to stack update"
+                       Right _ → return()
