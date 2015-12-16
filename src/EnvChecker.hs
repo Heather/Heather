@@ -43,11 +43,11 @@ checkIfSucc cmd args =
            Right val → do putStr $ cmd ⧺ " : " ⧺ val
                           return (Just cmd)
 
-gitCheck              -- check for git --version
+versionCheck          -- check for git --version
  :: String            -- command to check
   → [String]          -- arguments
   → IO (Maybe String) -- Path to git in case of success
-gitCheck cmd args = checkIfSucc cmd (args ++ ["--version"])
+versionCheck cmd args = checkIfSucc cmd (args ++ ["--version"])
 
 getGit :: IO String
 getGit = return Nothing ≫= t "git" []
@@ -57,11 +57,20 @@ getGit = return Nothing ≫= t "git" []
                         ≫= \res → return $ fromMaybe "git" res
   where t :: String → [String] → Maybe String → IO (Maybe String)
         t x a prev = if isNothing  prev
-                      then gitCheck x a
+                      then versionCheck x a
+                      else return prev
+
+getHg :: IO String
+getHg = return Nothing ≫= t "hg" []
+                       ≫= t "hg.cmd" []
+                       ≫= \res → return $ fromMaybe "hg" res
+  where t :: String → [String] → Maybe String → IO (Maybe String)
+        t x a prev = if isNothing  prev
+                      then versionCheck x a
                       else return prev
 
 getEnv :: IO MyEnv
 getEnv = do
   myGit ← getGit
-  --TODO: get hg
-  return (MyEnv myGit "hg")
+  myHg  ← getHg
+  return (MyEnv myGit myHg)
