@@ -66,7 +66,7 @@ processDefaultsChecks cfg =
     in doesFileExist cfg ≫= generate cfg
   where nothing = DefaultsWrapper
                   (Defaults Nothing Nothing
-                            Nothing)
+                            Nothing Nothing)
 
 withConfig :: ∀ β. (FilePath → IO β) → IO β
 withConfig foo = liftM2 (≫) processChecks foo =≪ getConfig

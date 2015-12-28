@@ -229,7 +229,7 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
     let dfdat = _getDefaults jfdat
         rsdat = map _getRepository jsdat
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-    when (syncFull so) $ do
+    when (syncFull so ∨ (fromMaybe False (full dfdat))) $ do
       when (fromMaybe True (updateCabal dfdat)) cabalUpdate
       when (fromMaybe False (updateStack dfdat)) stackUpdate
 #endif

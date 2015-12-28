@@ -85,14 +85,16 @@ newtype DefaultsWrapper = DefaultsWrapper
 instance FromJSON DefaultsWrapper where
   parseJSON (Object v) = DefaultsWrapper <$> (Defaults <$>
                          v .:? "quick"         .!= Nothing
+                         ⊛ v .:? "full"        .!= Nothing
                          ⊛ v .:? "cabalUpdate" .!= Nothing
                          ⊛ v .:? "stackUpdate" .!= Nothing)
   parseJSON (Array array) = parseJSON (array ! 0)
   parseJSON _ = error "Can't parse Defaults from YAML"
 
 instance ToJSON DefaultsWrapper where
-  toJSON (DefaultsWrapper (Defaults q c s)) =
+  toJSON (DefaultsWrapper (Defaults q f c s)) =
     object [ "quick" .= q
+           , "full"  .= f
            , "cabalUpdate" .= c
            , "stackUpdate" .= s
            ]

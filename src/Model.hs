@@ -44,7 +44,8 @@ data Repository = Repository
     } deriving (Show, Eq)
 
 data Defaults = Defaults
-    { quick ∷ Maybe Bool
+    { quick       ∷ Maybe Bool
+    , full        ∷ Maybe Bool
     , updateCabal ∷ Maybe Bool
     , updateStack ∷ Maybe Bool
     }
@@ -53,8 +54,8 @@ data Args = Args CommonOpts Command
       deriving Show
 
 data CommonOpts = CommonOpts
-    { optVerbosity ∷ Bool
-    , optJobs ∷ Int
+    { optVerbosity  ∷ Bool
+    , optJobs       ∷ Int
     } deriving Show
 
 data AddOpts = AddOpts
@@ -64,14 +65,14 @@ data AddOpts = AddOpts
     } deriving Show
 
 data SyncOpts = SyncOpts
-    { syncFull ∷ Bool
-    , syncForce ∷ Bool
-    , syncUnsafe ∷ Bool
-    , syncQuick ∷ Bool
+    { syncFull        ∷ Bool
+    , syncForce       ∷ Bool
+    , syncUnsafe      ∷ Bool
+    , syncQuick       ∷ Bool
     , syncInteractive ∷ Bool
-    , syncFilter ∷ Maybe String
-    , syncGroups ∷ [String]
-    , syncNoPush ∷ Bool
+    , syncFilter      ∷ Maybe String
+    , syncGroups      ∷ [String]
+    , syncNoPush      ∷ Bool
     } deriving Show
 
 data Command
@@ -89,5 +90,5 @@ data Command
 
 data MyEnv = MyEnv
     { git ∷ String
-    , hg ∷ String
+    , hg  ∷ String
     } deriving Show
