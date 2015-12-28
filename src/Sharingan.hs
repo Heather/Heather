@@ -223,14 +223,16 @@ synchronize     -- actual synchronization function
 synchronize _o so = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
-#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-    when (syncFull so) cabalUpdate >> stackUpdate
-#endif
     jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
     jfdat ← yDecode defx ∷ IO DefaultsWrapper
     myenv ← getEnv
     let dfdat = _getDefaults jfdat
         rsdat = map _getRepository jsdat
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+    when (syncFull so) $ do
+      when (fromMaybe True (updateCabal dfdat)) cabalUpdate
+      when (fromMaybe False (updateStack dfdat)) stackUpdate
+#endif
     forM_ rsdat $ sync myenv dfdat where
   sync :: MyEnv       -- environment
         → Defaults    -- default options

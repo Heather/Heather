@@ -45,6 +45,8 @@ data Repository = Repository
 
 data Defaults = Defaults
     { quick ∷ Maybe Bool
+    , updateCabal ∷ Maybe Bool
+    , updateStack ∷ Maybe Bool
     }
 
 data Args = Args CommonOpts Command

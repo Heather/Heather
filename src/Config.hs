@@ -64,7 +64,9 @@ processDefaultsChecks
 processDefaultsChecks cfg =
     let generate xcfg = ifNot $ yEncode xcfg nothing
     in doesFileExist cfg ≫= generate cfg
-  where nothing = DefaultsWrapper (Defaults Nothing)
+  where nothing = DefaultsWrapper
+                  (Defaults Nothing Nothing
+                            Nothing)
 
 withConfig :: ∀ β. (FilePath → IO β) → IO β
 withConfig foo = liftM2 (≫) processChecks foo =≪ getConfig
