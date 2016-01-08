@@ -41,6 +41,7 @@ data Repository = Repository
     , postRebuild   ∷ Maybe [String]
     , syncGroup     ∷ Maybe String
     , hash          ∷ Maybe String
+    , vcs           ∷ Maybe String
     } deriving (Show, Eq)
 
 data Defaults = Defaults

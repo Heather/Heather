@@ -40,13 +40,15 @@ instance FromJSON RepositoryWrapper where
                     ⊛ v .:? "clean"       .!= Nothing
                     ⊛ v .:? "postRebuild" .!= Nothing
                     ⊛ v .:? "group"       .!= Nothing
-                    ⊛ v .:? "hash"        .!= Nothing)
+                    ⊛ v .:? "hash"        .!= Nothing
+                    ⊛ v .:? "vcs"         .!= Nothing)
     parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Repository from YAML"
 
 instance ToJSON RepositoryWrapper where
-   toJSON (RepositoryWrapper (Repository loca tsk br up enb root pos cln pr gr
-                      hs)) = object [ "location"     .= loca
+   toJSON (RepositoryWrapper (Repository loca tsk br up enb
+                                         root pos cln pr gr hs
+                      vc)) = object [ "location"     .= loca
                                     , "task"         .= tsk
                                     , "branches"     .= br
                                     , "upstream"     .= up
@@ -56,7 +58,8 @@ instance ToJSON RepositoryWrapper where
                                     , "clean"        .= cln
                                     , "postRebuild"  .= pr
                                     , "group"        .= gr
-                                    , "hash"         .= hs]
+                                    , "hash"         .= hs
+                                    , "vcs"          .= vc]
 
 newtype SharinganWrapper = SharinganWrapper
   { _getSharingan :: Sharingan }

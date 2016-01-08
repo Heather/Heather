@@ -96,7 +96,7 @@ getA daction grp arg = -- Add new stuff to sync
             new = Repository arg daction -- default task / action
                       ["master"] "upstream master"
                       Nothing Nothing Nothing
-                      Nothing Nothing grp Nothing
+                      Nothing Nothing grp Nothing Nothing
         if new ∈ rsdata
             then putStrLn "this repository is already in sync"
             else yEncode ymlx $ map RepositoryWrapper (new : rsdata)
