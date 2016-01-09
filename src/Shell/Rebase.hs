@@ -35,8 +35,9 @@ rebasefork
    → Bool             -- admin (sudo)
    → Maybe String     -- Hash
    → MyEnv            -- environment
+   → Maybe String     -- VCS
    → IO (Bool, Bool)  -- success & continue
-rebasefork path branch up unsafe frs pC adm rhash myEnv =
+rebasefork path branch up unsafe frs pC adm rhash myEnv _ =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)

@@ -35,8 +35,9 @@ pull
    → Bool             -- admin (sudo)
    → Maybe String     -- Hash
    → MyEnv            -- environment
+   → Maybe String     -- VCS
    → IO (Bool, Bool)  -- success & continue
-pull path branch _ unsafe frs processClean adm rhash myEnv =
+pull path branch _ unsafe frs processClean adm rhash myEnv _ =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
