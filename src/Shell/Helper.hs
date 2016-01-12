@@ -59,11 +59,19 @@ chk foo (previous,doU) = if previous
         else foo
 
 -- Validate an folder exists and run action
-vd :: String -- path to validate (for example .git)
-    → String -- actual path
+-- once VCS is validated it's stored into YAML
+vd :: String        -- path to validate (for example .git)
+    → Maybe String  -- VCS (stored)
+    → String        -- actual path
     → IO (Bool, Bool)
     → IO (Bool, Bool)
-vd validator path action =
+vd validator Nothing path action =
   doesDirectoryExist ⊲ path </> validator ≫= \vde →
-          if vde then setCurrentDirectory path ≫ action
+          if vde then vcsupdate validator path
+                       ≫ setCurrentDirectory path
+                         ≫ action
                  else return (True, False)
+vd validator vcx path action =
+  if jvcx == validator then setCurrentDirectory path ≫ action
+                       else return (True, False)
+ where Just jvcx = vcx -- Nothing case guarded above

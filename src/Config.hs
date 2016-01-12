@@ -22,6 +22,7 @@ module Config
 
   , enable
   , hashupdate
+  , vcsupdate
 
   , module Yaml
   ) where
@@ -144,6 +145,19 @@ enable en arg =
                       then x { enabled = Just en }
                       else x
          yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
+
+vcsupdate ∷ String -- new vcs
+          → String -- repository path (or part)
+          → IO ()
+vcsupdate vcx rep =
+ withConfig $ \ymlx →
+   whenM <| doesFileExist ymlx <|
+     do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
+        let rsdata = map _getRepository jsdata
+            fr x = if rep ≡ location x
+                     then x { vcs = Just vcx }
+                     else x
+        yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
 
 hashupdate ∷ String -- new hash
            → String -- repository path (or part)

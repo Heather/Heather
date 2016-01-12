@@ -37,7 +37,7 @@ rebasefork
    → MyEnv            -- environment
    → Maybe String     -- VCS
    → IO (Bool, Bool)  -- success & continue
-rebasefork path branch up unsafe frs pC adm rhash myEnv _ =
+rebasefork path branch up unsafe frs pC adm rhash myEnv vcx =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)
@@ -46,7 +46,7 @@ rebasefork path branch up unsafe frs pC adm rhash myEnv _ =
     gU = unwords up
 
     gitX :: IO (Bool, Bool)
-    gitX = vd ".git" path $ do
+    gitX = vd ".git" vcx path $ do
       let (myGit, msGit) = getMyMsGit myEnv adm
       currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
@@ -96,7 +96,7 @@ rebasefork path branch up unsafe frs pC adm rhash myEnv _ =
              _ → return (False, False)
 
     hgX :: IO (Bool, Bool)
-    hgX = vd ".hg" path $ do
+    hgX = vd ".hg" vcx path $ do
       exec $ "hg pull --update --rebase" ⧺ gU
       exec $ "hg push " ⧺ branch ⧺ " --force"
       return (True, True)

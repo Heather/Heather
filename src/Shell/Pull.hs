@@ -37,13 +37,13 @@ pull
    → MyEnv            -- environment
    → Maybe String     -- VCS
    → IO (Bool, Bool)  -- success & continue
-pull path branch _ unsafe frs processClean adm rhash myEnv _ =
+pull path branch _ unsafe frs processClean adm rhash myEnv vcx =
     doesDirectoryExist path ≫= \dirExists →
       if dirExists then execPull
                    else return (False, False)
   where
     gitX :: IO (Bool, Bool)
-    gitX = vd ".git" path $ do
+    gitX = vd ".git" vcx path $ do
       let (myGit, msGit) = getMyMsGit myEnv adm
           whe c s = when c $ exec s
       currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
@@ -76,7 +76,7 @@ pull path branch _ unsafe frs processClean adm rhash myEnv _ =
        _ → return (False, False)
 
     hgX :: IO (Bool, Bool)
-    hgX = vd ".hg" path $ do
+    hgX = vd ".hg" vcx path $ do
       exec "hg pull --update"
       return (True, True)
 
