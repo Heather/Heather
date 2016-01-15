@@ -27,6 +27,10 @@ import Trim
 import Exec
 import Config
 
+#if !( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+import System.Posix.User
+#endif
+
 setEnv :: String -- environment variable and value (x=5)
         → IO()
 setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
@@ -36,9 +40,14 @@ setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
 ifadmin :: Bool   -- need sudo?
          → String -- root checker prefix
 ifadmin adm =
-  if | os ∈ ["win32", "mingw32"] → []
-     | otherwise → if adm then "sudo "
-                          else []
+#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
+  [] -- TODO: check for administrator on windows
+#else
+  if adm  then let isRoot = fmap (== 0) getRealUserID
+               in if isRoot then []
+                            else "sudo "
+          else []
+#endif
 
 getMyMsGit :: MyEnv -- environment
             → Bool  -- if needs root
