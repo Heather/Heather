@@ -12,6 +12,7 @@ module SharinganProcess
 import Yaml
 import Config
 import Amaterasu
+import Shell.Helper
 
 import System.Directory
 import System.FilePath ((</>))
@@ -33,9 +34,8 @@ updateStatusIcon loc pos =
         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
     in doesFileExist ymlx ≫= ymlprocess
 
--- TODO: Process sudo calls for adm flag
 sharingan ∷ Bool → Bool → String → String → Bool → IO()
-sharingan interactive _ shx loc shxi = if shxi then
+sharingan interactive adm shx loc shxi = if shxi then
    do jsyncDatax ← yDecode shx ∷ IO SharinganWrapper
       let syncDatax = _getSharingan jsyncDatax
           sc   = script syncDatax
@@ -51,7 +51,7 @@ sharingan interactive _ shx loc shxi = if shxi then
         _ → case lang of
                 "haskell" → exth "cabal update"
                 _         → return () -- do nothing
-      r <- case sc of
+      result ← case sc of
             [] → case lang of
                     "c"       → rxth "make"
                     "haskell" → rxth "cabal install"
@@ -61,7 +61,7 @@ sharingan interactive _ shx loc shxi = if shxi then
                     scp [x]    = rxth x
                     scp (x:xs) = exth x >> scp xs
                 in scp sc
-      updateStatusIcon loc $ case r of
+      updateStatusIcon loc $ case result of
                               ExitSuccess → True
                               _           → False
    else when interactive
@@ -92,12 +92,19 @@ sharingan interactive _ shx loc shxi = if shxi then
                                 exth $ "idris --install " ⧺ f0
                                 return True
                         else return False
-        in do s <- return False ≫= test "install.bat" (exth "install.bat")
-                                ≫= test "build.bat" (exth "build.bat")
-                                ≫= test "build.cmd" (exth "build.cmd")
-                                ≫= test "Makefile" (exth "make")
-                                ≫= cabal
-                                ≫= ipkg
+        in do s ← return False ≫= test "install.bat" (exth "install.bat")
+                               ≫= test "build.bat" (exth "build.bat")
+                               ≫= test "build.cmd" (exth "build.cmd")
+                               ≫= test "Makefile" (exth "make")
+                               ≫= cabal
+                               ≫= ipkg
               updateStatusIcon loc s
-  where exth cmd = setCurrentDirectory loc ≫ sys cmd
-        rxth cmd = setCurrentDirectory loc ≫ system cmd
+
+  where prefix :: String
+        prefix = ifadmin adm
+
+        exth :: String → IO()
+        exth cmd = setCurrentDirectory loc ≫ sys (prefix ++ cmd)
+
+        rxth :: String → IO ExitCode
+        rxth cmd = setCurrentDirectory loc ≫ system (prefix ++ cmd)
