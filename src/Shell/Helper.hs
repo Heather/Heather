@@ -43,8 +43,8 @@ ifadmin adm =
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
   [] -- TODO: check for administrator on windows
 #else
-  if adm then let isRoot = fmap (== 0) getRealUserID
-              in if isRoot then []
+  if adm then do isRoot <- fmap (== 0) getRealUserID
+                 if isRoot then []
                            else "sudo "
          else []
 #endif
