@@ -38,27 +38,25 @@ setEnv vvv = sys $ if | os ∈ ["win32", "mingw32"] → "set " ⧺ vvv
                       | otherwise → "export " ⧺ vvv
 
 ifadmin :: Bool   -- need sudo?
-         → String -- root checker prefix
+         → IO String -- root checker prefix
 ifadmin adm =
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-  [] -- TODO: check for administrator on windows
+  return [] -- TODO: check for administrator on windows
 #else
-  if adm then do isRoot <- fmap (== 0) getRealUserID
-                 if isRoot then []
-                           else "sudo "
-         else []
+  if adm then fmap (== 0) getRealUserID
+              >>= \ isRoot → if isRoot then return []
+                             else return "sudo "
+         else return []
 #endif
 
 getMyMsGit :: MyEnv -- environment
             → Bool  -- if needs root
-            → (String, String)
-getMyMsGit myEnv adm = ( ifadm ⧺ myGit
-                       , ifadm ⧺ "\"" ⧺ myGit ⧺ "\"" )
+            → IO (String, String)
+getMyMsGit myEnv adm = do
+    i ← ifadmin adm
+    return ( i ⧺ myGit, i ⧺ "\"" ⧺ myGit ⧺ "\"" )
   where myGit :: String
         myGit = git myEnv
-
-        ifadm :: String
-        ifadm = ifadmin adm
 
 -- Simple double Bool checker
 chk :: IO (Bool, Bool) → (Bool, Bool)

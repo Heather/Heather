@@ -35,7 +35,13 @@ updateStatusIcon loc pos =
     in doesFileExist ymlx ≫= ymlprocess
 
 sharingan ∷ Bool → Bool → String → String → Bool → IO()
-sharingan interactive adm shx loc shxi = if shxi then
+sharingan interactive adm shx loc shxi = do
+  prefix ← ifadmin adm
+  let exth :: String → IO()
+      exth cmd = setCurrentDirectory loc ≫ sys (prefix ++ cmd)
+      rxth :: String → IO ExitCode
+      rxth cmd = setCurrentDirectory loc ≫ system (prefix ++ cmd)
+  if shxi then
    do jsyncDatax ← yDecode shx ∷ IO SharinganWrapper
       let syncDatax = _getSharingan jsyncDatax
           sc   = script syncDatax
@@ -99,12 +105,3 @@ sharingan interactive adm shx loc shxi = if shxi then
                                ≫= cabal
                                ≫= ipkg
               updateStatusIcon loc s
-
-  where prefix :: String
-        prefix = ifadmin adm
-
-        exth :: String → IO()
-        exth cmd = setCurrentDirectory loc ≫ sys (prefix ++ cmd)
-
-        rxth :: String → IO ExitCode
-        rxth cmd = setCurrentDirectory loc ≫ system (prefix ++ cmd)

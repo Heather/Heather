@@ -47,8 +47,8 @@ rebasefork path branch up unsafe frs pC adm rhash myEnv vcx =
 
     gitX :: IO (Bool, Bool)
     gitX = vd ".git" vcx path $ do
-      let (myGit, msGit) = getMyMsGit myEnv adm
-      currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
+      (myGit, msGit) ← getMyMsGit myEnv adm
+      currentbranch  ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
           whe c s = when c $ exec s
       whe (cbr ≢ branch) $ msGit ⧺ " checkout " ⧺ branch

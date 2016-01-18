@@ -47,6 +47,7 @@ amaterasu "pull"    = pull
 amaterasu custom    = \path _ _ _ _ _ adm _ _ _ →
   doesDirectoryExist path ≫= \dirExist →
     if dirExist then setCurrentDirectory path ≫ do
-                        exec $ ifadmin adm ⧺ custom
+                        prefix ← ifadmin adm
+                        exec $ prefix ⧺ custom
                         return (True, True)
                 else return (False, False)

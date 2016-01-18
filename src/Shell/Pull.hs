@@ -44,10 +44,10 @@ pull path branch _ unsafe frs processClean adm rhash myEnv vcx =
   where
     gitX :: IO (Bool, Bool)
     gitX = vd ".git" vcx path $ do
-      let (myGit, msGit) = getMyMsGit myEnv adm
-          whe c s = when c $ exec s
-      currentbranch ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
+      (myGit, msGit) ← getMyMsGit myEnv adm
+      currentbranch  ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
+          whe c s = when c $ exec s
       whe (cbr ≢ branch) $ msGit ⧺ " checkout " ⧺ branch
       whe (not unsafe)   $ msGit ⧺ " reset --hard"
       whe processClean   $ msGit ⧺ " clean -xdf"
