@@ -8,6 +8,6 @@ install:
     cabal update
 build_script:
 - ps: |
-    cabal install --only-dependencies
-    cabal configure
-    cabal build
+    cabal install --only-dependencies -w "C:\tools\ghc\ghc-7.10.3\bin\ghc-7.10.3"
+    cabal configure -w "C:\tools\ghc\ghc-7.10.3\bin\ghc-7.10.3"
+    cabal build -w "C:\tools\ghc\ghc-7.10.3\bin\ghc-7.10.3"
