@@ -2,9 +2,9 @@ install:
 - cmd: 'git submodule update --init'
 - ps: |
     choco install ghc -version 7.10.3 -y
-    $env:Path += ";${env:ProgramFiles}\ghc\7.10.3\bin"
-    $env:Path += ";${env:ProgramFiles}\ghc\7.10.3\lib\extralibs\bin"
-    $env:Path += ";${env:ProgramFiles}\ghc\7.10.3\mingw\bin"
+    $env:Path += "C:\tools\ghc\ghc-7.10.3\bin"
+    $env:Path += "C:\tools\ghc\ghc-7.10.3\extralibs\bin"
+    $env:Path += "C:\tools\ghc\ghc-7.10.3\mingw\bin"
     cabal update
 build_script:
 - ps: |
