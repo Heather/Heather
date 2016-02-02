@@ -6,11 +6,7 @@ Sharingan
 ![Build Status](https://codeship.com/projects/6b402750-06c3-0133-231f-2aa9a23a545f/status?branch=master)
 [![Twitter][]](http://www.twitter.com/Cynede)
 
- - Sharingan is not CI
- - Sharingan doesn't need white IP address to handle github or another hooks
- - Sharingan is not a polling service, you run it when you want to run it
- - Sharingan is not just build, you also process rebasing and pushing, etc...
- - Sharingan is command line tool with random features (I can't imagine if I can separate other stuff by plugins or something like that)
+ - Forbidden in Heaven and useless in Hell
 
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
 
