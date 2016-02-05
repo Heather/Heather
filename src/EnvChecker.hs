@@ -16,23 +16,6 @@ import Data.Maybe
 
 import Paths_Sharingan (version)
 
--- TODO
-#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-#else
--- needs posix in cabal
--- import System.Posix.User
-#endif
-
--- TODO
-isRoot :: IO Bool
-isRoot =
-#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-  return False
-#else
-  return True
-  -- fmap (== 0) getRealUserID
-#endif
-
 checkIfSucc           -- check if success
  :: String            -- command to check
   → [String]          -- arguments

@@ -5,11 +5,8 @@
   #-}
 
 module Exec
-  ( execute
-  , exec
-  , exc
-  , sys
-  , system
+  ( execute, exec, exc
+  , sys, system
   , readCheck
   , readIfSucc
   ) where
