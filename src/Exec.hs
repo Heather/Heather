@@ -1,7 +1,7 @@
 {-# LANGUAGE
     UnicodeSyntax
   , LambdaCase
-  , Safe
+  , OverloadedStrings
   #-}
 
 module Exec
@@ -15,7 +15,8 @@ import System.Directory (setCurrentDirectory)
 import System.Process
 
 import Trim
-import Data.List.Split
+import Data.List.Split (splitOn)
+import Data.List (intercalate)
 
 import Control.Eternal.Syntax
 import Control.Exception
@@ -23,20 +24,28 @@ import Control.Exception
 -- |⊙)
 -- |‿⊙)
 -- |⊙‿⊙)
--- TODO: Handle all quotes, not just first command
 -- (most common usecase is "C:\Program Files\git")
 handleQuotes -- split command with quotes into command and arguments
   :: String  -- command with quotes...
    → (String, [String])
 handleQuotes qq =
-  if '\"' ∈ qq
-    then let spq = filter (not ∘ null) $ splitOn "\"" qq
-             nos = filter (not ∘ null ∘ trim) spq
-             ssq = filter (not ∘ null) $ splitOn " " (concat (tail nos))
-         in (head nos, ssq)
-    else let spq = filter (not ∘ null) $ splitOn " " qq
-             ssq = tail spq
-         in (head spq, ssq)
+  let handledQuotes = hQuotes qq
+  in (head handledQuotes, tail handledQuotes)
+
+ where noQuotes :: String → [String]
+       noQuotes qq = filter (not ∘ null) $ splitOn " " qq
+
+       hasQuotes :: String → [String]
+       hasQuotes qq = let spq = filter (not ∘ null) $ splitOn "\"" qq
+                          nos = filter (not ∘ null ∘ trim) spq
+                          tsq = intercalate "\"" (tail nos)
+                      in if (not ∘ null) nos
+                           then head nos : hQuotes tsq
+                           else noQuotes qq
+
+       hQuotes :: String → [String]
+       hQuotes qq = if '\"' ∈ qq then hasQuotes qq
+                                 else noQuotes qq
 
 -- Note don't use exec with & [Use execute]
 execute       -- ✌(◉_◉ )

@@ -42,7 +42,7 @@ depotTools = doesDirectoryExist dst ≫= \dstExist → if dstExist
                                          ≫ removeFile tarball
             {-          Here depot_tools must be added to PATH             -}
             putStrLn "======================================================"
-            putStrLn " -> Aadd C:/depot_tools to PATH"
+            putStrLn " -> Add C:/depot_tools to PATH"
             putStrLn " -> Press any key when it will be done or already done"
             putStrLn "======================================================"
             getChar ≫ return ()
@@ -51,18 +51,12 @@ depotTools = doesDirectoryExist dst ≫= \dstExist → if dstExist
   where src = "depot_tools"
         dst = "C:/depot_tools"
 
-tryCabalUpdate :: IO (Either SomeException ())
-tryCabalUpdate = try $ exec "cabal update"
-
-tryStackUpdate :: IO (Either SomeException ())
-tryStackUpdate = try $ exec "stack update"
-
 cabalUpdate :: IO ()
-cabalUpdate = tryCabalUpdate
-              ≫= \case Left _ → putStrLn "failed to cabal update"
-                       Right _ → return()
+cabalUpdate = (try $ exec "cabal update" :: IO (Either SomeException ()))
+                ≫= \case Left _ → putStrLn "failed to cabal update"
+                         Right _ → return()
 
 stackUpdate :: IO ()
-stackUpdate = tryStackUpdate
-              ≫= \case Left _ → putStrLn "failed to stack update"
-                       Right _ → return()
+stackUpdate = (try $ exec "stack update" :: IO (Either SomeException ()))
+                ≫= \case Left _ → putStrLn "failed to stack update"
+                         Right _ → return()

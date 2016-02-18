@@ -28,28 +28,27 @@ checkIfSucc cmd args =
 
 versionCheck          -- check for git --version
  :: String            -- command to check
-  → [String]          -- arguments
   → IO (Maybe String) -- Path to git in case of success
-versionCheck cmd args = checkIfSucc cmd (args ++ ["--version"])
+versionCheck cmd = checkIfSucc cmd ["--version"]
 
 getGit :: IO String
-getGit = return Nothing ≫= t "git" []
-                        ≫= t "C:/Program Files (x86)/Git/cmd/git.exe" []
-                        ≫= t "C:/Program Files/Git/cmd/git.exe" []
-                        ≫= t "git.cmd" []
+getGit = return Nothing ≫= t "git"
+                        ≫= t "C:/Program Files (x86)/Git/cmd/git.exe"
+                        ≫= t "C:/Program Files/Git/cmd/git.exe"
+                        ≫= t "git.cmd"
                         ≫= \res → return $ fromMaybe "git" res
-  where t :: String → [String] → Maybe String → IO (Maybe String)
-        t x a prev = if isNothing  prev
-                      then versionCheck x a
+  where t :: String → Maybe String → IO (Maybe String)
+        t x prev = if isNothing  prev
+                      then versionCheck x
                       else return prev
 
 getHg :: IO String
-getHg = return Nothing ≫= t "hg" []
-                       ≫= t "hg.cmd" []
+getHg = return Nothing ≫= t "hg"
+                       ≫= t "hg.cmd"
                        ≫= \res → return $ fromMaybe "hg" res
-  where t :: String → [String] → Maybe String → IO (Maybe String)
-        t x a prev = if isNothing  prev
-                      then versionCheck x a
+  where t :: String → Maybe String → IO (Maybe String)
+        t x prev = if isNothing  prev
+                      then versionCheck x
                       else return prev
 
 getEnv :: IO MyEnv
