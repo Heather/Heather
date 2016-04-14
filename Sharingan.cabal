@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       0.9.4
+version:       0.9.5
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Heather@live.ru>
@@ -11,6 +11,7 @@ Executable    sharingan
   Main-Is:    Sharingan.hs
   Other-Modules:
     Amaterasu
+    Sync
     Config
     EnvChecker
     Exec
