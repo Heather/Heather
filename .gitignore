@@ -9,3 +9,4 @@ dist
 *.sublime-project
 *.sublime-workspace
 /*.exe
+/*.lock
