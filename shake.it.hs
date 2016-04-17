@@ -13,8 +13,7 @@ main = shake $ do
     cabal ["configure"]
     cabal ["build"]
 
-  "install" ◉ [sharinganExecutable] ∰
-    cabal ["install"]
+  "install" ∫ cabal ["install"]
 
   "test" ◉ [sharinganExecutable] ∰ do
     rawSystem sharinganExecutable ["--version"] >>= checkExitCode

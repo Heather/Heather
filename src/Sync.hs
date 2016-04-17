@@ -96,44 +96,41 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
                        []  → return ()
               putStrLn ⊲ replicate 80 '_'
 
-list ∷ [String] → IO() -- (＾‿‿＾ *)
-list xs = withConfig $ \ymlx → do
+iterateConfig ∷ [String] → (Int → Repository → IO ()) → IO()
+iterateConfig xs action = withConfig $ \ymlx → do
   jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
   let rsdata = map _getRepository jsdat
       rdd = case xs of [] → rsdata
                        _  → filter (isInfixOf (head xs) . location) rsdata
       maxl = maximum $ map (length . last . splitOn "\\" . location) rdd
-  forM_ rdd $ \repo →
-     let locs = location repo
-         name = last $ splitOn "\\" locs
-         lnam = maxl + 1 - length name
-         sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
-                                           else ""
-         empt = replicate (length sstr) ' '
-         brx  = branches repo
-     in if length brx ≡ 0
-         then printf " - %s\n" locs
-         else do printf "%s: %s (%s) %s" sstr (head brx) locs (task repo)
-                 unless (fromMaybe True (enabled repo))
-                   $ putStr " [Disabled]"
-                 putStrLn ""
-                 forM_ (drop 1 brx) $ printf "%s: %s\n" empt
+  forM_ rdd (action maxl)
+
+list ∷ [String] → IO() -- (＾‿‿＾ *)
+list xs = iterateConfig xs $ \maxl repo →
+  let locs = location repo
+      name = last $ splitOn "\\" locs
+      lnam = maxl + 1 - length name
+      sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
+                                        else ""
+      empt = replicate (length sstr) ' '
+      brx  = branches repo
+  in if length brx ≡ 0
+      then printf " - %s\n" locs
+      else do printf "%s: %s (%s) %s" sstr (head brx) locs (task repo)
+              unless (fromMaybe True (enabled repo))
+               $ putStr " [Disabled]"
+              putStrLn ""
+              forM_ (drop 1 brx) $ printf "%s: %s\n" empt
 
 status ∷ [String] → IO() -- (＾‿‿＾ *)
-status xs = withConfig $ \ymlx → do
-  jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
-  let rsdata = map _getRepository jsdata
-      rdd = case xs of [] → rsdata
-                       _  → filter (isInfixOf (head xs) . location) rsdata
-      maxl = maximum $ map (length . last . splitOn "\\" . location) rdd
-  forM_ rdd $ \repo →
-     let loc  = location repo
-         name = last $ splitOn "\\" loc
-         lnam = maxl + 1 - length name
-         sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
-                                           else ""
-         stat = case positive repo of
-                      Just True  → "OK" ∷ String
-                      Just False → "Errors..."
-                      Nothing    → "?"
-     in printf "%s- %s\n" sstr stat
+status xs = iterateConfig xs $ \maxl repo →
+  let loc  = location repo
+      name = last $ splitOn "\\" loc
+      lnam = maxl + 1 - length name
+      sstr = " - " ⧺ name ⧺ if lnam > 0 then replicate lnam ' '
+                                         else ""
+      stat = case positive repo of
+                  Just True  → "OK" ∷ String
+                  Just False → "Errors..."
+                  Nothing    → "?"
+  in printf "%s- %s\n" sstr stat
