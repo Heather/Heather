@@ -42,34 +42,26 @@ _version = infoOption ("Sharingan " ⧺ showVersion version ⧺ " " ⧺ os)
   ( long "version" <> help "Print version information" )
 
 parser ∷ Parser Args -- ✌(★◇★ )
-parser = Args
-  <$> commonOpts
-  <*> (hsubparser
-      ( command "sync"        (info syncParser
-                              (progDesc "Process synchronization"))
-     <> command "make"        (info (pure MakeSharingan)
-                              (progDesc "Create .sharingan.yml template"))
-     <> command "config"      (info (pure Config)
-                              (progDesc "Edit .sharingan.yml config file"))
-     <> command "defaults"    (info (pure DefaultsConf)
-                              (progDesc "Edit .sharinganDefaults.yml config file"))
-     <> command "list"        (info listParser
-                              (progDesc "List repositories"))
-     <> command "status"      (info statusParser
-                              (progDesc "Sharingan build statuses for repositories"))
-     <> command "add"         (info addParser
-                              (progDesc "Add repository (current path w/o args)"))
-     <> command "delete"      (info deleteParser
-                              (progDesc "Delete repository (current path w/o args)"))
+parser = runA $ proc () → do
+  opts ← asA commonOpts ⤙ ()
+  cmds ← asA $ hsubparser
+      ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
+     <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
+     <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
+     <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
+     <> command "list"        (info listParser            (progDesc "List repositories"))
+     <> command "status"      (info statusParser          (progDesc "Sharingan build statuses for repositories"))
+     <> command "add"         (info addParser             (progDesc "Add repository (current path w/o args)"))
+     <> command "delete"      (info deleteParser          (progDesc "Delete repository (current path w/o args)"))
      <> command "enable"      (info (Enable <$> argument str (metavar "TARGET..."))
-                              (progDesc "Enable repository / repositories"))
+                                                          (progDesc "Enable repository / repositories"))
      <> command "disable"     (info (Disable <$> argument str (metavar "TARGET..."))
-                              (progDesc "Disable repository / repositories"))
+                                                          (progDesc "Disable repository / repositories"))
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-     <> command "depot"       (info (pure Depot)
-                              (progDesc "Get / Update Google depot tools with git and python"))
+     <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
 #endif
-  ) <|> syncParser)
+      ) <|> syncParser ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
+  A _version ⋙ A helper ⤙ Args opts cmds
 
 commonOpts ∷ Parser CommonOpts
 commonOpts = runA $ proc () → do
