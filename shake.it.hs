@@ -13,7 +13,15 @@ main = shake $ do
     cabal ["configure"]
     cabal ["build"]
 
+  "force" ∫ do
+    cabal ["install", "--force-reinstalls", "--only-dependencies"]
+    cabal ["configure"]
+    cabal ["build"]
+
   "install" ∫ cabal ["install"]
+
+  "force-reinstall" ∫
+    cabal ["--force-reinstalls", "install"]
 
   "test" ◉ [sharinganExecutable] ∰ do
     rawSystem sharinganExecutable ["--version"] >>= checkExitCode
