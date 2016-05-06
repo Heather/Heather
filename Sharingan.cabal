@@ -1,5 +1,5 @@
 name:          Sharingan
-version:       1.0.0
+version:       1.0.1
 license:       BSD3
 author:        Heather Cynede
 maintainer:    Heather Cynede <Heather@live.ru>
@@ -16,7 +16,6 @@ Executable    sharingan
     EnvChecker
     Exec
     FileSystem
-    HTTP
     Model
     Paths_Sharingan
     SharinganProcess
@@ -32,14 +31,7 @@ Executable    sharingan
     , yaml
     , vector
     , executable-path
-    , zip-archive
     , filepath
-    , network
-    , conduit
-    , resourcet
-    , http-conduit
-    , conduit-extra
-    , http-types
     , directory
     , bytestring
     , process

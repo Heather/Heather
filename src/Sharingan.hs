@@ -47,19 +47,16 @@ parser = runA $ proc () → do
   cmds ← asA $ hsubparser
       ( command "sync"        (info syncParser            (progDesc "Process synchronization"))
      <> command "make"        (info (pure MakeSharingan)  (progDesc "Create .sharingan.yml template"))
-     <> command "config"      (info (pure Config)         (progDesc "Edit .sharingan.yml config file"))
-     <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit .sharinganDefaults.yml config file"))
-     <> command "list"        (info listParser            (progDesc "List repositories"))
-     <> command "status"      (info statusParser          (progDesc "Sharingan build statuses for repositories"))
-     <> command "add"         (info addParser             (progDesc "Add repository (current path w/o args)"))
-     <> command "delete"      (info deleteParser          (progDesc "Delete repository (current path w/o args)"))
+     <> command "config"      (info (pure Config)         (progDesc "Edit Sharingan Network config"))
+     <> command "defaults"    (info (pure DefaultsConf)   (progDesc "Edit Sharingan Defaults config"))
+     <> command "list"        (info listParser            (progDesc "List Sharingan Network"))
+     <> command "status"      (info statusParser          (progDesc "Display Sharingan build status for Network"))
+     <> command "add"         (info addParser             (progDesc "Add repository to Sharingan Network (current path w/o args)"))
+     <> command "delete"      (info deleteParser          (progDesc "Delete repository from Sharingan Network (current path w/o args)"))
      <> command "enable"      (info (Enable <$> argument str (metavar "TARGET..."))
                                                           (progDesc "Enable repository / repositories"))
      <> command "disable"     (info (Disable <$> argument str (metavar "TARGET..."))
                                                           (progDesc "Disable repository / repositories"))
-#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-     <> command "depot"       (info (pure Depot)          (progDesc "Get / Update Google depot tools with git and python"))
-#endif
       ) <|> syncParser ⤙ () -- ( ◜ ◉﹏◉)◜⌐■-■
   A _version ⋙ A helper ⤙ Args opts cmds
 
@@ -133,9 +130,6 @@ run (Args _ (Delete xs))    = getDC xs
 run (Args _ (Enable  xs))   = enable True xs
 run (Args _ (Disable xs))   = enable False xs
 run (Args opts (Sync so))   = sync opts so
-#if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-run (Args _ Depot)          = depotTools
-#endif
 
 main ∷ IO ()
 main = execParser opts ≫= run
