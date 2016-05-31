@@ -1,20 +1,18 @@
-{-# LANGUAGE
-    UnicodeSyntax
-  , Safe
-  #-}
+{-# LANGUAGE Safe          #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module Trim
   ( trim
   ) where
 
-import Data.Char (isSpace)
+import           Data.Char (isSpace)
 
-trim :: String → String
+trim ∷ String → String
 trim xs = dropSpaceTail "" $ dropWhile isSpace xs
 
-dropSpaceTail :: String → String → String
+dropSpaceTail ∷ String → String → String
 dropSpaceTail _ "" = ""
-dropSpaceTail maybeStuff (x:xs)
-        | isSpace x       = dropSpaceTail (x:maybeStuff) xs
-        | null maybeStuff = x : dropSpaceTail "" xs
-        | otherwise       = reverse maybeStuff ++ x : dropSpaceTail "" xs
+dropSpaceTail maybeStuff (χ:xs)
+  | isSpace χ       = dropSpaceTail (χ:maybeStuff) xs
+  | null maybeStuff = χ : dropSpaceTail "" xs
+  | otherwise       = reverse maybeStuff ++ χ : dropSpaceTail "" xs

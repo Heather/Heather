@@ -1,8 +1,6 @@
-{-# LANGUAGE
-    MultiWayIf
-  , UnicodeSyntax
-  , RankNTypes
-  #-}
+{-# LANGUAGE MultiWayIf    #-}
+{-# LANGUAGE RankNTypes    #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module Config
   ( getConfig
@@ -27,17 +25,17 @@ module Config
   , module Yaml
   ) where
 
-import Yaml
-import Exec
+import           Exec
+import           Yaml
 
-import System.Directory
-import System.Info (os)
-import System.Environment.Executable ( getExecutablePath )
-import System.FilePath(takeDirectory, (</>))
-import System.Environment( getEnv )
-import Control.Monad.IfElse
+import           Control.Monad.IfElse
+import           System.Directory
+import           System.Environment            (getEnv)
+import           System.Environment.Executable (getExecutablePath)
+import           System.FilePath               (takeDirectory, (</>))
+import           System.Info                   (os)
 
-import Data.List
+import           Data.List
 
 getConfig ∷ IO FilePath
 getConfig =
@@ -69,10 +67,10 @@ processDefaultsChecks cfg =
                   (Defaults Nothing Nothing
                             Nothing Nothing)
 
-withConfig :: ∀ β. (FilePath → IO β) → IO β
+withConfig ∷ ∀ β. (FilePath → IO β) → IO β
 withConfig foo = liftM2 (≫) processChecks foo =≪ getConfig
 
-withDefaultsConfig :: ∀ β. (FilePath → IO β) → IO β
+withDefaultsConfig ∷ ∀ β. (FilePath → IO β) → IO β
 withDefaultsConfig foo = liftM2 (≫) processDefaultsChecks foo =≪ getDefaultsConfig
 
 config ∷ IO()
@@ -109,7 +107,7 @@ getD arg = -- Remove stuff from sync
     whenM <| doesFileExist ymlx <|
       do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
          let rsdata = map _getRepository jsdata
-             iio x = isInfixOf arg $ location x
+             iio χ = isInfixOf arg $ location χ
              findx = find iio rsdata
          case findx of
             Just fnd → do yEncode ymlx
@@ -120,18 +118,18 @@ getD arg = -- Remove stuff from sync
 
 getAX ∷ Maybe String → Maybe String → String → IO ()
 getAX Nothing   = getA "rebase"
-getAX (Just t)  = getA t
+getAX (Just τ)  = getA τ
 
 -- add current directory as repository
 getAC ∷ Maybe String → Maybe String → Maybe String → IO ()
-getAC Nothing  t g  = getCurrentDirectory ≫= getAX t g
-getAC (Just x) t g  = getAX t g x
+getAC Nothing  τ η  = getCurrentDirectory ≫= getAX τ η
+getAC (Just χ) τ η  = getAX τ η χ
 
 -- remove current directory from repositories
 getDC ∷ [String] → IO ()
 getDC []     = getCurrentDirectory ≫= getD
-getDC [x]    = getD x
-getDC (x:xs) = getD x >> getDC xs
+getDC [χ]    = getD χ
+getDC (χ:xs) = getD χ >> getDC xs
 
 enable ∷ Bool   -- set enabled/disabled
        → String -- repository path (or part)
@@ -141,9 +139,9 @@ enable en arg =
     whenM <| doesFileExist ymlx <|
       do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
          let rsdata = map _getRepository jsdata
-             fr x = if isInfixOf arg $ location x
-                      then x { enabled = Just en }
-                      else x
+             fr χ = if isInfixOf arg $ location χ
+                      then χ { enabled = Just en }
+                      else χ
          yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
 
 vcsupdate ∷ String -- new vcs
@@ -154,9 +152,9 @@ vcsupdate vcx rep =
    whenM <| doesFileExist ymlx <|
      do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
         let rsdata = map _getRepository jsdata
-            fr x = if rep ≡ location x
-                     then x { vcs = Just vcx }
-                     else x
+            fr χ = if rep ≡ location χ
+                     then χ { vcs = Just vcx }
+                     else χ
         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
 
 hashupdate ∷ String -- new hash
@@ -167,7 +165,7 @@ hashupdate hsh rep =
     whenM <| doesFileExist ymlx <|
       do jsdata ← yDecode ymlx ∷ IO [RepositoryWrapper]
          let rsdata = map _getRepository jsdata
-             fr x = if rep ≡ location x
-                      then x { hash = Just hsh }
-                      else x
+             fr χ = if rep ≡ location χ
+                      then χ { hash = Just hsh }
+                      else χ
          yEncode ymlx $ map (RepositoryWrapper . fr) rsdata

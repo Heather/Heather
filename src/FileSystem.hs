@@ -1,23 +1,23 @@
-{-# LANGUAGE
-    UnicodeSyntax
-  , Safe
-  #-}
+{-# LANGUAGE Safe          #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module FileSystem
   ( copyDir
   ) where
 
-import System.Directory( createDirectory
-                       , getDirectoryContents
-                       , doesDirectoryExist
-                       , copyFile)
-import Control.Monad(forM_)
+import           Control.Monad          (forM_)
+import           System.Directory
+  ( copyFile
+  , createDirectory
+  , doesDirectoryExist
+  , getDirectoryContents
+  )
 
-import System.FilePath((</>))
+import           System.FilePath        ((</>))
 
-import Control.Eternal.Syntax
+import           Control.Eternal.Syntax
 
-copyDir :: FilePath -- source
+copyDir ∷ FilePath -- source
          → FilePath -- destination
          → IO ()
 copyDir src dst = do

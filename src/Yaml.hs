@@ -1,7 +1,5 @@
-{-# LANGUAGE
-    OverloadedStrings
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UnicodeSyntax     #-}
 
 module Yaml
   ( FromJSON
@@ -17,31 +15,31 @@ module Yaml
   , module Model
   ) where
 
-import Model
+import           Model
 
-import Data.Yaml
-import Data.Vector
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Char8       as BS
+import           Data.Vector
+import           Data.Yaml
 
-import Control.Applicative.Unicode
+import           Control.Applicative.Unicode
 
 newtype RepositoryWrapper = RepositoryWrapper
   { _getRepository :: Repository }
 
 instance FromJSON RepositoryWrapper where
-    parseJSON (Object v) = RepositoryWrapper <$>
-      (Repository <$> v .:  "location"
-                    ⊛ v .:  "task"
-                    ⊛ v .:  "branches"
-                    ⊛ v .:  "upstream"
-                    ⊛ v .:? "enabled"     .!= Just True
-                    ⊛ v .:? "root"        .!= Just False
-                    ⊛ v .:? "positive"    .!= Nothing
-                    ⊛ v .:? "clean"       .!= Nothing
-                    ⊛ v .:? "postRebuild" .!= Nothing
-                    ⊛ v .:? "group"       .!= Nothing
-                    ⊛ v .:? "hash"        .!= Nothing
-                    ⊛ v .:? "vcs"         .!= Nothing)
+    parseJSON (Object φ) = RepositoryWrapper <$>
+      (Repository <$> φ .:  "location"
+                    ⊛ φ .:  "task"
+                    ⊛ φ .:  "branches"
+                    ⊛ φ .:  "upstream"
+                    ⊛ φ .:? "enabled"     .!= Just True
+                    ⊛ φ .:? "root"        .!= Just False
+                    ⊛ φ .:? "positive"    .!= Nothing
+                    ⊛ φ .:? "clean"       .!= Nothing
+                    ⊛ φ .:? "postRebuild" .!= Nothing
+                    ⊛ φ .:? "group"       .!= Nothing
+                    ⊛ φ .:? "hash"        .!= Nothing
+                    ⊛ φ .:? "vcs"         .!= Nothing)
     parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Repository from YAML"
 
@@ -65,12 +63,12 @@ newtype SharinganWrapper = SharinganWrapper
   { _getSharingan :: Sharingan }
 
 instance FromJSON SharinganWrapper where
-    parseJSON (Object v) = SharinganWrapper <$>
-      (Sharingan <$> v .:? "language"       .!= Nothing
-                   ⊛ v .:? "env"            .!= Nothing
-                   ⊛ v .:? "before_install" .!= Nothing
-                   ⊛ v .:? "install"        .!= Nothing
-                   ⊛ v .: "script")
+    parseJSON (Object φ) = SharinganWrapper <$>
+      (Sharingan <$> φ .:? "language"       .!= Nothing
+                   ⊛ φ .:? "env"            .!= Nothing
+                   ⊛ φ .:? "before_install" .!= Nothing
+                   ⊛ φ .:? "install"        .!= Nothing
+                   ⊛ φ .: "script")
     parseJSON (Array array) = parseJSON (array ! 0)
     parseJSON _ = error "Can't parse Sharingan from YAML"
 
@@ -86,28 +84,28 @@ newtype DefaultsWrapper = DefaultsWrapper
   { _getDefaults :: Defaults }
 
 instance FromJSON DefaultsWrapper where
-  parseJSON (Object v) = DefaultsWrapper <$> (Defaults <$>
-                         v .:? "quick"         .!= Nothing
-                         ⊛ v .:? "full"        .!= Nothing
-                         ⊛ v .:? "cabalUpdate" .!= Nothing
-                         ⊛ v .:? "stackUpdate" .!= Nothing)
+  parseJSON (Object φ) = DefaultsWrapper <$> (Defaults <$>
+                         φ .:? "quick"         .!= Nothing
+                         ⊛ φ .:? "full"        .!= Nothing
+                         ⊛ φ .:? "cabalUpdate" .!= Nothing
+                         ⊛ φ .:? "stackUpdate" .!= Nothing)
   parseJSON (Array array) = parseJSON (array ! 0)
   parseJSON _ = error "Can't parse Defaults from YAML"
 
 instance ToJSON DefaultsWrapper where
-  toJSON (DefaultsWrapper (Defaults q f c s)) =
-    object [ "quick" .= q
-           , "full"  .= f
-           , "cabalUpdate" .= c
-           , "stackUpdate" .= s
+  toJSON (DefaultsWrapper (Defaults ω ζ γ σ)) =
+    object [ "quick" .= ω
+           , "full"  .= ζ
+           , "cabalUpdate" .= γ
+           , "stackUpdate" .= σ
            ]
 
-yDecode :: FromJSON iFromJSONable ⇒ FilePath → IO iFromJSONable
-yDecode fnm = do
-  ymlData ← BS.readFile fnm
+yDecode ∷ FromJSON λ ⇒ FilePath → IO λ
+yDecode fName = do
+  ymlData ← BS.readFile fName
   return $ case decodeEither ymlData of
-                  Left er → error er
-                  Right r → r
+                  Left ε → error ε
+                  Right ρ → ρ
 
-yEncode :: ToJSON iToJSONable ⇒ FilePath → iToJSONable → IO()
-yEncode fnm dat = BS.writeFile fnm $ encode dat
+yEncode ∷ ToJSON λ ⇒ FilePath → λ → IO()
+yEncode fName δ = BS.writeFile fName $ encode δ

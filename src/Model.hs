@@ -1,7 +1,5 @@
-{-# LANGUAGE
-    UnicodeSyntax
-  , Safe
-  #-}
+{-# LANGUAGE Safe          #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module Model
     ( Repository(..)
@@ -17,31 +15,31 @@ module Model
     , module MX
     ) where
 
-import Control.Monad as MX
-import Control.Applicative as MX
-import Control.Eternal as MX
+import           Control.Applicative as MX
+import           Control.Eternal     as MX
+import           Control.Monad       as MX
 
 data Sharingan = Sharingan
-    { language       ∷ Maybe String
-    , env            ∷ Maybe [String]
-    , beforeInstall  ∷ Maybe [String]
-    , install        ∷ Maybe [String]
-    , script         ∷ [String]
+    { language      ∷ Maybe String
+    , env           ∷ Maybe [String]
+    , beforeInstall ∷ Maybe [String]
+    , install       ∷ Maybe [String]
+    , script        ∷ [String]
     } deriving (Show)
 
 data Repository = Repository
-    { location      ∷ String
-    , task          ∷ String
-    , branches      ∷ [String]
-    , upstream      ∷ String
-    , enabled       ∷ Maybe Bool
-    , root          ∷ Maybe Bool
-    , positive      ∷ Maybe Bool
-    , clean         ∷ Maybe Bool
-    , postRebuild   ∷ Maybe [String]
-    , syncGroup     ∷ Maybe String
-    , hash          ∷ Maybe String
-    , vcs           ∷ Maybe String
+    { location    ∷ String
+    , task        ∷ String
+    , branches    ∷ [String]
+    , upstream    ∷ String
+    , enabled     ∷ Maybe Bool
+    , root        ∷ Maybe Bool
+    , positive    ∷ Maybe Bool
+    , clean       ∷ Maybe Bool
+    , postRebuild ∷ Maybe [String]
+    , syncGroup   ∷ Maybe String
+    , hash        ∷ Maybe String
+    , vcs         ∷ Maybe String
     } deriving (Show, Eq)
 
 data Defaults = Defaults
@@ -55,8 +53,8 @@ data Args = Args CommonOpts Command
       deriving Show
 
 data CommonOpts = CommonOpts
-    { optVerbosity  ∷ Bool
-    , optJobs       ∷ Int
+    { optVerbosity ∷ Bool
+    , optJobs      ∷ Int
     } deriving Show
 
 data AddOpts = AddOpts

@@ -1,32 +1,30 @@
-{-# LANGUAGE
-    MultiWayIf
-  , LambdaCase
-  , CPP
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE MultiWayIf    #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module Shell.Rebase
   ( rebasefork
   ) where
 
-import Data.List.Split
-import Data.Maybe
-import Data.List
+import           Data.List
+import           Data.List.Split
+import           Data.Maybe
 
-import System.Info (os)
-import System.Directory
-import System.FilePath((</>))
+import           System.Directory
+import           System.FilePath  ((</>))
+import           System.Info      (os)
 
-import System.Process
+import           System.Process
 
-import Trim
-import Exec
-import Config
+import           Config
+import           Exec
+import           Trim
 
-import Shell.Helper
+import           Shell.Helper
 
 rebasefork
-  :: String           -- location
+  ∷ String           -- location
    → String           -- branch
    → [String]         -- splitted upstream (splitOn " " $ upstream repo)
    → Bool             -- unsafe
@@ -42,10 +40,10 @@ rebasefork path branch up unsafe frs pC adm rhash myEnv vcx =
     if dirExists then execRebaseFork
                  else return (False, False)
   where
-    gU :: String -- upstream remote and branch as one string
+    gU ∷ String -- upstream remote and branch as one string
     gU = unwords up
 
-    gitX :: IO (Bool, Bool)
+    gitX ∷ IO (Bool, Bool)
     gitX = vd ".git" vcx path $ do
       (myGit, msGit) ← getMyMsGit myEnv adm
       currentbranch  ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
@@ -95,12 +93,12 @@ rebasefork path branch up unsafe frs pC adm rhash myEnv vcx =
                return (True, True)
              _ → return (False, False)
 
-    hgX :: IO (Bool, Bool)
+    hgX ∷ IO (Bool, Bool)
     hgX = vd ".hg" vcx path $ do
       exec $ "hg pull --update --rebase" ⧺ gU
       exec $ "hg push " ⧺ branch ⧺ " --force"
       return (True, True)
 
-    execRebaseFork :: IO (Bool, Bool)
+    execRebaseFork ∷ IO (Bool, Bool)
     execRebaseFork = return (False, False) ≫= chk gitX
                                            ≫= chk hgX

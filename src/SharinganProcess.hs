@@ -1,26 +1,23 @@
-{-# LANGUAGE
-    CPP
-  , MultiWayIf
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE MultiWayIf     #-}
+{-# LANGUAGE UnicodeSyntax  #-}
 
 module SharinganProcess
   ( sharingan
   , amaterasu
   ) where
 
-import Yaml
-import Config
-import Amaterasu
-import Shell.Helper
+import           Yaml
+import           Config
+import           Amaterasu
+import           Shell.Helper
 
-import System.Directory
-import System.FilePath ((</>))
-import System.Exit
+import           System.Directory
+import           System.FilePath ((</>))
+import           System.Exit
 
-import Data.Maybe
-import Data.List
-import Data.Char
+import           Data.Maybe
+import           Data.List
+import           Data.Char
 
 updateStatusIcon ∷ String → Bool → IO()
 updateStatusIcon loc pos =
@@ -71,7 +68,7 @@ sharingan interactive adm shx loc shxi = do
                               ExitSuccess → True
                               _           → False
    else when interactive
-      $ let test fe procx previous = if previous
+      $ let λ fe procx previous = if previous
               then return True
               else doesFileExist (loc </> fe) ≫= \fileExist →
                       when fileExist procx
@@ -98,10 +95,10 @@ sharingan interactive adm shx loc shxi = do
                                 exth $ "idris --install " ⧺ f0
                                 return True
                         else return False
-        in do s ← return False ≫= test "install.bat" (exth "install.bat")
-                               ≫= test "build.bat" (exth "build.bat")
-                               ≫= test "build.cmd" (exth "build.cmd")
-                               ≫= test "Makefile" (exth "make")
+        in do s ← return False ≫= λ "install.bat" (exth "install.bat")
+                               ≫= λ "build.bat" (exth "build.bat")
+                               ≫= λ "build.cmd" (exth "build.cmd")
+                               ≫= λ "Makefile" (exth "make")
                                ≫= cabal
                                ≫= ipkg
               updateStatusIcon loc s

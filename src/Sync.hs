@@ -1,9 +1,7 @@
-{-# LANGUAGE
-    LambdaCase
-  , OverloadedStrings
-  , CPP
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UnicodeSyntax     #-}
 
 module Sync
   ( synchronize
@@ -11,33 +9,33 @@ module Sync
   , status
   ) where
 
-import Despair
-import EnvChecker
-import Tools
-import Config
-import SharinganProcess
+import           Config
+import           Despair
+import           EnvChecker
+import           SharinganProcess
+import           Tools
 
-import Text.Printf
+import           Text.Printf
 
-import System.Info (os)
-import System.Directory
-import System.Exit
-import System.IO
-import System.FilePath ((</>))
+import           System.Directory
+import           System.Exit
+import           System.FilePath   ((</>))
+import           System.Info       (os)
+import           System.IO
 
-import Data.Char (toLower)
-import Data.List
-import Data.Maybe
-import Data.List.Split
-import Data.Version (showVersion)
+import           Data.Char         (toLower)
+import           Data.List
+import           Data.List.Split
+import           Data.Maybe
+import           Data.Version      (showVersion)
 
-import Control.Exception
+import           Control.Exception
 
 synchronize     -- actual synchronization function
   ∷ CommonOpts  -- common options
   → SyncOpts    -- synchronization options
   → IO()
-synchronize _o so = -- ( ◜ ①‿‿① )◜
+synchronize _o σ = -- ( ◜ ①‿‿① )◜
   withDefaultsConfig $ \defx →
    withConfig $ \ymlx → despair $ do
     jsdat ← yDecode ymlx ∷ IO [RepositoryWrapper]
@@ -46,43 +44,43 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
     let dfdat = _getDefaults jfdat
         rsdat = map _getRepository jsdat
 #if ( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-    when (syncFull so ∨ (fromMaybe False (full dfdat))) $ do
+    when (syncFull σ ∨ (fromMaybe False (full dfdat))) $ do
       when (fromMaybe True (updateCabal dfdat)) cabalUpdate
       when (fromMaybe False (updateStack dfdat)) stackUpdate
 #endif
     forM_ rsdat $ sync myenv dfdat where
-  sync :: MyEnv       -- environment
+  sync ∷ MyEnv       -- environment
         → Defaults    -- default options
         → Repository  -- repository (iterating)
         → IO ()
   sync myEnv dfdata repo =
     let loc = location repo
         isenabled = fromMaybe True (enabled repo)
-        frs = syncForce so
-        ntr = syncInteractive so
-        nps = syncNoPush so
-    in when (case syncFilter so of
-                    Nothing  → case syncGroups so of
+        frs = syncForce σ
+        ntr = syncInteractive σ
+        nps = syncNoPush σ
+    in when (case syncFilter σ of
+                    Nothing  → case syncGroups σ of
                                     [] → isenabled
-                                    gx  → case syncGroup repo of
-                                                Just gg → isenabled ∧ (gg ∈ gx)
+                                    θ  → case syncGroup repo of
+                                                Just γ → isenabled ∧ (γ ∈ θ)
                                                 Nothing → False
                     Just snc → isInfixOf <| map toLower snc
                                          <| map toLower loc)
       $ let ups = splitOn " " $ upstream repo
-            snc = sharingan (syncInteractive so) adm
+            snc = sharingan (syncInteractive σ) adm
             cln = fromMaybe False (clean repo)
             adm = fromMaybe False (root repo)
             noq = not $ fromMaybe False (quick dfdata)
             tsk = task repo
             vcx = vcs repo
-            u b = do
+            λ b = do
               printf " - %s : %s\n" loc b
               if nps ∧ tsk /= "pull"
                 then return (True, True)
-                else amaterasu tsk loc b ups (syncUnsafe so)
+                else amaterasu tsk loc b ups (syncUnsafe σ)
                         frs cln adm (hash repo) myEnv vcx
-            eye (_, r) = when ((r ∨ frs) ∧ not (syncQuick so) ∧ noq)
+            eye (_, ρ) = when ((ρ ∨ frs) ∧ not (syncQuick σ) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
                    doesFileExist shx ≫= sharingan
@@ -91,8 +89,8 @@ synchronize _o so = -- ( ◜ ①‿‿① )◜
                       let pshx = psc </> ".sharingan.yml"
                       in doesFileExist pshx≫= snc pshx psc
         in do forM_ (tails (branches repo))
-               $ \case [x] → u x ≫= eye -- Tail
-                       x:_ → u x ≫= (\_ → return ())
+               $ \case [χ] → λ χ ≫= eye -- Tail
+                       χ:_ → λ χ ≫= (\_ → return ())
                        []  → return ()
               putStrLn ⊲ replicate 80 '_'
 

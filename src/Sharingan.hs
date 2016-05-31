@@ -1,43 +1,41 @@
-{-# LANGUAGE
-    LambdaCase
-  , OverloadedStrings
-  , Arrows
-  , CPP
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UnicodeSyntax     #-}
 
-import Despair
-import EnvChecker
-import Tools
-import Config
-import Sync
+import           Config
+import           Despair
+import           EnvChecker
+import           Sync
+import           Tools
 
-import Text.Printf
+import           Text.Printf
 
-import System.Info (os)
-import System.Directory
-import System.Exit
-import System.IO
-import System.FilePath ((</>))
+import           System.Directory
+import           System.Exit
+import           System.FilePath            ((</>))
+import           System.Info                (os)
+import           System.IO
 
-import Data.Char (toLower)
-import Data.List
-import Data.Maybe
-import Data.List.Split
-import Data.Version (showVersion)
+import           Data.Char                  (toLower)
+import           Data.List
+import           Data.List.Split
+import           Data.Maybe
+import           Data.Version               (showVersion)
 
-import Options.Applicative
-import Options.Applicative.Arrows
-import Control.Arrow.Unicode
-import Control.Exception
+import           Control.Arrow.Unicode
+import           Control.Exception
+import           Options.Applicative
+import           Options.Applicative.Arrows
 
 #if __GLASGOW_HASKELL__ <= 702
-import Data.Monoid
-(<>) ∷ Monoid a ⇒ a → a → a
+import           Data.Monoid
+(<>) ∷ Monoid α ⇒ α → α → α
 (<>) = mappend
 #endif
 
-_version ∷ Parser (a → a) -- ( づ ◔‿◔ )づ
+_version ∷ Parser (α → α) -- ( づ ◔‿◔ )づ
 _version = infoOption ("Sharingan " ⧺ showVersion version ⧺ " " ⧺ os)
   ( long "version" <> help "Print version information" )
 
@@ -129,7 +127,7 @@ run (Args _ (Add    as))    = addNew as
 run (Args _ (Delete xs))    = getDC xs
 run (Args _ (Enable  xs))   = enable True xs
 run (Args _ (Disable xs))   = enable False xs
-run (Args opts (Sync so))   = sync opts so
+run (Args opts (Sync σ))   = sync opts σ
 
 main ∷ IO ()
 main = execParser opts ≫= run
@@ -138,24 +136,24 @@ main = execParser opts ≫= run
                      <> header "Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]" )
 
 addNew ∷ AddOpts → IO ()
-addNew ao = getAC ( sFilter ao )
-                  ( sType   ao )
-                  ( sGroup  ao )
+addNew α = getAC ( sFilter α )
+                 ( sType   α )
+                 ( sGroup  α )
 
 sync           -- check locking file and process synchronization
   ∷ CommonOpts -- common options
   → SyncOpts   -- synchronization options
   → IO ()
-sync o so = do user ← getAppUserDataDirectory "sharingan.lock"
-               lock ← doesFileExist user
-               let runWithBlock = withFile user WriteMode (do_program (synchronize o so))
-                                        `finally` removeFile user
-               if lock then do putStrLn "There is already one instance of this program running."
-                               putStrLn "Remove lock and start application? (Y/N)"
-                               hFlush stdout
-                               answer ← getLine
-                               when (answer ∈ ["Y", "y"]) runWithBlock
-                       else runWithBlock
+sync o σ = do user ← getAppUserDataDirectory "sharingan.lock"
+              lock ← doesFileExist user
+              let runWithBlock = withFile user WriteMode (do_program (synchronize o σ))
+                                      `finally` removeFile user
+              if lock then do putStrLn "There is already one instance of this program running."
+                              putStrLn "Remove lock and start application? (Y/N)"
+                              hFlush stdout
+                              answer ← getLine
+                              when (answer ∈ ["Y", "y"]) runWithBlock
+                      else runWithBlock
   where do_program ∷ IO() → Handle → IO()
         do_program gogo _ = gogo
 

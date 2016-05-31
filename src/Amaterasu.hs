@@ -1,9 +1,7 @@
-{-# LANGUAGE
-    MultiWayIf
-  , LambdaCase
-  , CPP
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE MultiWayIf    #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module Amaterasu
   ( amaterasu
@@ -11,26 +9,26 @@ module Amaterasu
   , module Exec
   ) where
 
-import Data.List.Split
-import Data.Maybe
-import Data.List
+import           Data.List
+import           Data.List.Split
+import           Data.Maybe
 
-import System.Info (os)
-import System.Directory
-import System.FilePath((</>))
+import           System.Directory
+import           System.FilePath  ((</>))
+import           System.Info      (os)
 
-import System.Process
+import           System.Process
 
-import Trim
-import Exec
-import Config
+import           Config
+import           Exec
+import           Trim
 
-import Shell.Helper
-import Shell.Pull
-import Shell.Rebase
+import           Shell.Helper
+import           Shell.Pull
+import           Shell.Rebase
 
 amaterasu
-  :: String           --repo task
+  ∷ String           --repo task
    → String           -- location
    → String           -- branch
    → [String]         -- splitted upstream (splitOn " " $ upstream repo)

@@ -1,10 +1,10 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
-import Shake.It.Off
-import System.Process
-import Control.Monad
+import           Control.Monad
+import           Shake.It.Off
+import           System.Process
 
-main :: IO ()
+main ∷ IO ()
 main = shake $ do
   "clean" ∫ cabal ["clean"]
 
@@ -27,8 +27,8 @@ main = shake $ do
     rawSystem sharinganExecutable ["--version"] >>= checkExitCode
     return ()
 
- where buildPath :: String
+ where buildPath ∷ String
        buildPath = "dist/build/Sharingan"
 
-       sharinganExecutable :: String
+       sharinganExecutable ∷ String
        sharinganExecutable = buildPath </> "sharingan.exe"

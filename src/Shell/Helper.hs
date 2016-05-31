@@ -1,9 +1,7 @@
-{-# LANGUAGE
-    MultiWayIf
-  , LambdaCase
-  , CPP
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE MultiWayIf     #-}
+{-# LANGUAGE LambdaCase     #-}
+{-# LANGUAGE CPP            #-}
+{-# LANGUAGE UnicodeSyntax  #-}
 
 module Shell.Helper
   ( setEnv
@@ -13,22 +11,22 @@ module Shell.Helper
   , ifadmin
   ) where
 
-import Data.List.Split
-import Data.Maybe
-import Data.List
+import           Data.List.Split
+import           Data.Maybe
+import           Data.List
 
-import System.Info (os)
-import System.Directory
-import System.FilePath((</>))
+import           System.Info (os)
+import           System.Directory
+import           System.FilePath((</>))
 
-import System.Process
+import           System.Process
 
-import Trim
-import Exec
-import Config
+import           Trim
+import           Exec
+import           Config
 
 #if !( defined(mingw32_HOST_OS) || defined(__MINGW32__) )
-import System.Posix.User
+import           System.Posix.User
 #endif
 
 setEnv :: String -- environment variable and value (x=5)

@@ -1,32 +1,30 @@
-{-# LANGUAGE
-    MultiWayIf
-  , LambdaCase
-  , CPP
-  , UnicodeSyntax
-  #-}
+{-# LANGUAGE CPP           #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE MultiWayIf    #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 module Shell.Pull
   ( pull
   ) where
 
-import Data.List.Split
-import Data.Maybe
-import Data.List
+import           Data.List
+import           Data.List.Split
+import           Data.Maybe
 
-import System.Info (os)
-import System.Directory
-import System.FilePath((</>))
+import           System.Directory
+import           System.FilePath  ((</>))
+import           System.Info      (os)
 
-import System.Process
+import           System.Process
 
-import Trim
-import Exec
-import Config
+import           Config
+import           Exec
+import           Trim
 
-import Shell.Helper
+import           Shell.Helper
 
 pull
-  :: String           -- location
+  ∷ String           -- location
    → String           -- branch
    → [String]         -- splitted upstream (splitOn " " $ upstream repo)
    → Bool             -- unsafe
@@ -42,7 +40,7 @@ pull path branch _ unsafe frs processClean adm rhash myEnv vcx =
       if dirExists then execPull
                    else return (False, False)
   where
-    gitX :: IO (Bool, Bool)
+    gitX ∷ IO (Bool, Bool)
     gitX = vd ".git" vcx path $ do
       (myGit, msGit) ← getMyMsGit myEnv adm
       currentbranch  ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
@@ -75,11 +73,11 @@ pull path branch _ unsafe frs processClean adm rhash myEnv vcx =
              else return (True, False)
        _ → return (False, False)
 
-    hgX :: IO (Bool, Bool)
+    hgX ∷ IO (Bool, Bool)
     hgX = vd ".hg" vcx path $ do
       exec "hg pull --update"
       return (True, True)
 
-    execPull :: IO (Bool, Bool)
+    execPull ∷ IO (Bool, Bool)
     execPull = return (False, False) ≫= chk gitX
                                      ≫= chk hgX
