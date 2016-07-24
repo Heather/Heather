@@ -13,6 +13,8 @@ main = shake $ do
     cabal ["configure"]
     cabal ["build"]
 
+  "stack" ∫ stack ["build"]
+
   "force" ∫ do
     cabal ["install", "--force-reinstalls", "--only-dependencies"]
     cabal ["configure"]

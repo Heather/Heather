@@ -117,13 +117,13 @@ getD arg = -- Remove stuff from sync
             Nothing → putStrLn $ arg ⧺ " repo not found"
 
 getAX ∷ Maybe String → Maybe String → String → IO ()
-getAX Nothing   = getA "rebase"
-getAX (Just τ)  = getA τ
+getAX Nothing  = getA "rebase"
+getAX (Just τ) = getA τ
 
 -- add current directory as repository
 getAC ∷ Maybe String → Maybe String → Maybe String → IO ()
-getAC Nothing  τ η  = getCurrentDirectory ≫= getAX τ η
-getAC (Just χ) τ η  = getAX τ η χ
+getAC Nothing  τ η = getCurrentDirectory ≫= getAX τ η
+getAC (Just χ) τ η = getAX τ η χ
 
 -- remove current directory from repositories
 getDC ∷ [String] → IO ()

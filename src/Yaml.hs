@@ -104,7 +104,7 @@ yDecode ∷ FromJSON λ ⇒ FilePath → IO λ
 yDecode fName = do
   ymlData ← BS.readFile fName
   return $ case decodeEither ymlData of
-                  Left ε → error ε
+                  Left ε  → error ε
                   Right ρ → ρ
 
 yEncode ∷ ToJSON λ ⇒ FilePath → λ → IO()

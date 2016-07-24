@@ -1,17 +1,4 @@
 cmd: shake
 args:
- - install
-name: shake install
-targets:
-  force:
-    cmd: shake
-    args:
-      - -f
-      - force
-    name: force rebuild
-  force-reinstall:
-    cmd: shake
-    args:
-      - -f
-      - force-reinstalls
-    name: force reinstall
+ - stack
+name: shake stack build

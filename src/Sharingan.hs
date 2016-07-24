@@ -118,15 +118,15 @@ syncOpts = runA $ proc () → do -- ԅ(O‿O ԅ )
                       }
 
 run ∷ Args → IO () -- (＠ ・‿‿・)
-run (Args _ MakeSharingan)  = mkSharingan
-run (Args _ Config)         = config
-run (Args _ DefaultsConf)   = defaultsConfig
-run (Args _ (List   xs))    = list xs
-run (Args _ (Status xs))    = status xs
-run (Args _ (Add    as))    = addNew as
-run (Args _ (Delete xs))    = getDC xs
-run (Args _ (Enable  xs))   = enable True xs
-run (Args _ (Disable xs))   = enable False xs
+run (Args _ MakeSharingan) = mkSharingan
+run (Args _ Config)        = config
+run (Args _ DefaultsConf)  = defaultsConfig
+run (Args _ (List   xs))   = list xs
+run (Args _ (Status xs))   = status xs
+run (Args _ (Add    as))   = addNew as
+run (Args _ (Delete xs))   = getDC xs
+run (Args _ (Enable  xs))  = enable True xs
+run (Args _ (Disable xs))  = enable False xs
 run (Args opts (Sync σ))   = sync opts σ
 
 main ∷ IO ()
