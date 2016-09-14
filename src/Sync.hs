@@ -68,9 +68,8 @@ synchronize _o σ = -- ( ◜ ①‿‿① )◜
                     Just snc → isInfixOf <| map toLower snc
                                          <| map toLower loc)
       $ let ups = splitOn " " $ upstream repo
-            snc = sharingan (syncInteractive σ) adm
+            snc = sharingan (syncInteractive σ)
             cln = fromMaybe False (clean repo)
-            adm = fromMaybe False (root repo)
             noq = not $ fromMaybe False (quick dfdata)
             tsk = task repo
             vcx = vcs repo
@@ -79,12 +78,12 @@ synchronize _o σ = -- ( ◜ ①‿‿① )◜
               if nps ∧ tsk /= "pull"
                 then return (True, True)
                 else amaterasu tsk loc b ups (syncUnsafe σ)
-                        frs cln adm (hash repo) myEnv vcx
+                        frs cln (hash repo) myEnv vcx
             eye (_, ρ) = when ((ρ ∨ frs) ∧ not (syncQuick σ) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
                    doesFileExist shx ≫= sharingan
-                        ntr adm shx loc
+                                          ntr shx loc
                    when (isJust ps) $ forM_ (fromJust ps) $ \psc →
                       let pshx = psc </> ".sharingan.yml"
                       in doesFileExist pshx≫= snc pshx psc

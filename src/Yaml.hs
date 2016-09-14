@@ -33,7 +33,6 @@ instance FromJSON RepositoryWrapper where
                     ⊛ φ .:  "branches"
                     ⊛ φ .:  "upstream"
                     ⊛ φ .:? "enabled"     .!= Just True
-                    ⊛ φ .:? "root"        .!= Just False
                     ⊛ φ .:? "positive"    .!= Nothing
                     ⊛ φ .:? "clean"       .!= Nothing
                     ⊛ φ .:? "postRebuild" .!= Nothing
@@ -45,13 +44,12 @@ instance FromJSON RepositoryWrapper where
 
 instance ToJSON RepositoryWrapper where
    toJSON (RepositoryWrapper (Repository loca tsk br up enb
-                                         root pos cln pr gr hs
+                                         pos cln pr gr hs
                       vc)) = object [ "location"     .= loca
                                     , "task"         .= tsk
                                     , "branches"     .= br
                                     , "upstream"     .= up
                                     , "enabled"      .= enb
-                                    , "root"         .= root
                                     , "positive"     .= pos
                                     , "clean"        .= cln
                                     , "postRebuild"  .= pr

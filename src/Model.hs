@@ -33,7 +33,6 @@ data Repository = Repository
     , branches    ∷ [String]
     , upstream    ∷ String
     , enabled     ∷ Maybe Bool
-    , root        ∷ Maybe Bool
     , positive    ∷ Maybe Bool
     , clean       ∷ Maybe Bool
     , postRebuild ∷ Maybe [String]

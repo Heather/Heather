@@ -1,4 +1,5 @@
 {-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE MultiWayIf    #-}
 
 import           Control.Monad
 import           Shake.It.Off
@@ -30,7 +31,9 @@ main = shake $ do
     return ()
 
  where buildPath ∷ String
-       buildPath = "dist/build/Sharingan"
+       buildPath = "dist/build/sharingan"
 
        sharinganExecutable ∷ String
-       sharinganExecutable = buildPath </> "sharingan.exe"
+       sharinganExecutable =
+         if | os ∈ ["win32", "mingw32", "cygwin32"] → buildPath </> "sharingan.exe"
+            | otherwise → buildPath </> "sharingan"

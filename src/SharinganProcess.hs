@@ -31,13 +31,12 @@ updateStatusIcon loc pos =
         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
     in doesFileExist ymlx ≫= ymlprocess
 
-sharingan ∷ Bool → Bool → String → String → Bool → IO()
-sharingan interactive adm shx loc shxi = do
-  prefix ← ifadmin adm
+sharingan ∷ Bool → String → String → Bool → IO()
+sharingan interactive shx loc shxi = do
   let exth :: String → IO()
-      exth cmd = setCurrentDirectory loc ≫ sys (prefix ++ cmd)
+      exth cmd = setCurrentDirectory loc ≫ sys cmd
       rxth :: String → IO ExitCode
-      rxth cmd = setCurrentDirectory loc ≫ system (prefix ++ cmd)
+      rxth cmd = setCurrentDirectory loc ≫ system cmd
   if shxi then
    do jsyncDatax ← yDecode shx ∷ IO SharinganWrapper
       let syncDatax = _getSharingan jsyncDatax

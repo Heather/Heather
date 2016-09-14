@@ -30,22 +30,21 @@ rebasefork
    → Bool             -- unsafe
    → Bool             -- force
    → Bool             -- clean
-   → Bool             -- admin (sudo)
    → Maybe String     -- Hash
    → MyEnv            -- environment
    → Maybe String     -- VCS
    → IO (Bool, Bool)  -- success & continue
-rebasefork path branch up unsafe frs pC adm rhash myEnv vcx =
+rebasefork path branch up unsafe frs pC rhash myEnv vcx =
   doesDirectoryExist path ≫= \dirExists →
     if dirExists then execRebaseFork
                  else return (False, False)
   where
-    gU ∷ String -- upstream remote and branch as one string
-    gU = unwords up
+    remoteSpaceBranch ∷ String -- upstream remote and branch as one string
+    remoteSpaceBranch = unwords up
 
-    gitX ∷ IO (Bool, Bool)
-    gitX = vd ".git" vcx path $ do
-      (myGit, msGit) ← getMyMsGit myEnv adm
+    gitRebase ∷ IO (Bool, Bool)
+    gitRebase = vd ".git" vcx path $ do
+      let (myGit, msGit) = getMyMsGit myEnv
       currentbranch  ← readProcess myGit ["rev-parse", "--abbrev-ref", "HEAD"] []
       let cbr = trim currentbranch
           whe c s = when c $ exec s
@@ -86,19 +85,19 @@ rebasefork path branch up unsafe frs pC adm rhash myEnv vcx =
                putStrLn $ "Local: "  ⧺ locloc
                whe (remloc ≢ locloc ∨ frs) $ msGit ⧺ " pull origin " ⧺ branch
                when (remloc ≢ remote ∨ frs)
-                 $ do exec $ msGit ⧺ " pull --rebase " ⧺ gU
+                 $ do exec $ msGit ⧺ " pull --rebase " ⧺ remoteSpaceBranch
                       exec $ msGit ⧺ " push --force origin "
                                    ⧺ branch
                       hashupdate remote path
                return (True, True)
              _ → return (False, False)
 
-    hgX ∷ IO (Bool, Bool)
-    hgX = vd ".hg" vcx path $ do
-      exec $ "hg pull --update --rebase" ⧺ gU
+    hgRebase ∷ IO (Bool, Bool)
+    hgRebase = vd ".hg" vcx path $ do
+      exec $ "hg pull --update --rebase" ⧺ remoteSpaceBranch
       exec $ "hg push " ⧺ branch ⧺ " --force"
       return (True, True)
 
     execRebaseFork ∷ IO (Bool, Bool)
-    execRebaseFork = return (False, False) ≫= chk gitX
-                                           ≫= chk hgX
+    execRebaseFork = return (False, False) ≫= chk gitRebase
+                                           ≫= chk hgRebase
