@@ -1,4 +1,4 @@
 cmd: shake
 args:
- - stack
-name: shake stack build
+ - shake
+name: shake
