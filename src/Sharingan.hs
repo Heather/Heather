@@ -7,7 +7,7 @@
 import           Config
 import           Despair
 import           EnvChecker
-import           Sync
+import           Sync                       (list, status, synchronize)
 import           Tools
 
 import           Text.Printf

@@ -56,14 +56,14 @@ synchronize _o σ = -- ( ◜ ①‿‿① )◜
   sync myEnv dfdata repo =
     let loc = location repo
         isenabled = fromMaybe True (enabled repo)
-        frs = syncForce σ
-        ntr = syncInteractive σ
-        nps = syncNoPush σ
+        interactive = syncInteractive σ
+        nopush = syncNoPush σ
+        force = syncForce σ
     in when (case syncFilter σ of
                     Nothing  → case syncGroups σ of
                                     [] → isenabled
                                     θ  → case syncGroup repo of
-                                                Just γ → isenabled ∧ (γ ∈ θ)
+                                                Just γ  → isenabled ∧ (γ ∈ θ)
                                                 Nothing → False
                     Just snc → isInfixOf <| map toLower snc
                                          <| map toLower loc)
@@ -75,15 +75,15 @@ synchronize _o σ = -- ( ◜ ①‿‿① )◜
             vcx = vcs repo
             λ b = do
               printf " - %s : %s\n" loc b
-              if nps ∧ tsk /= "pull"
+              if nopush ∧ tsk /= "pull"
                 then return (True, True)
                 else amaterasu tsk loc b ups (syncUnsafe σ)
-                        frs cln (hash repo) myEnv vcx
-            eye (_, ρ) = when ((ρ ∨ frs) ∧ not (syncQuick σ) ∧ noq)
+                        force cln (hash repo) myEnv vcx
+            eye (_, ρ) = when ((ρ ∨ force) ∧ not (syncQuick σ) ∧ noq)
               $ do let shx = loc </> ".sharingan.yml"
                        ps  = postRebuild repo
-                   doesFileExist shx ≫= sharingan
-                                          ntr shx loc
+                   doesFileExist shx ≫=
+                     sharingan interactive shx loc
                    when (isJust ps) $ forM_ (fromJust ps) $ \psc →
                       let pshx = psc </> ".sharingan.yml"
                       in doesFileExist pshx≫= snc pshx psc

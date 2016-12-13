@@ -31,7 +31,11 @@ updateStatusIcon loc pos =
         yEncode ymlx $ map (RepositoryWrapper . fr) rsdata
     in doesFileExist ymlx ≫= ymlprocess
 
-sharingan ∷ Bool → String → String → Bool → IO()
+sharingan ∷ Bool    -- interactive
+          → String  -- .sharingan.yml path
+          → String  -- repository location
+          → Bool    -- .sharingan.yml exists
+          → IO()
 sharingan interactive shx loc shxi = do
   let exth :: String → IO()
       exth cmd = setCurrentDirectory loc ≫ sys cmd
@@ -66,8 +70,8 @@ sharingan interactive shx loc shxi = do
       updateStatusIcon loc $ case result of
                               ExitSuccess → True
                               _           → False
-   else when interactive
-      $ let λ fe procx previous = if previous
+   else if interactive then
+        let λ fe procx previous = if previous
               then return True
               else doesFileExist (loc </> fe) ≫= \fileExist →
                       when fileExist procx
@@ -101,3 +105,5 @@ sharingan interactive shx loc shxi = do
                                ≫= cabal
                                ≫= ipkg
               updateStatusIcon loc s
+      {- if not interactive and there is no .sharingan.yml -}
+      else updateStatusIcon loc True
