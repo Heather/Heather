@@ -20,6 +20,7 @@ import           System.IO
 
 import           Data.Char                  (toLower)
 import           Data.List
+import           Data.Monoid
 import           Data.List.Split
 import           Data.Maybe
 import           Data.Version               (showVersion)
