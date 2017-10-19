@@ -7,9 +7,6 @@ Sharingan
 <br/>
 [![Twitter][]](http://www.twitter.com/Cynede)
 [![Donate Bitcoin](https://img.shields.io/badge/donate-bitcoin-orange.svg)](http://heather.github.io/donate-bitcoin/)
-
- - Forbidden in Heaven and useless in Hell
-
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
 
 a bit outdated per-repository config example (`.sharingan.yml`):
