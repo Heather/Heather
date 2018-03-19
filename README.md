@@ -35,8 +35,6 @@ Available commands:
 
 ```
 
-![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
-
 a bit outdated per-repository config example (`.sharingan.yml`):
 ```yaml
 script:
