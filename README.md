@@ -6,6 +6,36 @@ Sharingan
 ![Build Status](https://codeship.com/projects/6b402750-06c3-0133-231f-2aa9a23a545f/status?branch=master)
 <br/>
 [![Twitter][]](http://www.twitter.com/Cynede)
+
+```
+Uchiha Dojutsu Kekkei Genkai [Mirror Wheel Eye]
+
+Usage: sharingan [-v|--verbose] [-j|--jobs JOBS] ([COMMAND] | [--full]
+                 [-f|--force] [-u|--unsafe] [-q|--quick] [-i|--interactive]
+                 [--no-push] [FILTER] [-g|--group GROUPS]) [--version]
+
+Available options:
+  -v,--verbose             Set verbosity to LEVEL
+  -j,--jobs JOBS           Maximum parallel jobs
+  --version                Print version information
+  -h,--help                Show this help text
+
+Available commands:
+  sync                     Process synchronization
+  make                     Create .sharingan.yml template
+  config                   Edit Sharingan Network config
+  defaults                 Edit Sharingan Defaults config
+  list                     List Sharingan Network
+  status                   Display Sharingan build status for Network
+  add                      Add repository to Sharingan Network (current path w/o
+                           args)
+  delete                   Delete repository from Sharingan Network (current
+                           path w/o args)
+  enable                   Enable repository / repositories
+  disable                  Disable repository / repositories
+
+```
+
 ![](http://fc01.deviantart.net/fs70/f/2011/188/d/2/ember_mangekyou_sharingan_by_jinseiasakura-d3lcdmk.png)
 
 a bit outdated per-repository config example (`.sharingan.yml`):
