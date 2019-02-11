@@ -4,6 +4,8 @@ VCS Synchronization Utility / Automatic rebase / Build
 [![Build Status](https://travis-ci.org/Heather/Sharingan.png?branch=master)](https://travis-ci.org/Heather/Sharingan)
 [![Build status](https://ci.appveyor.com/api/projects/status/2b84cqnvh46xxpnv?svg=true)](https://ci.appveyor.com/project/Heather/sharingan)
 ![Build Status](https://codeship.com/projects/6b402750-06c3-0133-231f-2aa9a23a545f/status?branch=master)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/Heather/Sharingan.svg)](http://isitmaintained.com/project/Heather/Sharingan "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/Heather/Sharingan.svg)](http://isitmaintained.com/project/Heather/Sharingan "Percentage of issues still open")
  [![Twitter][]](http://www.twitter.com/Cynede)
 
 ```
